@@ -134,44 +134,172 @@
       white-space: nowrap;
     }
 
-    /* Shipping section styling */
-    .shipping-section p {
-      margin: 4px 0;
+    /* Main content and breadcrumb adjustments */
+    .main-content {
+      padding: 0;
     }
 
-    .shipping-section .pickup-type,
-    .shipping-section .pickup-place,
-    .shipping-section .pickup-time {
-      font-weight: 500;
+    .breadcrumb {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 16px 0;
     }
 
-    /* Inline seller info styling */
-    .seller-inline-info {
+    /* Main 3-column layout */
+    .item-page-main {
+      max-width: 1200px;
+      margin: 24px auto 40px;
+      padding: 0 16px;
+    }
+
+    .item-main-layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 1.25fr) minmax(340px, 1.6fr) minmax(260px, 1.1fr);
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    /* Left Column - Image Gallery + 商品資訊 */
+    .item-image-main {
+      background: #f3f4f6;
+      border-radius: 16px;
+      padding: 16px;
+      min-height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .item-image-main .main-image {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    .item-image-main .image-badge {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      background: #2563eb;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .item-thumbnails {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .item-thumbnails .thumbnail {
+      flex: 1;
+      min-width: 0;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      background: #f3f4f6;
+      padding: 0;
+    }
+
+    .item-thumbnails .thumbnail.active {
+      border-color: #2563eb;
+    }
+
+    .item-thumbnails .thumbnail img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .item-info-card {
+      margin-top: 20px;
+      padding: 16px 20px;
+      border-radius: 16px;
+      background: #f5f5f5;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #111827;
+    }
+
+    .item-info-list {
+      margin: 0;
+      padding: 0;
+    }
+
+    .item-info-row {
+      display: flex;
+      padding: 4px 0;
+      font-size: 14px;
+    }
+
+    .item-info-row dt {
+      width: 80px;
+      color: #6b7280;
+      flex-shrink: 0;
+    }
+
+    .item-info-row dd {
+      margin: 0;
+      color: #111827;
+      flex: 1;
+    }
+
+    .item-info-tags dd {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #e0edff;
+      color: #2563eb;
+      font-size: 13px;
+    }
+
+    /* Center Column - Title, Seller, Trade Modes, Rules, Description */
+    .item-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #111827;
+      line-height: 1.3;
+    }
+
+    .seller-inline {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-top: 8px;
+      gap: 12px;
       margin-bottom: 16px;
-      font-size: 14px;
-      color: #555;
     }
 
     .seller-inline-left {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .seller-avatar-small {
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: #e0e7ff;
+      background: #e0edff;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 600;
-      color: #1d4ed8;
+      color: #2563eb;
       flex-shrink: 0;
     }
 
@@ -187,8 +315,8 @@
 
     .seller-inline-links {
       display: flex;
-      flex-wrap: wrap;
       gap: 8px;
+      flex-wrap: wrap;
     }
 
     .seller-link-button {
@@ -197,19 +325,226 @@
       padding: 0;
       font-size: 13px;
       color: #2563eb;
-      cursor: pointer;
       text-decoration: underline;
+      cursor: pointer;
     }
 
     .seller-link-button:hover {
       color: #1d4ed8;
     }
 
-    @media (max-width: 768px) {
-      .seller-inline-info {
+    .trade-mode-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .trade-mode-badges .badge {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      background: #f3f4f6;
+      color: #6b7280;
+      border: 1px solid #e5e7eb;
+    }
+
+    .trade-mode-badges .badge.active {
+      background: #e0edff;
+      color: #2563eb;
+      border-color: #2563eb;
+    }
+
+    .trade-rule-card {
+      background: #e5f0ff;
+      border-radius: 16px;
+      padding: 16px 20px;
+      border-left: 4px solid #2563eb;
+      margin-bottom: 24px;
+    }
+
+    .trade-rule-card h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      color: #2563eb;
+    }
+
+    .trade-rule-card p {
+      margin: 4px 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #111827;
+    }
+
+    .item-description-section {
+      margin-bottom: 24px;
+    }
+
+    .item-description-section .section-title {
+      margin-bottom: 12px;
+    }
+
+    .item-description-section p,
+    .item-description-section li {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #374151;
+    }
+
+    .item-description-section ul {
+      margin: 8px 0;
+      padding-left: 24px;
+    }
+
+    .view-stats {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    /* Right Column - Sticky Action Card */
+    .item-col-right {
+      position: sticky;
+      top: 100px;
+    }
+
+    .action-card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      padding: 20px 20px 16px;
+    }
+
+    .action-price-block {
+      margin-bottom: 12px;
+    }
+
+    .action-price-label {
+      font-size: 13px;
+      color: #6b7280;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .action-price {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2563eb;
+    }
+
+    .action-quantity {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .action-quantity label {
+      color: #374151;
+    }
+
+    .action-quantity select {
+      padding: 6px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+    }
+
+    .action-buttons {
+      margin-bottom: 16px;
+    }
+
+    .action-buttons button {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+
+    .btn-primary {
+      padding: 10px 0;
+      border-radius: 999px;
+      border: none;
+      background: #2563eb;
+      color: #ffffff;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-outline {
+      padding: 10px 0;
+      border-radius: 999px;
+      border: 1px solid #2563eb;
+      background: #ffffff;
+      color: #2563eb;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    .btn-outline:hover {
+      background: #eff6ff;
+    }
+
+    .trade-hint {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .action-divider {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 16px 0;
+    }
+
+    .pickup-section h4 {
+      font-size: 14px;
+      margin: 0 0 4px 0;
+      color: #111827;
+      font-weight: 600;
+    }
+
+    .pickup-section p {
+      font-size: 14px;
+      color: #374151;
+      margin: 0;
+    }
+
+    /* Responsive behavior */
+    @media (max-width: 960px) {
+      .item-main-layout {
+        grid-template-columns: minmax(280px, 1.4fr) minmax(280px, 1.6fr);
+      }
+      .item-col-right {
+        position: static;
+        grid-column: 1 / -1;
+        margin-top: 24px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .item-main-layout {
+        grid-template-columns: 1fr;
+      }
+      .item-col-left,
+      .item-col-center,
+      .item-col-right {
+        grid-column: 1 / -1;
+      }
+      .seller-inline {
         flex-direction: column;
         align-items: flex-start;
-        gap: 8px;
       }
     }
   </style>
@@ -240,11 +575,11 @@
       <a href="/">首頁</a> / <a href="/category/電玩遊戲">電玩遊戲</a> / <a href="/category/電玩遊戲/遊戲主機">遊戲主機</a>
     </div>
 
-    <div class="item-layout">
-      <!-- Left Column - Image Gallery -->
-      <div class="item-column-left">
-        <div class="image-gallery">
-          <div class="main-image-container">
+    <div class="item-page-main">
+      <div class="item-main-layout">
+        <!-- Left Column - Image Gallery + 商品資訊 -->
+        <div class="item-col-left">
+          <div class="item-image-main">
             <img
               id="main-image"
               src="https://via.placeholder.com/600x600/0064D2/FFFFFF?text=Nintendo+Switch+OLED"
@@ -253,7 +588,8 @@
             />
             <div class="image-badge">九成新</div>
           </div>
-          <div class="thumbnail-strip">
+
+          <div class="item-thumbnails">
             <button class="thumbnail active" onclick="changeImage(0)">
               <img src="https://via.placeholder.com/150/0064D2/FFFFFF?text=1" alt="View 1" />
             </button>
@@ -267,153 +603,131 @@
               <img src="https://via.placeholder.com/150/002855/FFFFFF?text=4" alt="View 4" />
             </button>
           </div>
-        </div>
 
-        <div class="item-attributes">
-          <table class="attributes-table">
-            <tbody>
-              <tr>
-                <td class="attr-label">商品狀況：</td>
-                <td>九成新</td>
-              </tr>
-              <tr>
-                <td class="attr-label">所在地：</td>
-                <td>台北市信義區</td>
-              </tr>
-              <tr>
-                <td class="attr-label">庫存數量：</td>
-                <td>1 件</td>
-              </tr>
-              <tr>
-                <td class="attr-label">標籤：</td>
-                <td>
-                  <div class="tags">
-                    <span class="tag">Nintendo</span>
-                    <span class="tag">Switch</span>
-                    <span class="tag">OLED</span>
-                    <span class="tag">遊戲主機</span>
-                    <span class="tag">二手</span>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Center Column - Product Info -->
-      <div class="item-column-center">
-        <h1 class="item-title">Nintendo Switch OLED 白色主機 九成新</h1>
-
-        <div class="seller-inline-info">
-          <div class="seller-inline-left">
-            <div class="seller-avatar-small">
-              <span>G</span>
-            </div>
-            <div class="seller-inline-text">
-              <div class="seller-name-row">
-                <span class="seller-name">game_lover_2024</span>
-                <span class="seller-count">(127)</span>
+          <section class="item-info-card">
+            <h3 class="section-title">商品資訊</h3>
+            <dl class="item-info-list">
+              <div class="item-info-row">
+                <dt>商品狀況：</dt>
+                <dd>九成新</dd>
               </div>
-              <div class="seller-rating-row">
-                <span class="seller-rating">99.9% 好評</span>
+              <div class="item-info-row">
+                <dt>所在地：</dt>
+                <dd>台北市信義區</dd>
+              </div>
+              <div class="item-info-row">
+                <dt>庫存數量：</dt>
+                <dd>1 件</dd>
+              </div>
+              <div class="item-info-row item-info-tags">
+                <dt>標籤：</dt>
+                <dd>
+                  <span class="tag-pill">Nintendo</span>
+                  <span class="tag-pill">Switch</span>
+                  <span class="tag-pill">OLED</span>
+                  <span class="tag-pill">遊戲主機</span>
+                  <span class="tag-pill">二手</span>
+                </dd>
+              </div>
+            </dl>
+          </section>
+        </div>
+
+        <!-- Center Column - Title, Seller, Trade Modes, Rules, Description -->
+        <div class="item-col-center">
+          <h1 class="item-title">Nintendo Switch OLED 白色主機 九成新</h1>
+
+          <div class="seller-inline">
+            <div class="seller-inline-left">
+              <div class="seller-avatar-small">
+                <span>G</span>
+              </div>
+              <div class="seller-inline-text">
+                <div class="seller-name-row">
+                  <span class="seller-name">game_lover_2024</span>
+                  <span class="seller-count">(127)</span>
+                </div>
+                <div class="seller-rating-row">99.9% 好評</div>
               </div>
             </div>
+            <div class="seller-inline-links">
+              <button class="seller-link-button" type="button" onclick="window.location.href='/seller/game_lover_2024'">
+                查看賣家其他商品
+              </button>
+              <button class="seller-link-button" type="button" id="sellerInlineMessageBtn">
+                聯絡賣家
+              </button>
+            </div>
           </div>
-          <div class="seller-inline-links">
-            <button class="seller-link-button" type="button" onclick="window.location.href='/seller/game_lover_2024'">
-              查看賣家其他商品
-            </button>
-            <button class="seller-link-button" type="button" id="sellerInlineMessageBtn">
-              聯絡賣家
-            </button>
+
+          <div class="trade-mode-badges">
+            <span class="badge active">販售中</span>
+            <span class="badge active">可交換（指定目標）</span>
+            <span class="badge active">開放式許願</span>
           </div>
+
+          <section class="trade-rule-card">
+            <h2>交換規則</h2>
+            <p><strong>想換：</strong>想換 PlayStation 5 或 Xbox Series X，也接受其他 Nintendo 主機相關商品</p>
+            <p>也接受開放交換，買家可提出任何商品提案</p>
+          </section>
+
+          <section class="item-description-section">
+            <h3 class="section-title">商品描述</h3>
+            <div class="description-content">
+              <p>Nintendo Switch OLED 白色主機，使用約一年，功能完全正常。</p>
+              <p><strong>包含：</strong></p>
+              <ul>
+                <li>主機本體（白色）</li>
+                <li>原廠底座</li>
+                <li>原廠充電器</li>
+                <li>原廠 Joy-Con（紅藍）</li>
+                <li>原廠包裝盒</li>
+              </ul>
+              <p><strong>外觀狀況：</strong></p>
+              <ul>
+                <li>螢幕有保護貼，無刮痕</li>
+                <li>機身有輕微使用痕跡</li>
+                <li>所有按鍵功能正常</li>
+                <li>Joy-Con 無飄移問題</li>
+              </ul>
+              <p>可面交或宅配，面交地點：台北市信義區</p>
+            </div>
+            <p class="view-stats">瀏覽次數：342　追蹤人數：8</p>
+          </section>
         </div>
 
-        <div class="mode-badges">
-          <span class="badge active">販售中</span>
-          <span class="badge active">可交換（指定目標）</span>
-          <span class="badge active">開放式許願</span>
-        </div>
+        <!-- Right Column - Sticky Action Card -->
+        <aside class="item-col-right">
+          <div class="action-card">
+            <div class="action-price-block">
+              <span class="action-price-label">價格</span>
+              <div class="action-price">NT$ 8,500</div>
+            </div>
 
-        <div class="trade-rules">
-          <h2>交換規則</h2>
-          <p><strong>想換：</strong>想換 PlayStation 5 或 Xbox Series X，也接受其他 Nintendo 主機相關商品</p>
-          <p>也接受開放交換，買家可提出任何商品提案</p>
-        </div>
-
-        <div class="item-description">
-          <h2>商品描述</h2>
-          <div class="description-content">
-            <p>Nintendo Switch OLED 白色主機，使用約一年，功能完全正常。</p>
-            <p><strong>包含：</strong></p>
-            <ul>
-              <li>主機本體（白色）</li>
-              <li>原廠底座</li>
-              <li>原廠充電器</li>
-              <li>原廠 Joy-Con（紅藍）</li>
-              <li>原廠包裝盒</li>
-            </ul>
-            <p><strong>外觀狀況：</strong></p>
-            <ul>
-              <li>螢幕有保護貼，無刮痕</li>
-              <li>機身有輕微使用痕跡</li>
-              <li>所有按鍵功能正常</li>
-              <li>Joy-Con 無飄移問題</li>
-            </ul>
-            <p>可面交或宅配，面交地點：台北市信義區</p>
-          </div>
-        </div>
-
-        <div class="item-stats">
-          <span>瀏覽次數：342</span>
-          <span>追蹤人數：8</span>
-        </div>
-      </div>
-
-      <!-- Right Column - Action Panel -->
-      <div class="item-column-right">
-        <div class="action-panel">
-          <div class="price-section">
-            <div class="price-main">NT$ 8,500</div>
-            <div class="quantity-selector">
-              <label>數量：</label>
-              <select id="quantity-select" onchange="updateTotal()">
+            <div class="action-quantity">
+              <label for="qty">數量：</label>
+              <select id="qty" onchange="updateTotal()">
                 <option value="1">1</option>
               </select>
             </div>
-            <div class="total-price" id="total-price" style="display: none;">總計：NT$ 8,500</div>
+
+            <div class="action-buttons">
+              <button class="btn-primary" onclick="handleAddToCart()">加入購物車</button>
+              <button class="btn-primary" onclick="handlePurchase()">立即購買</button>
+              <button class="btn-primary" onclick="handleTrade()">以物易物 (Trade)</button>
+              <button class="btn-outline" id="messageButtonMain" onclick="handleOpenChat()">Message</button>
+              <p class="trade-hint">想換 PS5 / Xbox Series X，也接受其他 Nintendo 主機，詳見「交換規則」</p>
+            </div>
+
+            <div class="action-divider"></div>
+
+            <div class="pickup-section">
+              <h4>取貨方式：</h4>
+              <p>面交 | 台北市信義區 | 時間可議</p>
+            </div>
           </div>
-
-          <div class="action-buttons">
-            <button class="btn-primary btn-full" onclick="handleAddToCart()">
-              加入購物車
-            </button>
-
-            <button class="btn-primary btn-full" onclick="handlePurchase()">
-              立即購買
-            </button>
-
-            <button class="btn-primary btn-full" onclick="handleTrade()">
-              以物易物 (Trade)
-            </button>
-
-            <button id="messageButtonMain" class="btn-secondary btn-full" onclick="handleOpenChat()">
-              Message
-            </button>
-          </div>
-
-          <div class="shipping-section">
-            <h4>取貨方式：</h4>
-            <p>
-              <span class="pickup-type">面交</span>
-              <span class="pickup-separator"> | </span>
-              <span class="pickup-place">台北市信義區</span>
-              <span class="pickup-separator"> | </span>
-              <span class="pickup-time">時間可議</span>
-            </p>
-          </div>
-        </div>
+        </aside>
       </div>
     </div>
   </main>
@@ -502,26 +816,19 @@
 
     // Quantity and total
     function updateTotal() {
-      const quantity = parseInt(document.getElementById('quantity-select').value);
+      const quantity = parseInt(document.getElementById('qty').value);
       const price = 8500;
-      const total = quantity * price;
-      const totalEl = document.getElementById('total-price');
-      if (quantity > 1) {
-        totalEl.textContent = `總計：NT$ ${total.toLocaleString()}`;
-        totalEl.style.display = 'block';
-      } else {
-        totalEl.style.display = 'none';
-      }
+      // Note: total price display removed from new layout
     }
 
     // Actions
     function handleAddToCart() {
-      const quantity = document.getElementById('quantity-select').value;
+      const quantity = document.getElementById('qty').value;
       alert(`已將 ${quantity} 件商品加入購物車`);
     }
 
     function handlePurchase() {
-      const quantity = document.getElementById('quantity-select').value;
+      const quantity = document.getElementById('qty').value;
       const total = 8500 * parseInt(quantity);
       if (confirm(`確認購買\n\n商品：Nintendo Switch OLED\n數量：${quantity}\n總計：NT$ ${total.toLocaleString()}\n\n確定要購買嗎？`)) {
         alert('購買成功！將跳轉至付款頁面...');
