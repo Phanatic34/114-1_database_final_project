@@ -69,8 +69,15 @@ body {
 
 .site-logo img {
   display: block;
-  height: 65px;
-  width: auto;
+  height: 80px;  /* Increased from 65px - logo is now larger */
+  width: auto;    /* Keep aspect ratio */
+}
+
+/* Responsive: slightly smaller logo on mobile but still larger than original */
+@media (max-width: 768px) {
+  .site-logo img {
+    height: 50px;  /* Smaller on mobile but still larger than original 65px */
+  }
 }
 
 .header-nav {
