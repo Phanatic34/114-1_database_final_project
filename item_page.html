@@ -746,11 +746,42 @@
       background: #e5e7eb; /* subtle grey line between primary buttons */
     }
 
-    /* remove separator before outline button */
-    .action-buttons .btn-outline {
-      margin-top: 10px; /* space after the last blue button */
+    /* Base button class with shared sizing */
+    .item-action-button {
+      width: 100%;
+      padding: 14px 24px;
+      border-radius: 999px;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      display: block;
     }
 
+    /* Primary style (blue filled) */
+    .item-action-button-primary {
+      background-color: #2563eb;
+      color: #ffffff;
+    }
+
+    .item-action-button-primary:hover {
+      background-color: #1d4ed8;
+    }
+
+    /* Outline style (white with blue border) */
+    .item-action-button-outline {
+      background-color: #ffffff;
+      color: #2563eb;
+      border: 2px solid #2563eb;
+    }
+
+    .item-action-button-outline:hover {
+      background-color: #eff6ff;
+    }
+
+    /* Legacy classes for backward compatibility */
     .btn-primary {
       padding: 10px 0;
       border-radius: 999px;
