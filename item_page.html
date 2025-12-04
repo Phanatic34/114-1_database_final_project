@@ -165,6 +165,17 @@
       gap: 0;
     }
 
+    /* Shared row for 商品資訊 and 商品描述 with aligned top border */
+    .item-detail-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr); /* same left/right ratio as before */
+      column-gap: 24px;
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid #e5e7eb; /* the subtle top border line */
+      grid-column: 1 / 3; /* span across left and center columns */
+    }
+
     /* Left Column - Image Gallery + 商品資訊 */
     .item-image-main {
       background: #f3f4f6;
@@ -223,10 +234,17 @@
     }
 
     .item-info-card {
-      margin-top: 0; /* spacing handled by .section-divider */
       padding: 16px 20px;
       border-radius: 16px;
       background: #f5f5f5;
+    }
+
+    /* Remove border/margin/padding from section-divider for these two sections */
+    .item-info-card,
+    .item-description-section {
+      border-top: none;
+      margin-top: 0;
+      padding-top: 0;
     }
 
     .section-title {
@@ -451,16 +469,6 @@
       border-top: 1px solid #e5e7eb; /* thin, light grey line */
     }
 
-    /* Fine-tune alignment: make top borders of 商品資訊 and 商品描述 align horizontally */
-    .item-info-card.section-divider {
-      margin-top: 32px;
-      padding-top: 16px;
-    }
-
-    .item-description-section.section-divider {
-      margin-top: 32px;
-      padding-top: 16px;
-    }
 
     .trade-rule-card h2 {
       font-size: 16px;
@@ -640,6 +648,10 @@
         grid-column: 1 / -1;
         margin-top: 24px;
       }
+      .item-detail-row {
+        grid-column: 1 / -1;
+        grid-template-columns: 1fr;
+      }
       .listing-header {
         margin-right: 0;
         padding-right: 0;
@@ -657,6 +669,10 @@
       .item-col-center,
       .item-col-right {
         grid-column: 1 / -1;
+      }
+      .item-detail-row {
+        grid-column: 1 / -1;
+        grid-template-columns: 1fr;
       }
       .seller-inline {
         flex-direction: column;
@@ -727,33 +743,9 @@
               <img src="https://via.placeholder.com/150/002855/FFFFFF?text=4" alt="View 4" />
             </button>
           </div>
-
-          <section class="item-info-card section-divider">
-            <h3 class="section-title">商品資訊</h3>
-            <dl class="item-info-list">
-              <div class="item-info-row">
-                <dt>商品狀況：</dt>
-                <dd id="itemCondition">九成新</dd>
-              </div>
-              <div class="item-info-row">
-                <dt>所在地：</dt>
-                <dd id="itemLocation">台北市信義區</dd>
-              </div>
-              <div class="item-info-row">
-                <dt>庫存數量：</dt>
-                <dd>1 件</dd>
-              </div>
-              <div class="item-info-row item-info-tags">
-                <dt>標籤：</dt>
-                <dd id="itemTags">
-                  <!-- Tags will be populated by JS -->
-                </dd>
-              </div>
-            </dl>
-          </section>
         </div>
 
-        <!-- Center Column - Listing Header + Trade Rules + Description -->
+        <!-- Center Column - Listing Header + Trade Rules -->
         <div class="item-col-center">
           <a href="item_list.html" class="back-link" style="display: inline-block; margin-bottom: 12px; color: #2563eb; text-decoration: none; font-size: 14px;">← 返回商品列表</a>
           
@@ -798,8 +790,35 @@
               <!-- Content will be populated by JS -->
             </div>
           </section>
+        </div>
 
-          <section class="item-description-section section-divider">
+        <!-- Shared row for 商品資訊 and 商品描述 with aligned top border -->
+        <div class="item-detail-row">
+          <section class="item-info-card">
+            <h3 class="section-title">商品資訊</h3>
+            <dl class="item-info-list">
+              <div class="item-info-row">
+                <dt>商品狀況：</dt>
+                <dd id="itemCondition">九成新</dd>
+              </div>
+              <div class="item-info-row">
+                <dt>所在地：</dt>
+                <dd id="itemLocation">台北市信義區</dd>
+              </div>
+              <div class="item-info-row">
+                <dt>庫存數量：</dt>
+                <dd>1 件</dd>
+              </div>
+              <div class="item-info-row item-info-tags">
+                <dt>標籤：</dt>
+                <dd id="itemTags">
+                  <!-- Tags will be populated by JS -->
+                </dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="item-description-section">
             <h3 class="section-title">商品描述</h3>
             <div class="description-content" id="itemDescription">
               <!-- Content will be populated by JS -->
