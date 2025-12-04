@@ -233,18 +233,22 @@ function addNavbarStyles() {
       position: relative;
     }
     
-    /* Common dropdown panel styles */
+    /* Common dropdown panel styles - override header white color */
     .header-dropdown-panel {
       position: absolute;
       top: calc(100% + 12px);
       right: 0;
       min-width: 260px;
-      background: #ffffff;
-      color: #222222;
+      background: #ffffff !important;
+      color: #222222 !important;
       border-radius: 16px;
       box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
       padding: 16px 20px;
       z-index: 100;
+    }
+    
+    .header-dropdown-panel * {
+      color: inherit;
     }
     
     .nav-cart-menu {
@@ -259,22 +263,27 @@ function addNavbarStyles() {
       margin-bottom: 12px;
       padding-bottom: 12px;
       border-bottom: 1px solid #e5e7eb;
+      color: #111827 !important;
     }
     
     .dropdown-panel-title {
       font-size: 16px;
       font-weight: 600;
-      color: #111827;
+      color: #111827 !important;
       margin: 0;
     }
     
     .dropdown-panel-content {
-      color: #111827;
+      color: #111827 !important;
+    }
+    
+    .dropdown-panel-content * {
+      color: #111827 !important;
     }
     
     .dropdown-panel-empty {
       font-size: 14px;
-      color: #6b7280;
+      color: #6b7280 !important;
       margin: 0;
       text-align: center;
       padding: 20px 0;
@@ -284,6 +293,7 @@ function addNavbarStyles() {
       margin-top: 12px;
       padding-top: 12px;
       border-top: 1px solid #e5e7eb;
+      color: #111827 !important;
     }
     
     .dropdown-panel-button {
@@ -291,17 +301,20 @@ function addNavbarStyles() {
       width: 100%;
       padding: 10px 16px;
       text-align: center;
-      background: #2563eb;
-      color: #ffffff;
+      background: #2563eb !important;
+      color: #ffffff !important;
       text-decoration: none;
       border-radius: 8px;
       font-size: 14px;
       font-weight: 600;
       transition: background 0.2s;
+      border: none;
+      cursor: pointer;
     }
     
     .dropdown-panel-button:hover {
-      background: #1d4ed8;
+      background: #1d4ed8 !important;
+      color: #ffffff !important;
     }
     
     .dropdown-item {
@@ -309,7 +322,7 @@ function addNavbarStyles() {
       width: 100%;
       padding: 10px 0;
       text-align: left;
-      color: #111827;
+      color: #111827 !important;
       text-decoration: none;
       font-size: 14px;
       border: none;
@@ -321,17 +334,19 @@ function addNavbarStyles() {
     
     .dropdown-item:hover {
       background: #f3f4f6;
+      color: #111827 !important;
     }
     
     .logout-btn {
       border-top: 1px solid #e5e7eb;
       margin-top: 8px;
       padding-top: 12px;
-      color: #dc2626;
+      color: #dc2626 !important;
     }
     
     .logout-btn:hover {
       background: #fee2e2;
+      color: #dc2626 !important;
     }
   `;
   document.head.appendChild(style);
