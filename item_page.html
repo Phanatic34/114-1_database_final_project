@@ -2555,6 +2555,29 @@
         // Update currentItem reference
         currentItem = updated;
         
+        // Re-initialize seller info if missing (preserve from original)
+        if (!currentItem.seller && currentItem.sellerId) {
+          const seller = getUsers().find(u => u.id === currentItem.sellerId);
+          if (seller) {
+            currentItem.seller = {
+              name: seller.name,
+              rating: 4.8,
+              ratingText: '99.9% 好評',
+              deals: 0
+            };
+          }
+        }
+        
+        // Ensure seller object exists
+        if (!currentItem.seller) {
+          currentItem.seller = {
+            name: 'Unknown',
+            rating: 0,
+            ratingText: '無評價',
+            deals: 0
+          };
+        }
+        
         // Re-render relevant sections
         populateItemPage();
         
