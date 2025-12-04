@@ -1682,12 +1682,13 @@
         try {
           let recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewedItems') || '[]');
           
-          // Remove duplicate if exists
-          recentlyViewed = recentlyViewed.filter(item => item.id !== currentItem.id);
+          // Remove duplicate if exists (compare as strings to handle type mismatches)
+          const currentItemIdStr = String(currentItem.id);
+          recentlyViewed = recentlyViewed.filter(item => String(item.id) !== currentItemIdStr);
           
           // Add current item to front
           const itemData = {
-            id: currentItem.id,
+            id: String(currentItem.id), // Ensure ID is stored as string consistently
             title: currentItem.title,
             price: currentItem.mode.purchase ? currentItem.price : null,
             imageUrl: currentItem.images && currentItem.images.length > 0 ? currentItem.images[0] : '',
@@ -1726,6 +1727,34 @@
             tradeSummary: item.tradeTargetNote || ''
           };
         }
+        
+        // Convert description from string to object format if needed
+        if (typeof item.description === 'string') {
+          item.description = {
+            main: item.description,
+            includes: [],
+            conditionDetails: [],
+            extra: ''
+          };
+        }
+        
+        // Ensure stats object exists
+        if (!item.stats) {
+          item.stats = {
+            views: item.views || 0,
+            watchers: item.addedToCartCount || 0
+          };
+        }
+        
+        // Ensure pickup object exists
+        if (!item.pickup) {
+          item.pickup = {
+            type: '面交',
+            place: item.location || '未指定',
+            time: '時間可議'
+          };
+        }
+        
         return item;
       }
       
@@ -1842,11 +1871,20 @@
 
         // Description
         const descContainer = document.getElementById('itemDescription');
+        if (descContainer) {
         descContainer.innerHTML = '';
         
+          // Handle both string and object formats
+          if (typeof currentItem.description === 'string') {
+            const mainP = document.createElement('p');
+            mainP.textContent = currentItem.description;
+            descContainer.appendChild(mainP);
+          } else if (currentItem.description && typeof currentItem.description === 'object') {
+            if (currentItem.description.main) {
         const mainP = document.createElement('p');
         mainP.textContent = currentItem.description.main;
         descContainer.appendChild(mainP);
+            }
 
         if (currentItem.description.includes && currentItem.description.includes.length > 0) {
           const includesP = document.createElement('p');
@@ -1878,6 +1916,8 @@
           const extraP = document.createElement('p');
           extraP.textContent = currentItem.description.extra;
           descContainer.appendChild(extraP);
+            }
+          }
         }
 
         // Stats

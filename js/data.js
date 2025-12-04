@@ -231,12 +231,15 @@ function saveItems(items) {
 
 /**
  * Get item by ID
- * @param {string} itemId
+ * @param {string|number} itemId
  * @returns {Item|null}
  */
 function getItemById(itemId) {
+  if (!itemId) return null;
   const items = getItems();
-  return items.find(i => i.id === itemId) || null;
+  // Convert both to strings for comparison to handle type mismatches
+  const itemIdStr = String(itemId);
+  return items.find(i => String(i.id) === itemIdStr) || null;
 }
 
 /**
@@ -272,12 +275,14 @@ function createItem(itemData) {
 
 /**
  * Update item
- * @param {string} itemId
+ * @param {string|number} itemId
  * @param {Partial<Item>} updates
  */
 function updateItem(itemId, updates) {
+  if (!itemId) return null;
   const items = getItems();
-  const index = items.findIndex(i => i.id === itemId);
+  const itemIdStr = String(itemId);
+  const index = items.findIndex(i => String(i.id) === itemIdStr);
   if (index !== -1) {
     items[index] = { ...items[index], ...updates };
     saveItems(items);
@@ -288,11 +293,13 @@ function updateItem(itemId, updates) {
 
 /**
  * Delete item
- * @param {string} itemId
+ * @param {string|number} itemId
  */
 function deleteItem(itemId) {
+  if (!itemId) return;
   const items = getItems();
-  const filtered = items.filter(i => i.id !== itemId);
+  const itemIdStr = String(itemId);
+  const filtered = items.filter(i => String(i.id) !== itemIdStr);
   saveItems(filtered);
 }
 

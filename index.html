@@ -616,8 +616,10 @@
       grid.className = 'recently-viewed-grid';
 
       recentlyViewed.forEach(item => {
+        // Ensure ID is a string for consistent URL generation
+        const itemId = String(item.id);
         const card = document.createElement('a');
-        card.href = `item_page.html?id=${item.id}`;
+        card.href = `item_page.html?id=${itemId}`;
         card.className = 'recent-item-card';
 
         const priceText = item.price 
