@@ -180,11 +180,15 @@ function addNavbarStyles() {
       border: 0;
     }
     
+    .nav-right {
+      position: relative;
+    }
+    
     /* profile dropdown alignment */
     .nav-profile-menu {
       position: absolute;
-      top: 56px;
-      right: 24px;
+      top: calc(100% + 8px);
+      right: 0;
       min-width: 180px;
       background: #ffffff;
       color: #111827;
