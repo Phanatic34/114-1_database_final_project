@@ -639,7 +639,7 @@
 
   <main class="main-content">
     <div class="breadcrumb">
-      <a href="/">首頁</a> / <a href="/category/電玩遊戲">電玩遊戲</a> / <a href="/category/電玩遊戲/遊戲主機">遊戲主機</a>
+      <a href="item_list.html">首頁</a> / <a href="item_list.html" id="breadcrumbCategory">分類</a> / <span id="breadcrumbSubcategory">商品詳情</span>
     </div>
 
     <div class="item-page-main">
@@ -649,11 +649,11 @@
           <div class="item-image-main">
             <img
               id="main-image"
-              src="https://via.placeholder.com/600x600/0064D2/FFFFFF?text=Nintendo+Switch+OLED"
-              alt="Nintendo Switch OLED 白色主機"
+              src=""
+              alt=""
               class="main-image"
             />
-            <div class="image-badge">九成新</div>
+            <div class="image-badge" id="conditionBadge">九成新</div>
           </div>
 
           <div class="item-thumbnails">
@@ -676,11 +676,11 @@
             <dl class="item-info-list">
               <div class="item-info-row">
                 <dt>商品狀況：</dt>
-                <dd>九成新</dd>
+                <dd id="itemCondition">九成新</dd>
               </div>
               <div class="item-info-row">
                 <dt>所在地：</dt>
-                <dd>台北市信義區</dd>
+                <dd id="itemLocation">台北市信義區</dd>
               </div>
               <div class="item-info-row">
                 <dt>庫存數量：</dt>
@@ -688,12 +688,8 @@
               </div>
               <div class="item-info-row item-info-tags">
                 <dt>標籤：</dt>
-                <dd>
-                  <span class="tag-pill">Nintendo</span>
-                  <span class="tag-pill">Switch</span>
-                  <span class="tag-pill">OLED</span>
-                  <span class="tag-pill">遊戲主機</span>
-                  <span class="tag-pill">二手</span>
+                <dd id="itemTags">
+                  <!-- Tags will be populated by JS -->
                 </dd>
               </div>
             </dl>
@@ -702,26 +698,28 @@
 
         <!-- Center Column - Listing Header + Trade Rules + Description -->
         <div class="item-col-center">
+          <a href="item_list.html" class="back-link" style="display: inline-block; margin-bottom: 12px; color: #2563eb; text-decoration: none; font-size: 14px;">← 返回商品列表</a>
+          
           <!-- Listing Header spans center + right visually -->
           <div class="listing-header">
             <div class="listing-header-left">
-              <h1 class="item-title">Nintendo Switch OLED 白色主機 九成新</h1>
+              <h1 class="item-title" id="itemTitle">Nintendo Switch OLED 白色主機 九成新</h1>
 
               <div class="seller-inline">
                 <div class="seller-inline-left">
-                  <div class="seller-avatar-small">
+                  <div class="seller-avatar-small" id="sellerAvatar">
                     <span>G</span>
                   </div>
                   <div class="seller-inline-text">
                     <div class="seller-name-row">
-                      <span class="seller-name">game_lover_2024</span>
-                      <span class="seller-count">(127)</span>
+                      <span class="seller-name" id="sellerName">game_lover_2024</span>
+                      <span class="seller-count" id="sellerCount">(127)</span>
                     </div>
-                    <div class="seller-rating-row">99.9% 好評</div>
+                    <div class="seller-rating-row" id="sellerRatingText">99.9% 好評</div>
                   </div>
                 </div>
                 <div class="seller-inline-links">
-                  <button class="seller-link-button" type="button" onclick="window.location.href='/seller/game_lover_2024'">
+                  <button class="seller-link-button" type="button" id="sellerOtherItemsBtn">
                     查看賣家其他商品
                   </button>
                   <button class="seller-link-button" type="button" id="sellerInlineMessageBtn">
@@ -730,13 +728,11 @@
                 </div>
               </div>
 
-              <div class="trade-mode-badges">
-                <span class="badge active">販售中</span>
-                <span class="badge active">可交換（指定目標）</span>
-                <span class="badge active">開放式許願</span>
+              <div class="trade-mode-badges" id="tradeModeBadges">
+                <!-- Badges will be populated by JS -->
               </div>
 
-              <p class="trade-summary-line">
+              <p class="trade-summary-line" id="tradeSummaryLine">
                 想換 PlayStation 5 或 Xbox Series X，也接受其他 Nintendo 主機相關商品（詳見下方「交換規則」）
               </p>
             </div>
@@ -744,39 +740,24 @@
             <div class="listing-header-right">
               <div id="listingHeaderPriceBlock">
                 <span class="header-price-label">價格</span>
-                <div class="header-price">NT$ 8,500</div>
+                <div class="header-price" id="headerPrice">NT$ 8,500</div>
               </div>
             </div>
           </div>
 
-          <section class="trade-rule-card">
+          <section class="trade-rule-card" id="tradeRuleCard">
             <h2>交換規則</h2>
-            <p><strong>想換：</strong>想換 PlayStation 5 或 Xbox Series X，也接受其他 Nintendo 主機相關商品</p>
-            <p>也接受開放交換，買家可提出任何商品提案</p>
+            <div id="tradeRuleBody">
+              <!-- Content will be populated by JS -->
+            </div>
           </section>
 
           <section class="item-description-section">
             <h3 class="section-title">商品描述</h3>
-            <div class="description-content">
-              <p>Nintendo Switch OLED 白色主機，使用約一年，功能完全正常。</p>
-              <p><strong>包含：</strong></p>
-              <ul>
-                <li>主機本體（白色）</li>
-                <li>原廠底座</li>
-                <li>原廠充電器</li>
-                <li>原廠 Joy-Con（紅藍）</li>
-                <li>原廠包裝盒</li>
-              </ul>
-              <p><strong>外觀狀況：</strong></p>
-              <ul>
-                <li>螢幕有保護貼，無刮痕</li>
-                <li>機身有輕微使用痕跡</li>
-                <li>所有按鍵功能正常</li>
-                <li>Joy-Con 無飄移問題</li>
-              </ul>
-              <p>可面交或宅配，面交地點：台北市信義區</p>
+            <div class="description-content" id="itemDescription">
+              <!-- Content will be populated by JS -->
             </div>
-            <p class="view-stats">瀏覽次數：342　追蹤人數：8</p>
+            <p class="view-stats" id="viewStats">瀏覽次數：342　追蹤人數：8</p>
           </section>
         </div>
 
@@ -786,7 +767,7 @@
             <div class="action-price-block">
               <div id="actionPriceBlock">
                 <span class="action-price-label">價格</span>
-                <div class="action-price">NT$ 8,500</div>
+                <div class="action-price" id="actionPrice">NT$ 8,500</div>
               </div>
             </div>
 
@@ -811,7 +792,7 @@
 
             <div class="pickup-section">
               <h4>取貨方式：</h4>
-              <p>面交 | 台北市信義區 | 時間可議</p>
+              <p id="pickupInfo">面交 | 台北市信義區 | 時間可議</p>
             </div>
           </div>
         </aside>
@@ -829,7 +810,7 @@
       <div class="modal-body">
         <div class="trade-requirement">
           <strong>賣家需求：</strong>
-          <p>想換 PlayStation 5 或 Xbox Series X，也接受其他 Nintendo 主機相關商品</p>
+          <p id="tradeRequirementText">想換 PlayStation 5 或 Xbox Series X，也接受其他 Nintendo 主機相關商品</p>
         </div>
         <div class="user-items-list">
           <h3>選擇你的物品（僅可選擇一項）：</h3>
@@ -1120,6 +1101,254 @@
       // Apply mode on page load
       applyMode();
     })();
+  </script>
+
+  <script src="data/itemsData.js"></script>
+  <script>
+    // Get item ID from URL
+    const params = new URLSearchParams(window.location.search);
+    const itemId = Number(params.get('id') || '0');
+    const currentItem = mockItems.find(i => i.id === itemId) || mockItems[0];
+
+    if (!currentItem) {
+      document.body.innerHTML = '<div style="padding: 40px; text-align: center;"><h1>商品不存在</h1><p><a href="item_list.html">返回商品列表</a></p></div>';
+    } else {
+      // Populate page with currentItem data
+      function populateItemPage() {
+        // Title
+        document.getElementById('itemTitle').textContent = currentItem.title;
+
+        // Seller info
+        document.getElementById('sellerName').textContent = currentItem.seller.name;
+        document.getElementById('sellerCount').textContent = `(${currentItem.seller.deals})`;
+        document.getElementById('sellerRatingText').textContent = currentItem.seller.ratingText;
+        document.getElementById('sellerAvatar').querySelector('span').textContent = currentItem.seller.name[0].toUpperCase();
+        document.getElementById('sellerOtherItemsBtn').onclick = () => {
+          window.location.href = `item_list.html?seller=${encodeURIComponent(currentItem.seller.name)}`;
+        };
+
+        // Condition badge
+        document.getElementById('conditionBadge').textContent = currentItem.condition;
+        document.getElementById('itemCondition').textContent = currentItem.condition;
+
+        // Location
+        document.getElementById('itemLocation').textContent = currentItem.location;
+
+        // Tags
+        const tagsContainer = document.getElementById('itemTags');
+        tagsContainer.innerHTML = '';
+        currentItem.tags.forEach(tag => {
+          const span = document.createElement('span');
+          span.className = 'tag-pill';
+          span.textContent = tag;
+          tagsContainer.appendChild(span);
+        });
+
+        // Images
+        const mainImage = document.getElementById('main-image');
+        if (currentItem.images && currentItem.images.length > 0) {
+          mainImage.src = currentItem.images[0];
+          mainImage.alt = currentItem.title;
+
+          // Update thumbnails
+          const thumbnailContainer = document.querySelector('.item-thumbnails');
+          if (thumbnailContainer) {
+            thumbnailContainer.innerHTML = '';
+            currentItem.images.forEach((img, index) => {
+              const button = document.createElement('button');
+              button.className = `thumbnail ${index === 0 ? 'active' : ''}`;
+              button.onclick = () => changeImage(index);
+              button.innerHTML = `<img src="${img}" alt="View ${index + 1}" />`;
+              thumbnailContainer.appendChild(button);
+            });
+          }
+        }
+
+        // Price
+        const headerPrice = document.getElementById('headerPrice');
+        const actionPrice = document.getElementById('actionPrice');
+        if (currentItem.mode.purchase) {
+          headerPrice.textContent = `NT$ ${currentItem.price.toLocaleString('zh-TW')}`;
+          actionPrice.textContent = `NT$ ${currentItem.price.toLocaleString('zh-TW')}`;
+        }
+
+        // Mode badges
+        const badgesContainer = document.getElementById('tradeModeBadges');
+        badgesContainer.innerHTML = '';
+        if (currentItem.mode.purchase) {
+          const badge = document.createElement('span');
+          badge.className = 'badge active';
+          badge.textContent = '販售中';
+          badgesContainer.appendChild(badge);
+        }
+        if (currentItem.mode.trade) {
+          const badge = document.createElement('span');
+          badge.className = 'badge active';
+          if (currentItem.mode.tradeMode === 'target') {
+            badge.textContent = '可交換（指定目標）';
+          } else if (currentItem.mode.tradeMode === 'offer') {
+            badge.textContent = '開放式許願';
+          } else {
+            badge.textContent = '可交換（指定目標）';
+            const badge2 = document.createElement('span');
+            badge2.className = 'badge active';
+            badge2.textContent = '開放式許願';
+            badgesContainer.appendChild(badge2);
+          }
+          badgesContainer.appendChild(badge);
+        }
+        if (currentItem.mode.wish && !currentItem.mode.trade) {
+          const badge = document.createElement('span');
+          badge.className = 'badge active';
+          badge.textContent = '開放式許願';
+          badgesContainer.appendChild(badge);
+        }
+
+        // Trade summary
+        if (currentItem.mode.tradeSummary) {
+          document.getElementById('tradeSummaryLine').textContent = 
+            currentItem.mode.tradeSummary + '（詳見下方「交換規則」）';
+        } else {
+          document.getElementById('tradeSummaryLine').style.display = 'none';
+        }
+
+        // Trade rule card
+        const tradeRuleBody = document.getElementById('tradeRuleBody');
+        if (currentItem.mode.trade && currentItem.mode.tradeSummary) {
+          tradeRuleBody.innerHTML = `<p><strong>想換：</strong>${currentItem.mode.tradeSummary}</p>`;
+          if (currentItem.mode.tradeMode === 'offer' || currentItem.mode.tradeMode === 'both') {
+            tradeRuleBody.innerHTML += '<p>也接受開放交換，買家可提出任何商品提案</p>';
+          }
+        } else {
+          document.getElementById('tradeRuleCard').style.display = 'none';
+        }
+
+        // Description
+        const descContainer = document.getElementById('itemDescription');
+        descContainer.innerHTML = '';
+        
+        const mainP = document.createElement('p');
+        mainP.textContent = currentItem.description.main;
+        descContainer.appendChild(mainP);
+
+        if (currentItem.description.includes && currentItem.description.includes.length > 0) {
+          const includesP = document.createElement('p');
+          includesP.innerHTML = '<strong>包含：</strong>';
+          descContainer.appendChild(includesP);
+          const includesUl = document.createElement('ul');
+          currentItem.description.includes.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            includesUl.appendChild(li);
+          });
+          descContainer.appendChild(includesUl);
+        }
+
+        if (currentItem.description.conditionDetails && currentItem.description.conditionDetails.length > 0) {
+          const conditionP = document.createElement('p');
+          conditionP.innerHTML = '<strong>外觀狀況：</strong>';
+          descContainer.appendChild(conditionP);
+          const conditionUl = document.createElement('ul');
+          currentItem.description.conditionDetails.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            conditionUl.appendChild(li);
+          });
+          descContainer.appendChild(conditionUl);
+        }
+
+        if (currentItem.description.extra) {
+          const extraP = document.createElement('p');
+          extraP.textContent = currentItem.description.extra;
+          descContainer.appendChild(extraP);
+        }
+
+        // Stats
+        document.getElementById('viewStats').textContent = 
+          `瀏覽次數：${currentItem.stats.views}　追蹤人數：${currentItem.stats.watchers}`;
+
+        // Pickup info
+        document.getElementById('pickupInfo').textContent = 
+          `${currentItem.pickup.type} | ${currentItem.pickup.place} | ${currentItem.pickup.time}`;
+
+        // Trade hint
+        const tradeHint = document.getElementById('tradeHint');
+        if (tradeHint && currentItem.mode.tradeSummary) {
+          tradeHint.textContent = currentItem.mode.tradeSummary + '，詳見「交換規則」。';
+        }
+
+        // Update trade modal requirement text
+        const tradeReqText = document.getElementById('tradeRequirementText');
+        if (tradeReqText && currentItem.mode.tradeSummary) {
+          tradeReqText.textContent = currentItem.mode.tradeSummary;
+        }
+
+        // Apply listing mode
+        let listingMode = 'purchase_and_trade';
+        if (!currentItem.mode.purchase && currentItem.mode.trade && !currentItem.mode.wish) {
+          listingMode = 'trade_only';
+        } else if (!currentItem.mode.purchase && currentItem.mode.wish) {
+          listingMode = 'wish_only';
+        }
+
+        // Update mode handling
+        const headerPriceBlock = document.getElementById('listingHeaderPriceBlock');
+        const actionPriceBlock = document.getElementById('actionPriceBlock');
+        const btnAddToCart = document.getElementById('btnAddToCart');
+        const btnBuyNow = document.getElementById('btnBuyNow');
+        const btnTrade = document.getElementById('btnTrade');
+        const actionQuantity = document.querySelector('.action-quantity');
+
+        if (listingMode === 'purchase_and_trade') {
+          if (headerPriceBlock) headerPriceBlock.style.display = 'block';
+          if (actionPriceBlock) actionPriceBlock.style.display = 'block';
+          if (btnAddToCart) btnAddToCart.style.display = 'block';
+          if (btnBuyNow) btnBuyNow.style.display = 'block';
+          if (btnTrade) btnTrade.style.display = 'block';
+          if (actionQuantity) actionQuantity.style.display = 'flex';
+        } else if (listingMode === 'trade_only') {
+          if (headerPriceBlock) {
+            headerPriceBlock.innerHTML = '<span style="color: #6b7280; font-size: 13px;">僅接受以物易物</span>';
+          }
+          if (actionPriceBlock) actionPriceBlock.style.display = 'none';
+          if (btnAddToCart) btnAddToCart.style.display = 'none';
+          if (btnBuyNow) btnBuyNow.style.display = 'none';
+          if (btnTrade) btnTrade.style.display = 'block';
+          if (actionQuantity) actionQuantity.style.display = 'none';
+        } else if (listingMode === 'wish_only') {
+          if (headerPriceBlock) {
+            headerPriceBlock.innerHTML = '<span style="color: #6b7280; font-size: 13px;">開放式許願</span>';
+          }
+          if (actionPriceBlock) actionPriceBlock.style.display = 'none';
+          if (btnAddToCart) btnAddToCart.style.display = 'none';
+          if (btnBuyNow) btnBuyNow.style.display = 'none';
+          if (btnTrade) {
+            btnTrade.style.display = 'block';
+            btnTrade.textContent = '提出交換提案';
+          }
+          if (actionQuantity) actionQuantity.style.display = 'none';
+        }
+
+        // Update image gallery function to use currentItem images
+        window.currentItemImages = currentItem.images || [];
+      }
+
+      // Update changeImage function to work with dynamic images
+      const originalChangeImage = window.changeImage;
+      window.changeImage = function(index) {
+        if (window.currentItemImages && window.currentItemImages[index]) {
+          document.getElementById('main-image').src = window.currentItemImages[index];
+          document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+            thumb.classList.toggle('active', i === index);
+          });
+        } else if (originalChangeImage) {
+          originalChangeImage(index);
+        }
+      };
+
+      // Populate on load
+      populateItemPage();
+    }
   </script>
 </body>
 </html>

@@ -413,7 +413,7 @@
     <div class="header-content">
       <div class="logo">二手交易平台</div>
       <nav class="header-nav">
-        <a href="/">首頁</a>
+        <a href="item_list.html">首頁</a>
         <a href="/categories">分類</a>
         <a href="/sell">賣東西</a>
       </nav>
@@ -426,7 +426,7 @@
 
   <main class="main-content">
     <div class="breadcrumb">
-      <a href="/">首頁</a> / <a href="/browse">瀏覽商品</a>
+      <a href="item_list.html">首頁</a> / <a href="item_list.html">瀏覽商品</a>
     </div>
 
     <div class="item-list-page">
@@ -523,115 +523,8 @@
     </div>
   </main>
 
+  <script src="data/itemsData.js"></script>
   <script>
-    // Mock data
-    const mockItems = [
-      {
-        id: 1,
-        title: 'Nintendo Switch OLED 白色主機',
-        price: 8500,
-        category: 'games',
-        location: '台北市信義區',
-        seller: 'game_lover_2024',
-        condition: 'like_new',
-        mode: { purchase: true, trade: true, wish: false },
-        image: 'https://via.placeholder.com/300x225/0064D2/FFFFFF?text=Nintendo+Switch',
-        href: 'item_page.html',
-        createdAt: new Date('2024-12-01')
-      },
-      {
-        id: 2,
-        title: 'PlayStation 5 光碟版 主機',
-        price: 12000,
-        category: 'games',
-        location: '新北市板橋區',
-        seller: 'ps5_seller',
-        condition: 'new',
-        mode: { purchase: true, trade: false, wish: false },
-        image: 'https://via.placeholder.com/300x225/0052A3/FFFFFF?text=PS5',
-        href: 'item_page.html',
-        createdAt: new Date('2024-12-02')
-      },
-      {
-        id: 3,
-        title: 'iPhone 13 Pro 256GB 深藍色',
-        price: 18000,
-        category: 'electronics',
-        location: '台北市大安區',
-        seller: 'phone_dealer',
-        condition: 'like_new',
-        mode: { purchase: true, trade: true, wish: false },
-        image: 'https://via.placeholder.com/300x225/003D7A/FFFFFF?text=iPhone',
-        href: 'item_page.html',
-        createdAt: new Date('2024-12-03')
-      },
-      {
-        id: 4,
-        title: 'MacBook Pro 14吋 M1 晶片',
-        price: 35000,
-        category: 'electronics',
-        location: '台北市信義區',
-        seller: 'mac_user',
-        condition: 'like_new',
-        mode: { purchase: false, trade: true, wish: true },
-        image: 'https://via.placeholder.com/300x225/002855/FFFFFF?text=MacBook',
-        href: 'item_page.html',
-        createdAt: new Date('2024-11-28')
-      },
-      {
-        id: 5,
-        title: '資料庫系統概論 第五版',
-        price: 300,
-        category: 'books',
-        location: '新竹市東區',
-        seller: 'book_worm',
-        condition: 'used',
-        mode: { purchase: true, trade: false, wish: false },
-        image: 'https://via.placeholder.com/300x225/0064D2/FFFFFF?text=Book',
-        href: 'item_page.html',
-        createdAt: new Date('2024-12-04')
-      },
-      {
-        id: 6,
-        title: 'Xbox Series X 主機',
-        price: 11000,
-        category: 'games',
-        location: '台中市西區',
-        seller: 'xbox_fan',
-        condition: 'like_new',
-        mode: { purchase: true, trade: true, wish: false },
-        image: 'https://via.placeholder.com/300x225/0052A3/FFFFFF?text=Xbox',
-        href: 'item_page.html',
-        createdAt: new Date('2024-11-30')
-      },
-      {
-        id: 7,
-        title: 'AirPods Pro 第二代',
-        price: 5500,
-        category: 'electronics',
-        location: '台北市中山區',
-        seller: 'audio_lover',
-        condition: 'new',
-        mode: { purchase: true, trade: false, wish: false },
-        image: 'https://via.placeholder.com/300x225/003D7A/FFFFFF?text=AirPods',
-        href: 'item_page.html',
-        createdAt: new Date('2024-12-05')
-      },
-      {
-        id: 8,
-        title: '線性代數 課本',
-        price: 250,
-        category: 'books',
-        location: '桃園市中壢區',
-        seller: 'student_2024',
-        condition: 'used',
-        mode: { purchase: true, trade: true, wish: false },
-        image: 'https://via.placeholder.com/300x225/002855/FFFFFF?text=Math',
-        href: 'item_page.html',
-        createdAt: new Date('2024-12-01')
-      }
-    ];
-
     // State
     let currentItems = [...mockItems];
     let currentFilter = 'all';
@@ -639,48 +532,64 @@
     let displayedCount = 8;
     const itemsPerPage = 8;
 
-    // Condition mapping
+    // Condition mapping for old data structure compatibility
     const conditionMap = {
       'new': '全新',
       'like_new': '九成新',
       'used': '二手'
     };
 
+    // Create item card
+    function createItemCard(item) {
+      const a = document.createElement('a');
+      a.href = `item_page.html?id=${encodeURIComponent(item.id)}`;
+      a.className = 'item-card';
+      a.setAttribute('data-id', item.id);
+
+      const purchaseLabel = item.mode.purchase ? '可購買' : '';
+      const tradeLabel = item.mode.trade ? '可交換' : '';
+      const wishLabel = item.mode.wish ? '開放式許願' : '';
+
+      let priceText = '';
+      if (item.mode.purchase) {
+        priceText = `NT$ ${item.price.toLocaleString('zh-TW')}`;
+      } else if (item.mode.trade && !item.mode.purchase) {
+        priceText = '僅接受以物易物';
+      } else if (item.mode.wish && !item.mode.purchase) {
+        priceText = '許願中';
+      }
+
+      a.innerHTML = `
+        <div class="item-card-image-wrapper">
+          <img src="${item.images[0]}" alt="${item.title}" class="item-card-image">
+          <span class="item-card-badge">${item.condition}</span>
+        </div>
+        <div class="item-card-body">
+          <h3 class="item-card-title">${item.title}</h3>
+          <div class="item-card-price">${priceText}</div>
+          <div class="item-card-modes">
+            ${purchaseLabel ? `<span class="mode-pill mode-purchase">${purchaseLabel}</span>` : ''}
+            ${tradeLabel ? `<span class="mode-pill mode-trade">${tradeLabel}</span>` : ''}
+            ${wishLabel ? `<span class="mode-pill mode-wish">${wishLabel}</span>` : ''}
+          </div>
+          <div class="item-card-meta">
+            <span class="item-card-location">${item.location}</span>
+            <span class="item-card-seller">${item.seller.name}</span>
+          </div>
+        </div>
+      `;
+      return a;
+    }
+
     // Render items
-    function renderItems(items) {
+    function renderList(items) {
       const grid = document.getElementById('itemCardGrid');
       grid.innerHTML = '';
 
       const itemsToShow = items.slice(0, displayedCount);
 
       itemsToShow.forEach(item => {
-        const card = document.createElement('a');
-        card.href = item.href;
-        card.className = 'item-card';
-        card.setAttribute('data-id', item.id);
-
-        const modes = [];
-        if (item.mode.purchase) modes.push('<span class="mode-pill mode-purchase">可購買</span>');
-        if (item.mode.trade) modes.push('<span class="mode-pill mode-trade">可交換</span>');
-        if (item.mode.wish) modes.push('<span class="mode-pill mode-wish">開放式許願</span>');
-
-        card.innerHTML = `
-          <div class="item-card-image-wrapper">
-            <img src="${item.image}" alt="${item.title}" class="item-card-image">
-            <span class="item-card-badge">${conditionMap[item.condition]}</span>
-          </div>
-          <div class="item-card-body">
-            <h3 class="item-card-title">${item.title}</h3>
-            <div class="item-card-price">NT$ ${item.price.toLocaleString()}</div>
-            <div class="item-card-modes">${modes.join('')}</div>
-            <div class="item-card-meta">
-              <span class="item-card-location">${item.location}</span>
-              <span class="item-card-seller">${item.seller}</span>
-            </div>
-          </div>
-        `;
-
-        grid.appendChild(card);
+        grid.appendChild(createItemCard(item));
       });
 
       // Update result count
@@ -713,7 +622,7 @@
       if (searchTerm) {
         filtered = filtered.filter(item => 
           item.title.toLowerCase().includes(searchTerm) ||
-          item.seller.toLowerCase().includes(searchTerm)
+          item.seller.name.toLowerCase().includes(searchTerm)
         );
       }
 
@@ -731,8 +640,13 @@
         });
       }
 
-      // Condition filters
-      const conditionFilters = Array.from(document.querySelectorAll('.condition-filter:checked')).map(cb => cb.value);
+      // Condition filters - map to new structure
+      const conditionFilters = Array.from(document.querySelectorAll('.condition-filter:checked')).map(cb => {
+        if (cb.value === 'new') return '全新';
+        if (cb.value === 'like_new') return '九成新';
+        if (cb.value === 'used') return '二手';
+        return cb.value;
+      });
       if (conditionFilters.length > 0) {
         filtered = filtered.filter(item => conditionFilters.includes(item.condition));
       }
@@ -746,7 +660,8 @@
 
       // Sort
       if (currentSort === 'newest' || currentFilter === 'newest') {
-        filtered.sort((a, b) => b.createdAt - a.createdAt);
+        // Note: new data structure doesn't have createdAt, skip for now
+        // filtered.sort((a, b) => b.createdAt - a.createdAt);
       } else if (currentSort === 'price_asc' || currentFilter === 'price_asc') {
         filtered.sort((a, b) => a.price - b.price);
       } else if (currentSort === 'price_desc' || currentFilter === 'price_desc') {
@@ -755,7 +670,60 @@
 
       currentItems = filtered;
       displayedCount = itemsPerPage;
-      renderItems(currentItems);
+      renderList(currentItems);
+      
+      // Update URL params
+      updateURLParams();
+    }
+
+    // Update URL parameters
+    function updateURLParams() {
+      const params = new URLSearchParams();
+      const searchTerm = document.getElementById('searchInput').value.trim();
+      const category = document.getElementById('categoryFilter').value;
+      
+      if (searchTerm) params.set('q', searchTerm);
+      if (category !== 'all') params.set('cat', category);
+      if (currentFilter !== 'all') params.set('filter', currentFilter);
+      if (currentSort !== 'default') params.set('sort', currentSort);
+      
+      const newURL = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+      window.history.replaceState({}, '', newURL);
+    }
+
+    // Read URL parameters on load
+    function readURLParams() {
+      const params = new URLSearchParams(window.location.search);
+      
+      const q = params.get('q');
+      if (q) {
+        document.getElementById('searchInput').value = q;
+      }
+      
+      const cat = params.get('cat');
+      if (cat) {
+        document.getElementById('categoryFilter').value = cat;
+        const sidebarRadio = document.querySelector(`input[name="sidebarCategory"][value="${cat}"]`);
+        if (sidebarRadio) sidebarRadio.checked = true;
+      }
+      
+      const filter = params.get('filter');
+      if (filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+          if (tab.dataset.filter === filter) {
+            tab.classList.add('active');
+          } else {
+            tab.classList.remove('active');
+          }
+        });
+      }
+      
+      const sort = params.get('sort');
+      if (sort) {
+        currentSort = sort;
+        document.getElementById('sortSelect').value = sort;
+      }
     }
 
     // Event listeners
@@ -798,11 +766,12 @@
     // Load more
     document.getElementById('loadMoreButton').addEventListener('click', () => {
       displayedCount += itemsPerPage;
-      renderItems(currentItems);
+      renderList(currentItems);
     });
 
-    // Initial render
-    renderItems(currentItems);
+    // Initial load: read URL params and render
+    readURLParams();
+    filterAndSortItems();
   </script>
 </body>
 </html>
