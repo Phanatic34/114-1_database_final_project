@@ -551,25 +551,25 @@
       width: 100%;
     }
 
-    /* spacing + separators */
-    .action-buttons button + button {
+    /* separators only between primary buttons */
+    .action-buttons .btn-primary + .btn-primary {
       margin-top: 6px;
       position: relative;
     }
 
-    .action-buttons button + button::before {
+    .action-buttons .btn-primary + .btn-primary::before {
       content: "";
       position: absolute;
       top: -4px;
       left: 16px;
       right: 16px;
       height: 1px;
-      background: #e5e7eb; /* subtle grey line between buttons */
+      background: #e5e7eb; /* subtle grey line between primary buttons */
     }
 
-    /* keep outline button visually lighter */
-    .btn-outline {
-      margin-top: 10px; /* a bit more space before 聯絡賣家 */
+    /* remove separator before outline button */
+    .action-buttons .btn-outline {
+      margin-top: 10px; /* space after the last blue button */
     }
 
     .btn-primary {
@@ -604,18 +604,7 @@
       background: #eff6ff;
     }
 
-    .trade-hint {
-      font-size: 12px;
-      color: #6b7280;
-      margin-top: 4px;
-      line-height: 1.4;
-    }
 
-    .action-divider {
-      height: 1px;
-      background: #e5e7eb;
-      margin: 16px 0;
-    }
 
     .pickup-section h4 {
       font-size: 14px;
@@ -830,12 +819,7 @@
               <button id="btnTrade" class="btn-primary" onclick="handleTrade()">以物易物</button>
               <button id="btnAddToCart" class="btn-primary" onclick="handleAddToCart()">加入購物車</button>
               <button id="messageButtonMain" class="btn-outline" onclick="handleOpenChat()">聯絡賣家</button>
-              <p id="tradeHint" class="trade-hint">
-                想換 PS5 / Xbox Series X，也接受其他 Nintendo 主機，詳見「交換規則」。
-              </p>
             </div>
-
-            <div class="action-divider"></div>
 
             <div class="pickup-section section-divider">
               <h4>取貨方式：</h4>
@@ -1123,7 +1107,6 @@
       const btnAddToCart = document.getElementById('btnAddToCart');
       const btnBuyNow = document.getElementById('btnBuyNow');
       const btnTrade = document.getElementById('btnTrade');
-      const tradeHint = document.getElementById('tradeHint');
       const actionQuantity = document.querySelector('.action-quantity');
 
       function applyMode() {
@@ -1135,7 +1118,6 @@
           if (btnBuyNow) btnBuyNow.style.display = 'block';
           if (btnTrade) btnTrade.style.display = 'block';
           if (actionQuantity) actionQuantity.style.display = 'flex';
-          if (tradeHint) tradeHint.style.display = 'block';
         } else if (listingMode === 'trade_only') {
           // Hide price, hide purchase buttons, show trade only
           if (listingModeSummary) listingModeSummary.textContent = '僅接受以物易物';
@@ -1147,7 +1129,6 @@
           if (btnBuyNow) btnBuyNow.style.display = 'none';
           if (btnTrade) btnTrade.style.display = 'block';
           if (actionQuantity) actionQuantity.style.display = 'none';
-          if (tradeHint) tradeHint.style.display = 'block';
         } else if (listingMode === 'wish_only') {
           // Hide price, show wish message
           if (listingModeSummary) listingModeSummary.textContent = '開放式許願';
@@ -1159,7 +1140,6 @@
           if (btnBuyNow) btnBuyNow.style.display = 'none';
           if (btnTrade) btnTrade.style.display = 'block';
           if (actionQuantity) actionQuantity.style.display = 'none';
-          if (tradeHint) tradeHint.style.display = 'block';
         }
       }
 
@@ -1334,11 +1314,7 @@
         document.getElementById('pickupInfo').textContent = 
           `${currentItem.pickup.type} | ${currentItem.pickup.place} | ${currentItem.pickup.time}`;
 
-        // Trade hint
-        const tradeHint = document.getElementById('tradeHint');
-        if (tradeHint && currentItem.mode.tradeSummary) {
-          tradeHint.textContent = currentItem.mode.tradeSummary + '，詳見「交換規則」。';
-        }
+        // Trade hint removed - information is in the blue 交換規則 card
 
         // Update trade modal requirement text
         const tradeReqText = document.getElementById('tradeRequirementText');
