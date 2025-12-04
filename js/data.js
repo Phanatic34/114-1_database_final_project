@@ -579,6 +579,67 @@ function seedDemoData() {
   }
 }
 
+// ========== Pending Transactions ==========
+
+const PENDING_TX_KEY = 'pendingTransactions';
+
+/**
+ * Load all pending transactions
+ * @returns {Object<string, {itemId: string, type: 'buy' | 'trade', createdAt: number}>}
+ */
+function loadPendingTransactions() {
+  try {
+    const raw = localStorage.getItem(PENDING_TX_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    console.error('Error loading pending transactions:', e);
+    return {};
+  }
+}
+
+/**
+ * Save pending transactions map
+ * @param {Object<string, {itemId: string, type: 'buy' | 'trade', createdAt: number}>} map
+ */
+function savePendingTransactions(map) {
+  try {
+    localStorage.setItem(PENDING_TX_KEY, JSON.stringify(map));
+  } catch (e) {
+    console.error('Error saving pending transactions:', e);
+  }
+}
+
+/**
+ * Set a pending transaction for an item
+ * @param {string} itemId
+ * @param {'buy' | 'trade'} type
+ */
+function setPendingTransaction(itemId, type) {
+  const map = loadPendingTransactions();
+  map[itemId] = { itemId, type, createdAt: Date.now() };
+  savePendingTransactions(map);
+}
+
+/**
+ * Clear pending transaction for an item
+ * @param {string} itemId
+ */
+function clearPendingTransaction(itemId) {
+  const map = loadPendingTransactions();
+  delete map[itemId];
+  savePendingTransactions(map);
+}
+
+/**
+ * Check if an item has a pending transaction
+ * @param {string} itemId
+ * @returns {boolean}
+ */
+function hasPendingTransaction(itemId) {
+  const map = loadPendingTransactions();
+  return !!map[itemId];
+}
+
 // Initialize on load
 if (typeof window !== 'undefined') {
   seedDemoData();

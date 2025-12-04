@@ -701,20 +701,30 @@
       background: white;
     }
 
-    .action-buttons {
+    .action-buttons-group {
       display: flex;
       flex-direction: column;
       margin-bottom: 16px;
     }
 
-    .action-buttons button {
+    .action-buttons-group.hidden {
+      display: none;
+    }
+
+    .action-buttons-group button {
       width: 100%;
     }
 
     /* separators only between primary buttons */
-    .action-buttons .btn-primary + .btn-primary {
+    .action-buttons-group .btn-primary + .btn-primary {
       margin-top: 6px;
       position: relative;
+    }
+
+    .cancel-tx-btn {
+      margin-top: 0;
+      margin-bottom: 16px;
+      width: 100%;
     }
 
     .action-buttons .btn-primary + .btn-primary::before {
@@ -985,12 +995,13 @@
               </select>
             </div>
 
-            <div class="action-buttons">
+            <div class="action-buttons-group" id="actionButtonsGroup">
               <button id="btnBuyNow" class="btn-primary" onclick="handlePurchase()">立即購買</button>
               <button id="btnTrade" class="btn-primary" onclick="handleTrade()">以物易物</button>
               <button id="btnAddToCart" class="btn-primary" onclick="handleAddToCart()">加入購物車</button>
-              <button id="messageButtonMain" class="btn-outline" onclick="handleOpenChat()">聯絡賣家</button>
             </div>
+            <button id="cancelTxBtn" class="btn-primary cancel-tx-btn" style="display: none;" onclick="handleCancelTransaction()">取消交易請求</button>
+            <button id="messageButtonMain" class="btn-outline" onclick="handleOpenChat()">聯絡賣家</button>
 
             <div class="pickup-section section-divider">
               <h4>取貨方式：</h4>
@@ -1241,7 +1252,15 @@
       }
       
       closePurchaseModal();
-      alert('已送出購買請求，請等待賣家回覆。');
+      
+      // Mark as pending transaction
+      const currentItemId = getCurrentItemId();
+      if (currentItemId) {
+        setPendingTransaction(currentItemId, 'buy');
+      }
+      
+      alert('購買請求已送出！賣家將收到通知。\n賣家接受前，你可以取消這筆交易請求。');
+      updateActionButtonsState();
     }
 
     // Trade modal state - single selection only
@@ -1387,8 +1406,15 @@
         });
       }
       
-      alert('交換提案已送出！賣家將收到通知。');
+      // Mark as pending transaction
+      const currentItemId = getCurrentItemId();
+      if (currentItemId) {
+        setPendingTransaction(currentItemId, 'trade');
+      }
+      
+      alert('交換提案已送出！賣家將收到通知。\n賣家接受前，你可以取消這筆交易請求。');
       closeTradeModal();
+      updateActionButtonsState();
     }
 
     function handleOpenChat() {
@@ -1605,6 +1631,12 @@
   <script src="js/data.js"></script>
   <script src="js/navbar.js"></script>
   <script>
+    // Get current item ID from URL
+    function getCurrentItemId() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id');
+    }
+
     // Get item ID from URL
     const params = new URLSearchParams(window.location.search);
     const itemId = params.get('id');
@@ -2081,6 +2113,44 @@
 
       // Populate on load
       populateItemPage();
+      
+      // Update action buttons state based on pending transactions
+      updateActionButtonsState();
+    }
+    
+    // Update action buttons state based on pending transactions
+    function updateActionButtonsState() {
+      const itemId = getCurrentItemId();
+      const hasPending = itemId ? hasPendingTransaction(itemId) : false;
+      
+      const actionGroup = document.getElementById('actionButtonsGroup');
+      const cancelBtn = document.getElementById('cancelTxBtn');
+      
+      if (!actionGroup || !cancelBtn) return;
+      
+      if (hasPending) {
+        // Hide main three buttons, show cancel
+        actionGroup.classList.add('hidden');
+        cancelBtn.style.display = 'block';
+      } else {
+        // Show main three buttons, hide cancel
+        actionGroup.classList.remove('hidden');
+        cancelBtn.style.display = 'none';
+      }
+    }
+    
+    // Handle cancel transaction request
+    function handleCancelTransaction() {
+      const itemId = getCurrentItemId();
+      if (!itemId) return;
+      
+      const ok = confirm('確定要取消這筆交易請求嗎？\n賣家將不會再看到這筆新請求。');
+      if (!ok) return;
+      
+      clearPendingTransaction(itemId);
+      alert('已取消交易請求。');
+      
+      updateActionButtonsState();
     }
 
     // Handle header search
