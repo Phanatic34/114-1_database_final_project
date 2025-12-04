@@ -736,6 +736,23 @@
       margin-bottom: 0;
     }
 
+    .danger-button {
+      background-color: #e53935;
+      color: #ffffff;
+    }
+
+    .danger-button:hover {
+      background-color: #c62828;
+    }
+
+    .remove-helper-text {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #6b7280;
+      text-align: center;
+      padding: 0 16px;
+    }
+
     .action-buttons .btn-primary + .btn-primary::before {
       content: "";
       position: absolute;
@@ -1723,7 +1740,7 @@
       }
     }
 
-    if (!currentItem) {
+    if (!currentItem || (currentItem.isActive === false)) {
       document.body.innerHTML = '<div style="padding: 40px; text-align: center;"><h1>商品不存在</h1><p><a href="item_list.html">返回商品列表</a></p></div>';
     } else {
       // Increment view count
@@ -2157,6 +2174,66 @@
       
       // Update action buttons state based on pending transactions
       updateActionButtonsState();
+      
+      // Check if current user is seller and show appropriate UI
+      if (currentItem && isCurrentUserSeller(currentItem)) {
+        showSellerView(currentItem);
+      }
+    }
+    
+    // Show seller view (hide buy buttons, show remove button)
+    function showSellerView(item) {
+      const actionButtonsGroup = document.getElementById('actionButtonsGroup');
+      const cancelTxBtn = document.getElementById('cancelTxBtn');
+      const messageButtonMain = document.getElementById('messageButtonMain');
+      const actionQuantity = document.querySelector('.action-quantity');
+      
+      // Hide all normal action buttons
+      if (actionButtonsGroup) actionButtonsGroup.style.display = 'none';
+      if (cancelTxBtn) cancelTxBtn.style.display = 'none';
+      if (messageButtonMain) messageButtonMain.style.display = 'none';
+      if (actionQuantity) actionQuantity.style.display = 'none';
+      
+      // Create container for seller actions
+      const sellerActionsContainer = document.createElement('div');
+      sellerActionsContainer.className = 'seller-actions-container';
+      sellerActionsContainer.style.marginTop = '0';
+      
+      // Create remove button
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'item-action-button item-action-button-primary danger-button';
+      removeBtn.textContent = '下架商品';
+      removeBtn.addEventListener('click', () => handleRemoveItem(item));
+      sellerActionsContainer.appendChild(removeBtn);
+      
+      // Create helper text
+      const helper = document.createElement('p');
+      helper.className = 'remove-helper-text';
+      helper.textContent = '此操作將把商品從平台下架，買家將無法再看到此商品。';
+      sellerActionsContainer.appendChild(helper);
+      
+      // Insert after action-price-block
+      const actionCard = document.querySelector('.action-card');
+      const actionPriceBlock = document.querySelector('.action-price-block');
+      if (actionCard && actionPriceBlock) {
+        actionCard.insertBefore(sellerActionsContainer, actionPriceBlock.nextSibling);
+      }
+    }
+    
+    // Handle remove item
+    function handleRemoveItem(item) {
+      const confirmed = window.confirm('確定要下架這個商品嗎？\n此操作無法復原。');
+      if (!confirmed) return;
+      
+      // Mark item as inactive (removed)
+      const updated = updateItem(item.id, { isActive: false });
+      if (!updated) {
+        alert('下架商品時發生錯誤，請稍後再試。');
+        return;
+      }
+      
+      alert('商品已成功下架，將返回商品列表。');
+      window.location.href = 'item_list.html';
     }
     
     // Update action buttons state based on pending transactions

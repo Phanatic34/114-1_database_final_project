@@ -211,6 +211,16 @@ function requireLogin(redirectUrl = null) {
   return true;
 }
 
+/**
+ * Check if current user is the seller of an item
+ * @param {Item} item
+ * @returns {boolean}
+ */
+function isCurrentUserSeller(item) {
+  const currentUserId = getCurrentUserId();
+  return currentUserId && item && item.sellerId && String(currentUserId) === String(item.sellerId);
+}
+
 // ========== Item Functions ==========
 
 /**
