@@ -324,14 +324,8 @@
     .seller-inline {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .seller-inline-left {
-      display: flex;
-      align-items: center;
       gap: 10px;
+      margin-bottom: 12px;
     }
 
     .seller-avatar-small {
@@ -513,12 +507,34 @@
     }
 
     .action-buttons {
+      display: flex;
+      flex-direction: column;
       margin-bottom: 16px;
     }
 
     .action-buttons button {
       width: 100%;
-      margin-bottom: 8px;
+    }
+
+    /* spacing + separators */
+    .action-buttons button + button {
+      margin-top: 6px;
+      position: relative;
+    }
+
+    .action-buttons button + button::before {
+      content: "";
+      position: absolute;
+      top: -4px;
+      left: 16px;
+      right: 16px;
+      height: 1px;
+      background: #e5e7eb; /* subtle grey line between buttons */
+    }
+
+    /* keep outline button visually lighter */
+    .btn-outline {
+      margin-top: 10px; /* a bit more space before 聯絡賣家 */
     }
 
     .btn-primary {
@@ -712,26 +728,20 @@
               <h1 class="item-title" id="itemTitle">Nintendo Switch OLED 白色主機 九成新</h1>
 
               <div class="seller-inline">
-                <div class="seller-inline-left">
-                  <div class="seller-avatar-small" id="sellerAvatar">
-                    <span>G</span>
+                <div class="seller-avatar-small" id="sellerAvatar">
+                  <span>G</span>
+                </div>
+                <div class="seller-text-block">
+                  <div class="seller-main-line">
+                    <span id="sellerName" class="seller-name">game_lover_2024</span>
+                    <span id="sellerCount" class="seller-count">(127)</span>
                   </div>
-                  <div class="seller-text-block">
-                    <div class="seller-main-line">
-                      <span id="sellerName" class="seller-name">game_lover_2024</span>
-                      <span id="sellerCount" class="seller-count">(127)</span>
-                    </div>
-                    <div class="seller-sub-line">
-                      <span id="sellerRatingText" class="seller-rating-text">99.9% 好評</span>
-                      <span class="seller-dot">·</span>
-                      <button class="seller-link-button" id="sellerViewItemsButton">
-                        查看賣家其他商品
-                      </button>
-                      <span class="seller-dot">·</span>
-                      <button class="seller-link-button" id="sellerInlineMessageBtn">
-                        聯絡賣家
-                      </button>
-                    </div>
+                  <div class="seller-sub-line">
+                    <span id="sellerRatingText" class="seller-rating-text">99.9% 好評</span>
+                    <span class="seller-dot">·</span>
+                    <button class="seller-link-button" id="sellerViewItemsButton">
+                      查看賣家其他商品
+                    </button>
                   </div>
                 </div>
               </div>
@@ -784,9 +794,9 @@
             </div>
 
             <div class="action-buttons">
-              <button id="btnAddToCart" class="btn-primary" onclick="handleAddToCart()">加入購物車</button>
               <button id="btnBuyNow" class="btn-primary" onclick="handlePurchase()">立即購買</button>
               <button id="btnTrade" class="btn-primary" onclick="handleTrade()">以物易物</button>
+              <button id="btnAddToCart" class="btn-primary" onclick="handleAddToCart()">加入購物車</button>
               <button id="messageButtonMain" class="btn-outline" onclick="handleOpenChat()">聯絡賣家</button>
               <p id="tradeHint" class="trade-hint">
                 想換 PS5 / Xbox Series X，也接受其他 Nintendo 主機，詳見「交換規則」。
@@ -1045,13 +1055,8 @@
       }
     })();
 
-    // Hook up inline seller message button to chat modal
-    (function() {
-      const inlineMsgBtn = document.getElementById('sellerInlineMessageBtn');
-      if (inlineMsgBtn) {
-        inlineMsgBtn.addEventListener('click', handleOpenChat);
-      }
-    })();
+    // messageButtonMain is already wired via onclick="handleOpenChat()" in HTML
+    // No need for additional event listener
 
     // Mode handling logic (purchase + trade / trade only / wish only)
     (function() {
