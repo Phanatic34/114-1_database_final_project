@@ -1859,18 +1859,68 @@
         // Title
         document.getElementById('itemTitle').textContent = currentItem.title;
 
-        // Seller info
-        document.getElementById('sellerName').textContent = currentItem.seller.name;
-        document.getElementById('sellerCount').textContent = `(${currentItem.seller.deals || 0})`;
-        document.getElementById('sellerRatingText').textContent = currentItem.seller.ratingText || '無評價';
-        document.getElementById('sellerAvatar').querySelector('span').textContent = currentItem.seller.name[0].toUpperCase();
-        
-        // Wire up seller buttons
-        const sellerViewItemsButton = document.getElementById('sellerViewItemsButton');
-        if (sellerViewItemsButton) {
-          sellerViewItemsButton.addEventListener('click', () => {
-            window.location.href = `item_list.html?seller=${encodeURIComponent(currentItem.seller.name)}`;
-          });
+        // Seller info (with safety checks)
+        if (currentItem.seller && currentItem.seller.name) {
+          const sellerNameEl = document.getElementById('sellerName');
+          const sellerCountEl = document.getElementById('sellerCount');
+          const sellerRatingTextEl = document.getElementById('sellerRatingText');
+          const sellerAvatarEl = document.getElementById('sellerAvatar');
+          
+          if (sellerNameEl) sellerNameEl.textContent = currentItem.seller.name;
+          if (sellerCountEl) sellerCountEl.textContent = `(${currentItem.seller.deals || 0})`;
+          if (sellerRatingTextEl) sellerRatingTextEl.textContent = currentItem.seller.ratingText || '無評價';
+          
+          if (sellerAvatarEl) {
+            const avatarSpan = sellerAvatarEl.querySelector('span');
+            if (avatarSpan && currentItem.seller.name) {
+              avatarSpan.textContent = currentItem.seller.name[0].toUpperCase();
+            }
+          }
+          
+          // Wire up seller buttons
+          const sellerViewItemsButton = document.getElementById('sellerViewItemsButton');
+          if (sellerViewItemsButton) {
+            sellerViewItemsButton.addEventListener('click', () => {
+              window.location.href = `item_list.html?seller=${encodeURIComponent(currentItem.seller.name)}`;
+            });
+          }
+        } else {
+          // Fallback if seller info is missing - re-initialize it
+          if (currentItem.sellerId) {
+            const seller = getUsers().find(u => u.id === currentItem.sellerId);
+            if (seller) {
+              currentItem.seller = {
+                name: seller.name,
+                rating: 4.8,
+                ratingText: '99.9% 好評',
+                deals: 0
+              };
+              // Retry with initialized seller
+              const sellerNameEl = document.getElementById('sellerName');
+              const sellerCountEl = document.getElementById('sellerCount');
+              const sellerRatingTextEl = document.getElementById('sellerRatingText');
+              const sellerAvatarEl = document.getElementById('sellerAvatar');
+              
+              if (sellerNameEl) sellerNameEl.textContent = currentItem.seller.name;
+              if (sellerCountEl) sellerCountEl.textContent = `(${currentItem.seller.deals || 0})`;
+              if (sellerRatingTextEl) sellerRatingTextEl.textContent = currentItem.seller.ratingText || '無評價';
+              
+              if (sellerAvatarEl) {
+                const avatarSpan = sellerAvatarEl.querySelector('span');
+                if (avatarSpan) {
+                  avatarSpan.textContent = currentItem.seller.name[0].toUpperCase();
+                }
+              }
+            } else {
+              // No seller found - use fallback
+              const sellerNameEl = document.getElementById('sellerName');
+              if (sellerNameEl) sellerNameEl.textContent = '未知賣家';
+            }
+          } else {
+            // No sellerId - use fallback
+            const sellerNameEl = document.getElementById('sellerName');
+            if (sellerNameEl) sellerNameEl.textContent = '未知賣家';
+          }
         }
 
         // Condition badge
