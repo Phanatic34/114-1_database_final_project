@@ -247,6 +247,37 @@
       margin-top: 4px;
     }
 
+    /* Sold item styling */
+    .item-card--sold {
+      opacity: 0.7;
+    }
+
+    .item-card--sold .item-card-image,
+    .item-card--sold .recent-item-image {
+      filter: grayscale(100%);
+    }
+
+    .item-card-sold-badge {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      z-index: 10;
+    }
+
+    /* Ensure image wrappers can hold absolute children */
+    .item-card-image-wrapper,
+    .recent-item-image-container {
+      position: relative;
+      overflow: hidden;
+    }
+
     /* Category shortcuts */
     .category-grid {
       display: grid;
@@ -614,6 +645,23 @@
       return views + addedToCart * 2;
     }
 
+    // Apply sold styling to item cards
+    function applySoldStyling(cardElement, item) {
+      if (!item || item.status !== 'sold') return;
+
+      // Add CSS class on the card
+      cardElement.classList.add('item-card--sold');
+
+      // Add sold badge overlay inside the thumbnail / image wrapper
+      const thumbnail = cardElement.querySelector('.item-card-image-wrapper, .recent-item-image-container');
+      if (thumbnail && !thumbnail.querySelector('.item-card-sold-badge')) {
+        const badge = document.createElement('div');
+        badge.className = 'item-card-sold-badge';
+        badge.textContent = '已售完';
+        thumbnail.appendChild(badge);
+      }
+    }
+
     // Render trending items
     function renderTrendingItems() {
       // Get all items (seed + user items) from data layer
@@ -623,6 +671,12 @@
       } else {
         items = getItems().filter(i => i.isActive);
       }
+      
+      // Ensure all items have status field (default to 'active' if missing)
+      items = items.map(item => ({
+        ...item,
+        status: item.status || 'active'
+      }));
       
       // Fallback to mockItems if available (backward compatibility)
       if (items.length === 0 && typeof mockItems !== 'undefined') {
@@ -682,6 +736,9 @@
           </div>
         `;
 
+        // Apply sold styling if item is sold
+        applySoldStyling(card, item);
+        
         grid.appendChild(card);
         
         // Attach fallback to the image
@@ -725,6 +782,12 @@
           </div>
         `;
 
+        // Apply sold styling if item is sold
+        applySoldStyling(card, item);
+        
+        // Apply sold styling if item is sold
+        applySoldStyling(card, item);
+        
         grid.appendChild(card);
         
         // Attach fallback to the image

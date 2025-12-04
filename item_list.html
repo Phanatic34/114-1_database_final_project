@@ -373,6 +373,35 @@
       margin-top: 4px;
     }
 
+    /* Sold item styling */
+    .item-card--sold {
+      opacity: 0.7;
+    }
+
+    .item-card--sold .item-card-image {
+      filter: grayscale(100%);
+    }
+
+    .item-card-sold-badge {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      z-index: 10;
+    }
+
+    /* Ensure image wrapper can hold absolute children */
+    .item-card-image-wrapper {
+      position: relative;
+      overflow: hidden;
+    }
+
     /* Pagination */
     .results-pagination {
       display: flex;
@@ -589,6 +618,12 @@
     function loadItems() {
       let items = getItems().filter(i => i.isActive);
       
+      // Ensure all items have status field (default to 'active' if missing)
+      items = items.map(item => ({
+        ...item,
+        status: item.status || 'active'
+      }));
+      
       // Convert to old format for compatibility
       items = items.map(item => {
         const seller = getUsers().find(u => u.id === item.sellerId);
@@ -712,6 +747,23 @@
       'used': '二手'
     };
 
+    // Apply sold styling to item cards
+    function applySoldStyling(cardElement, item) {
+      if (!item || item.status !== 'sold') return;
+
+      // Add CSS class on the card
+      cardElement.classList.add('item-card--sold');
+
+      // Add sold badge overlay inside the thumbnail / image wrapper
+      const thumbnail = cardElement.querySelector('.item-card-image-wrapper');
+      if (thumbnail && !thumbnail.querySelector('.item-card-sold-badge')) {
+        const badge = document.createElement('div');
+        badge.className = 'item-card-sold-badge';
+        badge.textContent = '已售完';
+        thumbnail.appendChild(badge);
+      }
+    }
+
     // Create item card
     function createItemCard(item) {
       const a = document.createElement('a');
@@ -755,6 +807,9 @@
       // Attach fallback to the image
       const img = a.querySelector('.item-card-image');
       if (img) attachImageFallback(img);
+      
+      // Apply sold styling if item is sold
+      applySoldStyling(a, item);
       
       return a;
     }
