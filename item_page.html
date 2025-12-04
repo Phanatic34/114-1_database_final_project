@@ -2485,55 +2485,99 @@
     }
     
     function saveItemChanges() {
-      if (!currentItem) return;
-      
-      const title = document.getElementById('editItemTitle').value.trim();
-      const price = parseFloat(document.getElementById('editItemPrice').value) || 0;
-      const description = document.getElementById('editItemDescription').value.trim();
-      const category = document.getElementById('editItemCategory').value;
-      const tagsStr = document.getElementById('editItemTags').value.trim();
-      const condition = document.getElementById('editItemCondition').value;
-      const pickup = document.getElementById('editItemPickup').value.trim();
-      
-      if (!title) {
-        alert('請輸入商品名稱');
-        return;
-      }
-      
-      // Parse tags
-      const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t) : [];
-      
-      // Update item
-      const updated = updateItem(currentItem.id, {
-        title,
-        price,
-        description,
-        category,
-        tags,
-        condition,
-        pickup: {
-          method: pickup || '面交',
-          location: currentItem.pickup?.location || currentItem.location || '',
-          time: currentItem.pickup?.time || '時間可議'
+      try {
+        if (!currentItem) {
+          alert('無法找到商品資訊，請重新載入頁面。');
+          return;
         }
-      });
-      
-      if (!updated) {
-        alert('更新商品時發生錯誤，請稍後再試。');
-        return;
+        
+        const titleEl = document.getElementById('editItemTitle');
+        const priceEl = document.getElementById('editItemPrice');
+        const descriptionEl = document.getElementById('editItemDescription');
+        const categoryEl = document.getElementById('editItemCategory');
+        const tagsEl = document.getElementById('editItemTags');
+        const conditionEl = document.getElementById('editItemCondition');
+        const pickupEl = document.getElementById('editItemPickup');
+        
+        if (!titleEl || !priceEl || !descriptionEl || !categoryEl || !tagsEl || !conditionEl || !pickupEl) {
+          alert('無法讀取表單資料，請重新開啟編輯視窗。');
+          return;
+        }
+        
+        const title = titleEl.value.trim();
+        const price = parseFloat(priceEl.value) || 0;
+        const description = descriptionEl.value.trim();
+        const category = categoryEl.value;
+        const tagsStr = tagsEl.value.trim();
+        const condition = conditionEl.value;
+        const pickup = pickupEl.value.trim();
+        
+        if (!title) {
+          alert('請輸入商品名稱');
+          return;
+        }
+        
+        // Parse tags
+        const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t) : [];
+        
+        // Prepare update data
+        const updateData = {
+          title,
+          price,
+          description,
+          category,
+          tags,
+          condition
+        };
+        
+        // Handle pickup - preserve existing structure if available
+        if (currentItem.pickup && typeof currentItem.pickup === 'object') {
+          updateData.pickup = {
+            ...currentItem.pickup,
+            method: pickup || currentItem.pickup.method || '面交'
+          };
+        } else {
+          updateData.pickup = {
+            method: pickup || '面交',
+            location: currentItem.location || '',
+            time: '時間可議'
+          };
+        }
+        
+        // Update item
+        const updated = updateItem(currentItem.id, updateData);
+        
+        if (!updated) {
+          alert('更新商品時發生錯誤，請稍後再試。');
+          return;
+        }
+        
+        // Update currentItem reference
+        currentItem = updated;
+        
+        // Re-render relevant sections
+        populateItemPage();
+        
+        // Re-show seller view if user is still the seller
+        if (isCurrentUserSeller(currentItem)) {
+          setTimeout(() => {
+            showSellerView(currentItem);
+          }, 100);
+        }
+        
+        // Close modal
+        closeEditItemModal();
+        
+        alert('商品資訊已更新');
+      } catch (error) {
+        console.error('Error saving item changes:', error);
+        alert('儲存時發生錯誤：' + error.message);
       }
-      
-      // Update currentItem reference
-      currentItem = updated;
-      
-      // Re-render relevant sections
-      populateItemPage();
-      
-      // Close modal
-      closeEditItemModal();
-      
-      alert('商品資訊已更新');
     }
+    
+    // Make function globally accessible
+    window.saveItemChanges = saveItemChanges;
+    window.closeEditItemModal = closeEditItemModal;
     
     // Update action buttons state based on pending transactions
     function updateActionButtonsState() {
