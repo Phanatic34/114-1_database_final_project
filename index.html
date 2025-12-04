@@ -429,11 +429,7 @@
         />
         <select id="heroCategorySelect" class="hero-search-category">
           <option value="all">所有分類</option>
-          <option value="console">遊戲主機</option>
-          <option value="phone">手機 / 平板</option>
-          <option value="computer">電腦 / 週邊</option>
-          <option value="appliance">家電</option>
-          <option value="other">其他</option>
+          <!-- Options will be populated by JavaScript -->
         </select>
         <button type="submit" class="hero-search-button">搜尋</button>
       </form>
@@ -455,37 +451,8 @@
       <div class="section-header">
         <h2 class="section-title">分類快速瀏覽</h2>
       </div>
-      <div class="category-grid">
-        <a href="item_list.html?category=console" class="category-tile">
-          <div class="category-tile-icon">🎮</div>
-          <div class="category-tile-title">遊戲主機</div>
-          <div class="category-tile-desc">二手 Nintendo / PlayStation / Xbox 主機</div>
-        </a>
-        <a href="item_list.html?category=phone" class="category-tile">
-          <div class="category-tile-icon">📱</div>
-          <div class="category-tile-title">手機 / 平板</div>
-          <div class="category-tile-desc">iPhone / Android 手機與平板電腦</div>
-        </a>
-        <a href="item_list.html?category=computer" class="category-tile">
-          <div class="category-tile-icon">💻</div>
-          <div class="category-tile-title">電腦 / 週邊</div>
-          <div class="category-tile-desc">筆電、桌機、鍵盤、滑鼠等</div>
-        </a>
-        <a href="item_list.html?category=camera" class="category-tile">
-          <div class="category-tile-icon">📷</div>
-          <div class="category-tile-title">相機 / 3C 產品</div>
-          <div class="category-tile-desc">數位相機、攝影器材、3C 配件</div>
-        </a>
-        <a href="item_list.html?category=appliance" class="category-tile">
-          <div class="category-tile-icon">🏠</div>
-          <div class="category-tile-title">生活家電</div>
-          <div class="category-tile-desc">家電用品、生活必需品</div>
-        </a>
-        <a href="item_list.html?category=other" class="category-tile">
-          <div class="category-tile-icon">📦</div>
-          <div class="category-tile-title">其他</div>
-          <div class="category-tile-desc">其他商品分類</div>
-        </a>
+      <div class="category-grid" id="categoryGrid">
+        <!-- Categories will be rendered by JavaScript -->
       </div>
     </section>
 
@@ -505,15 +472,110 @@
   <script src="js/data.js"></script>
   <script src="js/navbar.js"></script>
   <script>
-    // Category mapping
-    const categoryMap = {
-      'console': 'games',
-      'phone': 'electronics',
-      'computer': 'electronics',
-      'camera': 'electronics',
-      'appliance': 'others',
-      'other': 'others'
-    };
+    // Category data structure
+    const categories = [
+      {
+        id: 'textbooks',
+        label: '課本／學習用品',
+        icon: '📚',
+        description: '教科書、參考書、文具用品'
+      },
+      {
+        id: 'laptop_3c',
+        label: '筆電／3C',
+        icon: '💻',
+        description: '筆記型電腦、3C 產品'
+      },
+      {
+        id: 'phone_tablet',
+        label: '手機／平板',
+        icon: '📱',
+        description: '智慧型手機、平板電腦'
+      },
+      {
+        id: 'game_console',
+        label: '遊戲與主機',
+        icon: '🎮',
+        description: '遊戲主機、遊戲片'
+      },
+      {
+        id: 'dorm_furniture',
+        label: '宿舍家電與家具',
+        icon: '🏠',
+        description: '宿舍用品、家電、家具'
+      },
+      {
+        id: 'clothing_life',
+        label: '服飾／生活用品',
+        icon: '👕',
+        description: '衣物、生活用品'
+      },
+      {
+        id: 'sports_hobby',
+        label: '運動／興趣嗜好',
+        icon: '⚽',
+        description: '運動用品、興趣相關'
+      },
+      {
+        id: 'others',
+        label: '其他',
+        icon: '📦',
+        description: '其他商品分類'
+      }
+    ];
+
+    // Render category tiles
+    function renderCategories() {
+      const categoryGrid = document.getElementById('categoryGrid');
+      if (!categoryGrid) return;
+
+      categoryGrid.innerHTML = '';
+      
+      categories.forEach(category => {
+        const tile = document.createElement('a');
+        tile.href = `item_list.html?category=${category.id}`;
+        tile.className = 'category-tile';
+        
+        tile.innerHTML = `
+          <div class="category-tile-icon">${category.icon}</div>
+          <div class="category-tile-title">${category.label}</div>
+          <div class="category-tile-desc">${category.description}</div>
+        `;
+        
+        categoryGrid.appendChild(tile);
+      });
+    }
+
+    // Populate category select dropdown
+    function populateCategorySelect() {
+      const select = document.getElementById('heroCategorySelect');
+      if (!select) return;
+
+      // Keep "所有分類" option, then add new categories
+      const allOption = select.querySelector('option[value="all"]');
+      select.innerHTML = '';
+      if (allOption) {
+        select.appendChild(allOption);
+      } else {
+        const defaultOption = document.createElement('option');
+        defaultOption.value = 'all';
+        defaultOption.textContent = '所有分類';
+        select.appendChild(defaultOption);
+      }
+
+      categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.id;
+        option.textContent = category.label;
+        select.appendChild(option);
+      });
+    }
+
+    // Initialize categories on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCategories();
+      populateCategorySelect();
+    });
 
     // Handle hero search
     function handleHeroSearch(event) {
