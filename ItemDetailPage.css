@@ -58,6 +58,21 @@ body {
   font-weight: bold;
 }
 
+/* Logo image styling */
+.site-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  margin-right: 24px;
+}
+
+.site-logo img {
+  display: block;
+  height: 40px;
+  width: auto;
+}
+
 .header-nav {
   display: flex;
   gap: 2rem;
