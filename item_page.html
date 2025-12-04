@@ -2224,17 +2224,17 @@
       sellerActionsContainer.className = 'seller-actions-container';
       sellerActionsContainer.style.marginTop = '0';
       
-      // Create remove button
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'item-action-button item-action-button-primary danger-button';
-      removeBtn.textContent = '下架商品';
-      removeBtn.addEventListener('click', () => handleRemoveItem(item));
-      sellerActionsContainer.appendChild(removeBtn);
+      // Create edit button
+      const editBtn = document.createElement('button');
+      editBtn.className = 'item-action-button item-action-button-primary';
+      editBtn.textContent = '修改商品資訊';
+      editBtn.addEventListener('click', () => handleEditItem(item));
+      sellerActionsContainer.appendChild(editBtn);
       
       // Create helper text
       const helper = document.createElement('p');
       helper.className = 'remove-helper-text';
-      helper.textContent = '此操作將把商品從平台下架，買家將無法再看到此商品。';
+      helper.textContent = '此處可修改此商品的價格、描述、標籤與交易方式。';
       sellerActionsContainer.appendChild(helper);
       
       // Insert after action-price-block (before action-quantity or action-buttons-group)
@@ -2244,42 +2244,295 @@
         const actionPriceBlock = document.querySelector('.action-price-block');
         const actionQuantity = document.querySelector('.action-quantity');
         
-        console.log('Inserting seller actions container', {
-          actionCard: !!actionCard,
-          actionPriceBlock: !!actionPriceBlock,
-          actionQuantity: !!actionQuantity
-        });
-        
         if (actionPriceBlock && actionPriceBlock.nextSibling) {
           actionCard.insertBefore(sellerActionsContainer, actionPriceBlock.nextSibling);
-          console.log('Inserted after action-price-block');
         } else if (actionQuantity) {
           actionCard.insertBefore(sellerActionsContainer, actionQuantity);
-          console.log('Inserted before action-quantity');
         } else {
           // Fallback: append to action-card
           actionCard.appendChild(sellerActionsContainer);
-          console.log('Appended to action-card');
         }
+      }
+      
+      // Add transactions section
+      addTransactionsSection(item);
+    }
+    
+    // Add transactions section for seller
+    function addTransactionsSection(item) {
+      // Remove existing transactions section if any
+      const existingSection = document.getElementById('transactions-section');
+      if (existingSection) {
+        existingSection.remove();
+      }
+      
+      // Get requests for this item
+      const requests = getRequests().filter(r => String(r.itemId) === String(item.id));
+      
+      // Create transactions section
+      const transactionsSection = document.createElement('div');
+      transactionsSection.id = 'transactions-section';
+      transactionsSection.className = 'transactions-section';
+      transactionsSection.style.cssText = 'margin-top: 24px; padding-top: 24px; border-top: 1px solid #e5e7eb;';
+      
+      const sectionTitle = document.createElement('h3');
+      sectionTitle.textContent = '此商品的交易請求';
+      sectionTitle.style.cssText = 'font-size: 16px; font-weight: 600; color: #111827; margin: 0 0 16px 0;';
+      transactionsSection.appendChild(sectionTitle);
+      
+      const transactionsList = document.createElement('div');
+      transactionsList.className = 'transactions-list';
+      transactionsList.style.cssText = 'max-height: 300px; overflow-y: auto;';
+      
+      if (requests.length === 0) {
+        const emptyState = document.createElement('p');
+        emptyState.textContent = '目前尚未收到任何交易請求。';
+        emptyState.style.cssText = 'text-align: center; color: #6b7280; padding: 24px; margin: 0;';
+        transactionsList.appendChild(emptyState);
       } else {
-        console.error('Could not find .action-card element');
+        requests.forEach(request => {
+          const buyer = getUsers().find(u => u.id === request.buyerId);
+          const buyerName = buyer ? buyer.name : '未知買家';
+          
+          const requestRow = document.createElement('div');
+          requestRow.className = 'transaction-row';
+          requestRow.style.cssText = 'padding: 12px; background: #f9fafb; border-radius: 8px; margin-bottom: 8px;';
+          
+          const rowContent = document.createElement('div');
+          rowContent.style.cssText = 'display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;';
+          
+          const leftInfo = document.createElement('div');
+          leftInfo.style.cssText = 'flex: 1;';
+          
+          const buyerNameEl = document.createElement('div');
+          buyerNameEl.textContent = buyerName;
+          buyerNameEl.style.cssText = 'font-weight: 600; color: #111827; margin-bottom: 4px;';
+          leftInfo.appendChild(buyerNameEl);
+          
+          const typeChip = document.createElement('span');
+          typeChip.textContent = request.type === 'purchase' ? '購買' : '以物易物';
+          typeChip.style.cssText = 'display: inline-block; padding: 2px 8px; background: #e0e7ff; color: #3730a3; border-radius: 4px; font-size: 12px; margin-right: 8px;';
+          leftInfo.appendChild(typeChip);
+          
+          const quantityEl = document.createElement('span');
+          quantityEl.textContent = `數量：${request.quantity || 1}`;
+          quantityEl.style.cssText = 'font-size: 12px; color: #6b7280;';
+          leftInfo.appendChild(quantityEl);
+          
+          rowContent.appendChild(leftInfo);
+          
+          const rightInfo = document.createElement('div');
+          rightInfo.style.cssText = 'text-align: right;';
+          
+          const statusChip = document.createElement('span');
+          let statusText = '';
+          let statusStyle = '';
+          if (request.status === 'pending') {
+            statusText = '待賣家回覆';
+            statusStyle = 'border: 1px solid #2563eb; color: #2563eb; background: transparent;';
+          } else if (request.status === 'accepted') {
+            statusText = '已接受';
+            statusStyle = 'background: #ecfdf3; color: #15803d;';
+          } else if (request.status === 'rejected') {
+            statusText = '已拒絕';
+            statusStyle = 'border: 1px solid #dc2626; color: #dc2626; background: transparent;';
+          } else if (request.status === 'cancelled') {
+            statusText = '已取消';
+            statusStyle = 'background: #f3f4f6; color: #6b7280;';
+          }
+          statusChip.textContent = statusText;
+          statusChip.style.cssText = `display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; ${statusStyle}`;
+          rightInfo.appendChild(statusChip);
+          
+          const timeEl = document.createElement('div');
+          const createdAt = new Date(request.createdAt);
+          timeEl.textContent = createdAt.toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+          timeEl.style.cssText = 'font-size: 11px; color: #9ca3af; margin-top: 4px;';
+          rightInfo.appendChild(timeEl);
+          
+          rowContent.appendChild(rightInfo);
+          requestRow.appendChild(rowContent);
+          
+          // Add action buttons for pending requests
+          if (request.status === 'pending') {
+            const actionsDiv = document.createElement('div');
+            actionsDiv.style.cssText = 'display: flex; gap: 8px; margin-top: 8px;';
+            
+            const acceptBtn = document.createElement('button');
+            acceptBtn.textContent = '接受';
+            acceptBtn.style.cssText = 'padding: 6px 12px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;';
+            acceptBtn.addEventListener('click', () => handleAcceptRequest(request.id));
+            actionsDiv.appendChild(acceptBtn);
+            
+            const rejectBtn = document.createElement('button');
+            rejectBtn.textContent = '拒絕';
+            rejectBtn.style.cssText = 'padding: 6px 12px; background: transparent; color: #dc2626; border: 1px solid #dc2626; border-radius: 6px; font-size: 12px; cursor: pointer;';
+            rejectBtn.addEventListener('click', () => handleRejectRequest(request.id));
+            actionsDiv.appendChild(rejectBtn);
+            
+            requestRow.appendChild(actionsDiv);
+          }
+          
+          transactionsList.appendChild(requestRow);
+        });
+      }
+      
+      transactionsSection.appendChild(transactionsList);
+      
+      // Insert after seller actions container
+      const actionCard = document.querySelector('.action-card');
+      if (actionCard) {
+        actionCard.appendChild(transactionsSection);
       }
     }
     
-    // Handle remove item
-    function handleRemoveItem(item) {
-      const confirmed = window.confirm('確定要下架這個商品嗎？\n此操作無法復原。');
-      if (!confirmed) return;
+    function handleAcceptRequest(requestId) {
+      const updated = updateRequest(requestId, { status: 'accepted' });
+      if (updated && currentItem) {
+        addTransactionsSection(currentItem);
+      }
+    }
+    
+    function handleRejectRequest(requestId) {
+      const updated = updateRequest(requestId, { status: 'rejected' });
+      if (updated && currentItem) {
+        addTransactionsSection(currentItem);
+      }
+    }
+    
+    // Handle edit item
+    function handleEditItem(item) {
+      openEditItemModal(item);
+    }
+    
+    // Open edit item modal
+    function openEditItemModal(item) {
+      // Get categories for dropdown
+      const categories = [
+        { id: 'textbooks', label: '課本／學習用品' },
+        { id: 'laptop_3c', label: '筆電／3C' },
+        { id: 'phone_tablet', label: '手機／平板' },
+        { id: 'game_console', label: '遊戲與主機' },
+        { id: 'dorm_furniture', label: '宿舍家電與家具' },
+        { id: 'clothing_life', label: '服飾／生活用品' },
+        { id: 'sports_hobby', label: '運動／興趣嗜好' },
+        { id: 'others', label: '其他' }
+      ];
       
-      // Mark item as inactive (removed)
-      const updated = updateItem(item.id, { isActive: false });
-      if (!updated) {
-        alert('下架商品時發生錯誤，請稍後再試。');
+      const modalHTML = `
+        <div class="modal-overlay" id="editItemModal" style="display: flex;">
+          <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+              <h2>修改商品資訊</h2>
+              <button class="modal-close" onclick="closeEditItemModal()">×</button>
+            </div>
+            <div class="modal-body">
+              <div class="form-group">
+                <label for="editItemTitle">商品名稱：</label>
+                <input type="text" id="editItemTitle" value="${(item.title || '').replace(/"/g, '&quot;')}" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit;">
+              </div>
+              <div class="form-group">
+                <label for="editItemPrice">價格：</label>
+                <input type="number" id="editItemPrice" value="${item.price || 0}" min="0" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit;">
+              </div>
+              <div class="form-group">
+                <label for="editItemDescription">商品敘述：</label>
+                <textarea id="editItemDescription" rows="5" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit; resize: vertical;">${(typeof item.description === 'string' ? item.description : (item.description?.main || '')).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+              </div>
+              <div class="form-group">
+                <label for="editItemCategory">商品分類：</label>
+                <select id="editItemCategory" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit;">
+                  ${categories.map(cat => `<option value="${cat.id}" ${item.category === cat.id ? 'selected' : ''}>${cat.label}</option>`).join('')}
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="editItemTags">商品標籤（用逗號分隔）：</label>
+                <input type="text" id="editItemTags" value="${((item.tags || []).join(', ')).replace(/"/g, '&quot;')}" placeholder="例如：二手, 九成新, 面交" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit;">
+              </div>
+              <div class="form-group">
+                <label for="editItemCondition">商品狀況：</label>
+                <select id="editItemCondition" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit;">
+                  <option value="全新" ${item.condition === '全新' ? 'selected' : ''}>全新</option>
+                  <option value="九成新" ${item.condition === '九成新' ? 'selected' : ''}>九成新</option>
+                  <option value="可接受使用痕跡" ${item.condition === '可接受使用痕跡' ? 'selected' : ''}>可接受使用痕跡</option>
+                  <option value="二手" ${item.condition === '二手' ? 'selected' : ''}>二手</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="editItemPickup">交易方式說明：</label>
+                <input type="text" id="editItemPickup" value="${(item.pickup?.method || '面交').replace(/"/g, '&quot;')}" placeholder="例如：面交 | 台北市信義區 | 時間可議" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit;">
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-secondary" onclick="closeEditItemModal()">取消</button>
+              <button class="btn-primary" onclick="saveItemChanges()">儲存變更</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Remove existing modal if any
+      const existingModal = document.getElementById('editItemModal');
+      if (existingModal) existingModal.remove();
+      
+      // Add modal to body
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+    
+    function closeEditItemModal() {
+      const modal = document.getElementById('editItemModal');
+      if (modal) modal.remove();
+    }
+    
+    function saveItemChanges() {
+      if (!currentItem) return;
+      
+      const title = document.getElementById('editItemTitle').value.trim();
+      const price = parseFloat(document.getElementById('editItemPrice').value) || 0;
+      const description = document.getElementById('editItemDescription').value.trim();
+      const category = document.getElementById('editItemCategory').value;
+      const tagsStr = document.getElementById('editItemTags').value.trim();
+      const condition = document.getElementById('editItemCondition').value;
+      const pickup = document.getElementById('editItemPickup').value.trim();
+      
+      if (!title) {
+        alert('請輸入商品名稱');
         return;
       }
       
-      alert('商品已成功下架，將返回商品列表。');
-      window.location.href = 'item_list.html';
+      // Parse tags
+      const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t) : [];
+      
+      // Update item
+      const updated = updateItem(currentItem.id, {
+        title,
+        price,
+        description,
+        category,
+        tags,
+        condition,
+        pickup: {
+          method: pickup || '面交',
+          location: currentItem.pickup?.location || currentItem.location || '',
+          time: currentItem.pickup?.time || '時間可議'
+        }
+      });
+      
+      if (!updated) {
+        alert('更新商品時發生錯誤，請稍後再試。');
+        return;
+      }
+      
+      // Update currentItem reference
+      currentItem = updated;
+      
+      // Re-render relevant sections
+      populateItemPage();
+      
+      // Close modal
+      closeEditItemModal();
+      
+      alert('商品資訊已更新');
     }
     
     // Update action buttons state based on pending transactions

@@ -254,6 +254,28 @@
         ? `NT$ ${item.price.toLocaleString('zh-TW')}`
         : '僅接受以物易物';
       
+      // Get transaction requests for this item
+      const requests = getRequests().filter(r => String(r.itemId) === String(item.id));
+      const pendingCount = requests.filter(r => r.status === 'pending').length;
+      const totalCount = requests.length;
+      
+      let transactionsHTML = '';
+      if (totalCount > 0) {
+        transactionsHTML = `
+          <div style="margin-top: 8px; margin-bottom: 12px; padding: 8px; background: #f0f9ff; border-radius: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 12px; color: #1e40af;">
+                ${pendingCount > 0 ? `待回覆交易請求：${pendingCount} 筆` : `共 ${totalCount} 筆交易請求`}
+              </span>
+              <a href="item_page.html?id=${item.id}#transactions-section" 
+                 style="font-size: 12px; color: #2563eb; text-decoration: none; font-weight: 500;">
+                查看交易請求 →
+              </a>
+            </div>
+          </div>
+        `;
+      }
+      
       card.innerHTML = `
         <img src="${item.images[0] || 'https://via.placeholder.com/280/f3f4f6/9ca3af?text=No+Image'}" 
              alt="${item.title}" 
@@ -268,6 +290,7 @@
           <div class="item-card-stats">
             瀏覽 ${item.views || 0} 次 | 加入購物車 ${item.addedToCartCount || 0} 次
           </div>
+          ${transactionsHTML}
           <div class="item-card-actions">
             <button class="btn-small btn-edit" onclick="editItem('${item.id}')">編輯</button>
             ${item.isActive 
