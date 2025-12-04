@@ -209,6 +209,10 @@
       gap: 8px;
       margin-top: 12px;
     }
+    
+    .image-preview-list:empty {
+      display: none;
+    }
 
     .image-preview-item {
       position: relative;
@@ -515,13 +519,21 @@
 
             <div class="form-group">
               <label for="imageUrl">圖片網址</label>
-              <div class="image-urls">
-                <div class="image-url-input">
-                  <input type="url" id="imageUrl" placeholder="https://example.com/image.jpg">
-                  <button type="button" id="addImageBtn">加入</button>
-                </div>
-                <div class="image-preview-list" id="imagePreviewList"></div>
+              <div class="image-url-input">
+                <input type="url" id="imageUrl" placeholder="https://example.com/image.jpg">
+                <button type="button" id="addImageBtn">加入</button>
               </div>
+              
+              <label for="imageFileInput" style="margin-top: 16px; display: block;">從電腦上傳</label>
+              <input 
+                type="file" 
+                id="imageFileInput" 
+                accept="image/*" 
+                multiple
+                style="width: 100%; padding: 10px 14px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 14px; font-family: inherit; box-sizing: border-box; cursor: pointer;"
+              >
+              
+              <div class="image-preview-list" id="imagePreviewList"></div>
               <small>可加入多張圖片，建議至少一張</small>
             </div>
           </div>
@@ -595,8 +607,19 @@
         // Load tags
         editingItem.tags.forEach(tag => addTag(tag));
         
-        // Load images
-        editingItem.images.forEach(url => addImagePreview(url));
+        // Load images (handle both old format: string URLs, and new format: objects)
+        if (editingItem.images && editingItem.images.length > 0) {
+          editingItem.images.forEach(img => {
+            if (typeof img === 'string') {
+              // Old format: just URL string
+              images.push({ type: 'url', src: img });
+            } else if (img && img.src) {
+              // New format: object with type and src
+              images.push(img);
+            }
+          });
+          renderImagePreviews();
+        }
         
         updatePreview();
       }
@@ -653,22 +676,67 @@
     });
 
     // Images handling
-    const images = [];
+    const images = []; // Array of { type: 'url'|'local', src: string, name?: string }
     const imageUrlInput = document.getElementById('imageUrl');
     const addImageBtn = document.getElementById('addImageBtn');
+    const imageFileInput = document.getElementById('imageFileInput');
     const imagePreviewList = document.getElementById('imagePreviewList');
 
+    // Add image by URL
     function addImagePreview(url) {
       const trimmedUrl = url.trim();
-      if (trimmedUrl && !images.includes(trimmedUrl)) {
-        images.push(trimmedUrl);
-        renderImagePreviews();
+      if (!trimmedUrl) return;
+      
+      // Check if URL already exists
+      const exists = images.some(img => img.type === 'url' && img.src === trimmedUrl);
+      if (exists) {
+        alert('此圖片網址已加入');
+        return;
       }
+      
+      images.push({
+        type: 'url',
+        src: trimmedUrl
+      });
+      renderImagePreviews();
     }
 
-    function removeImagePreview(url) {
-      const index = images.indexOf(url);
-      if (index > -1) {
+    // Handle local file upload
+    function handleLocalImageUpload(event) {
+      const files = Array.from(event.target.files || []);
+      
+      files.forEach(file => {
+        if (!file.type.startsWith('image/')) {
+          console.warn(`Skipping non-image file: ${file.name}`);
+          return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const dataUrl = e.target.result; // base64 data URL
+          
+          images.push({
+            type: 'local',
+            name: file.name,
+            src: dataUrl
+          });
+          
+          renderImagePreviews();
+        };
+        
+        reader.onerror = () => {
+          console.error(`Error reading file: ${file.name}`);
+        };
+        
+        reader.readAsDataURL(file);
+      });
+      
+      // Reset input so user can select the same file again if needed
+      event.target.value = '';
+    }
+
+    function removeImagePreview(index) {
+      if (index >= 0 && index < images.length) {
         images.splice(index, 1);
         renderImagePreviews();
       }
@@ -676,18 +744,26 @@
 
     function renderImagePreviews() {
       imagePreviewList.innerHTML = '';
-      images.forEach(url => {
+      
+      if (images.length === 0) {
+        imagePreviewList.style.display = 'none';
+      } else {
+        imagePreviewList.style.display = 'flex';
+      }
+      
+      images.forEach((img, index) => {
         const item = document.createElement('div');
         item.className = 'image-preview-item';
         item.innerHTML = `
-          <img src="${url}" alt="Preview" onerror="this.parentElement.remove()">
-          <button type="button" class="remove" data-url="${url}">×</button>
+          <img src="${img.src}" alt="${img.name || `Image ${index + 1}`}" onerror="this.parentElement.remove()">
+          <button type="button" class="remove" data-index="${index}">×</button>
         `;
         imagePreviewList.appendChild(item);
       });
       updatePreview();
     }
 
+    // URL input handlers
     addImageBtn.addEventListener('click', () => {
       addImagePreview(imageUrlInput.value);
       imageUrlInput.value = '';
@@ -701,10 +777,14 @@
       }
     });
 
+    // File input handler
+    imageFileInput.addEventListener('change', handleLocalImageUpload);
+
+    // Remove button handler
     imagePreviewList.addEventListener('click', (e) => {
       if (e.target.classList.contains('remove')) {
-        const url = e.target.dataset.url;
-        removeImagePreview(url);
+        const index = parseInt(e.target.dataset.index);
+        removeImagePreview(index);
       }
     });
 
@@ -727,7 +807,8 @@
       // Update image
       const previewImage = document.getElementById('previewImage');
       if (images.length > 0) {
-        previewImage.innerHTML = `<img src="${images[0]}" alt="${title}">`;
+        const firstImage = images[0];
+        previewImage.innerHTML = `<img src="${firstImage.src}" alt="${title}">`;
       } else {
         previewImage.innerHTML = '<span>尚未加入圖片</span>';
       }
@@ -804,10 +885,12 @@
       }
       
       if (images.length === 0) {
-        if (!confirm('尚未加入任何圖片，確定要繼續嗎？')) {
-          return;
-        }
+        alert('請至少上傳或加入一張商品圖片。');
+        return;
       }
+      
+      // Extract image sources for storage (keep full objects for preview, but store src for compatibility)
+      const imageSources = images.map(img => img.src);
       
       const itemData = {
         sellerId: currentUser.id,
@@ -824,7 +907,7 @@
           tradeTarget: modeTradeTarget,
           tradeOpen: modeTradeOpen
         },
-        images: images.length > 0 ? images : ['https://via.placeholder.com/600x600/f3f4f6/9ca3af?text=No+Image'],
+        images: imageSources.length > 0 ? imageSources : ['https://via.placeholder.com/600x600/f3f4f6/9ca3af?text=No+Image'],
         views: editingItem ? editingItem.views : 0,
         addedToCartCount: editingItem ? editingItem.addedToCartCount : 0,
         isActive: true
