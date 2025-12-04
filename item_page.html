@@ -2176,17 +2176,36 @@
       updateActionButtonsState();
       
       // Check if current user is seller and show appropriate UI
-      if (currentItem && isCurrentUserSeller(currentItem)) {
-        showSellerView(currentItem);
-      }
+      // Use setTimeout to ensure DOM is fully rendered
+      setTimeout(() => {
+        if (currentItem && isCurrentUserSeller(currentItem)) {
+          console.log('Current user is seller, showing seller view');
+          showSellerView(currentItem);
+        } else {
+          console.log('Not seller or no current item', {
+            currentItem: currentItem ? currentItem.id : null,
+            sellerId: currentItem ? currentItem.sellerId : null,
+            currentUserId: getCurrentUserId()
+          });
+        }
+      }, 100);
     }
     
     // Show seller view (hide buy buttons, show remove button)
     function showSellerView(item) {
+      console.log('showSellerView called for item:', item.id);
+      
       const actionButtonsGroup = document.getElementById('actionButtonsGroup');
       const cancelTxBtn = document.getElementById('cancelTxBtn');
       const messageButtonMain = document.getElementById('messageButtonMain');
       const actionQuantity = document.querySelector('.action-quantity');
+      
+      console.log('Found elements:', {
+        actionButtonsGroup: !!actionButtonsGroup,
+        cancelTxBtn: !!cancelTxBtn,
+        messageButtonMain: !!messageButtonMain,
+        actionQuantity: !!actionQuantity
+      });
       
       // Hide all normal action buttons
       if (actionButtonsGroup) actionButtonsGroup.style.display = 'none';
@@ -2212,11 +2231,32 @@
       helper.textContent = '此操作將把商品從平台下架，買家將無法再看到此商品。';
       sellerActionsContainer.appendChild(helper);
       
-      // Insert after action-price-block
+      // Insert after action-price-block (before action-quantity or action-buttons-group)
       const actionCard = document.querySelector('.action-card');
-      const actionPriceBlock = document.querySelector('.action-price-block');
-      if (actionCard && actionPriceBlock) {
-        actionCard.insertBefore(sellerActionsContainer, actionPriceBlock.nextSibling);
+      if (actionCard) {
+        // Try to insert after action-price-block, or before action-quantity
+        const actionPriceBlock = document.querySelector('.action-price-block');
+        const actionQuantity = document.querySelector('.action-quantity');
+        
+        console.log('Inserting seller actions container', {
+          actionCard: !!actionCard,
+          actionPriceBlock: !!actionPriceBlock,
+          actionQuantity: !!actionQuantity
+        });
+        
+        if (actionPriceBlock && actionPriceBlock.nextSibling) {
+          actionCard.insertBefore(sellerActionsContainer, actionPriceBlock.nextSibling);
+          console.log('Inserted after action-price-block');
+        } else if (actionQuantity) {
+          actionCard.insertBefore(sellerActionsContainer, actionQuantity);
+          console.log('Inserted before action-quantity');
+        } else {
+          // Fallback: append to action-card
+          actionCard.appendChild(sellerActionsContainer);
+          console.log('Appended to action-card');
+        }
+      } else {
+        console.error('Could not find .action-card element');
       }
     }
     

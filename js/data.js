@@ -101,11 +101,19 @@ function generateId(prefix = '') {
 // ========== User Functions ==========
 
 /**
+ * Get current logged-in user ID
+ * @returns {string|null}
+ */
+function getCurrentUserId() {
+  return localStorage.getItem(STORAGE_KEYS.CURRENT_USER_ID);
+}
+
+/**
  * Get current logged-in user
  * @returns {User|null}
  */
 function getCurrentUser() {
-  const userId = localStorage.getItem(STORAGE_KEYS.CURRENT_USER_ID);
+  const userId = getCurrentUserId();
   if (!userId) return null;
   
   const users = getUsers();
