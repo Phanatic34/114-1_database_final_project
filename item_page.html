@@ -154,15 +154,45 @@
 
     .item-main-layout {
       display: grid;
-      grid-template-columns: minmax(280px, 1.25fr) minmax(340px, 1.6fr) minmax(260px, 1.1fr);
+      grid-template-columns: minmax(0, 2fr) minmax(260px, 1.1fr);
       gap: 24px;
       align-items: flex-start;
     }
 
-    .item-col-center {
+    /* New grid for left+center area */
+    .item-main-grid {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 0;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
+      grid-auto-rows: auto;
+      column-gap: 24px;
+      row-gap: 24px;
+    }
+
+    /* Listing header spans both columns */
+    .listing-header-wrapper {
+      grid-column: 1 / -1;
+    }
+
+    /* Row 1: image + 交換規則 */
+    .item-media-card {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .trade-rule-card {
+      grid-column: 2;
+      grid-row: 2;
+    }
+
+    /* Row 2: 商品資訊 + 商品描述 (titles should align horizontally now) */
+    .item-info-card {
+      grid-column: 1;
+      grid-row: 3;
+    }
+
+    .item-description-section {
+      grid-column: 2;
+      grid-row: 3;
     }
 
     /* Left Column - Image Gallery + 商品資訊 */
@@ -223,7 +253,6 @@
     }
 
     .item-info-card {
-      margin-top: 0; /* spacing handled by .section-divider */
       padding: 16px 20px;
       border-radius: 16px;
       background: #f5f5f5;
@@ -440,14 +469,13 @@
       border-radius: 16px;
       padding: 16px 20px;
       border-left: 4px solid #2563eb;
-      margin-top: 12px;
-      margin-bottom: 24px;
+      margin-bottom: 0; /* spacing handled by grid gap */
     }
 
     /* Reusable section divider helper class */
     .section-divider {
-      margin-top: 18px;
-      padding-top: 18px;
+      margin-top: 0;      /* rely on grid gap instead */
+      padding-top: 18px;  /* keep the border spacing */
       border-top: 1px solid #e5e7eb; /* thin, light grey line */
     }
 
@@ -466,7 +494,7 @@
     }
 
     .item-description-section {
-      margin-bottom: 24px;
+      margin-bottom: 0; /* spacing handled by grid gap */
     }
 
     .item-description-section .section-title {
@@ -633,12 +661,33 @@
     /* Responsive behavior */
     @media (max-width: 960px) {
       .item-main-layout {
-        grid-template-columns: minmax(280px, 1.4fr) minmax(280px, 1.6fr);
+        grid-template-columns: 1fr;
       }
       .item-col-right {
         position: static;
-        grid-column: 1 / -1;
         margin-top: 24px;
+      }
+      .item-main-grid {
+        grid-template-columns: 1fr;
+      }
+      .listing-header-wrapper,
+      .item-media-card,
+      .trade-rule-card,
+      .item-info-card,
+      .item-description-section {
+        grid-column: 1;
+      }
+      .item-media-card {
+        grid-row: 2;
+      }
+      .trade-rule-card {
+        grid-row: 3;
+      }
+      .item-info-card {
+        grid-row: 4;
+      }
+      .item-description-section {
+        grid-row: 5;
       }
       .listing-header {
         margin-right: 0;
@@ -653,10 +702,8 @@
       .item-main-layout {
         grid-template-columns: 1fr;
       }
-      .item-col-left,
-      .item-col-center,
-      .item-col-right {
-        grid-column: 1 / -1;
+      .item-main-grid {
+        grid-template-columns: 1fr;
       }
       .seller-inline {
         flex-direction: column;
@@ -701,33 +748,82 @@
 
     <div class="item-page-main">
       <div class="item-main-layout">
-        <!-- Left Column - Image Gallery + 商品資訊 -->
-        <div class="item-col-left">
-          <div class="item-image-main">
-            <img
-              id="main-image"
-              src=""
-              alt=""
-              class="main-image"
-            />
-            <div class="image-badge" id="conditionBadge">九成新</div>
+        <!-- Left + Center Grid Area -->
+        <div class="item-main-grid">
+          <!-- Listing Header (spans both columns) -->
+          <div class="listing-header-wrapper">
+            <a href="item_list.html" class="back-link" style="display: inline-block; margin-bottom: 12px; color: #2563eb; text-decoration: none; font-size: 14px;">← 返回商品列表</a>
+            
+            <div class="listing-header">
+              <div class="listing-header-left">
+                <h1 class="item-title" id="itemTitle">Nintendo Switch OLED 白色主機 九成新</h1>
+
+                <div class="seller-inline">
+                  <div class="seller-avatar-small" id="sellerAvatar">
+                    <span>G</span>
+                  </div>
+                  <div class="seller-text-block">
+                    <div class="seller-main-line">
+                      <span id="sellerName" class="seller-name">game_lover_2024</span>
+                      <span id="sellerCount" class="seller-count">(127)</span>
+                    </div>
+                    <div class="seller-sub-line">
+                      <span id="sellerRatingText" class="seller-rating-text">99.9% 好評</span>
+                      <span class="seller-dot">·</span>
+                      <button class="seller-link-button" id="sellerViewItemsButton">
+                        查看賣家其他商品
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="trade-mode-badges" id="tradeModeBadges">
+                  <!-- Badges will be populated by JS -->
+                </div>
+              </div>
+
+              <div class="listing-header-right">
+                <div id="listingModeSummary" class="listing-mode-summary"></div>
+              </div>
+            </div>
           </div>
 
-          <div class="item-thumbnails">
-            <button class="thumbnail active" onclick="changeImage(0)">
-              <img src="https://via.placeholder.com/150/0064D2/FFFFFF?text=1" alt="View 1" />
-            </button>
-            <button class="thumbnail" onclick="changeImage(1)">
-              <img src="https://via.placeholder.com/150/0052A3/FFFFFF?text=2" alt="View 2" />
-            </button>
-            <button class="thumbnail" onclick="changeImage(2)">
-              <img src="https://via.placeholder.com/150/003D7A/FFFFFF?text=3" alt="View 3" />
-            </button>
-            <button class="thumbnail" onclick="changeImage(3)">
-              <img src="https://via.placeholder.com/150/002855/FFFFFF?text=4" alt="View 4" />
-            </button>
+          <!-- Row 1: Image Gallery (left) + Trade Rule Card (right) -->
+          <div class="item-media-card">
+            <div class="item-image-main">
+              <img
+                id="main-image"
+                src=""
+                alt=""
+                class="main-image"
+              />
+              <div class="image-badge" id="conditionBadge">九成新</div>
+            </div>
+
+            <div class="item-thumbnails">
+              <button class="thumbnail active" onclick="changeImage(0)">
+                <img src="https://via.placeholder.com/150/0064D2/FFFFFF?text=1" alt="View 1" />
+              </button>
+              <button class="thumbnail" onclick="changeImage(1)">
+                <img src="https://via.placeholder.com/150/0052A3/FFFFFF?text=2" alt="View 2" />
+              </button>
+              <button class="thumbnail" onclick="changeImage(2)">
+                <img src="https://via.placeholder.com/150/003D7A/FFFFFF?text=3" alt="View 3" />
+              </button>
+              <button class="thumbnail" onclick="changeImage(3)">
+                <img src="https://via.placeholder.com/150/002855/FFFFFF?text=4" alt="View 4" />
+              </button>
+            </div>
           </div>
 
+          <section class="trade-rule-card" id="tradeRuleCard">
+            <h2>交換規則</h2>
+            <div id="tradeRuleBody">
+              <!-- Content will be populated by JS -->
+            </div>
+          </section>
+
+          <!-- Row 2: 商品資訊 (left) + 商品描述 (right) -->
           <section class="item-info-card section-divider">
             <h3 class="section-title">商品資訊</h3>
             <dl class="item-info-list">
@@ -750,53 +846,6 @@
                 </dd>
               </div>
             </dl>
-          </section>
-        </div>
-
-        <!-- Center Column - Listing Header + Trade Rules + Description -->
-        <div class="item-col-center">
-          <a href="item_list.html" class="back-link" style="display: inline-block; margin-bottom: 12px; color: #2563eb; text-decoration: none; font-size: 14px;">← 返回商品列表</a>
-          
-          <!-- Listing Header spans center + right visually -->
-          <div class="listing-header">
-            <div class="listing-header-left">
-              <h1 class="item-title" id="itemTitle">Nintendo Switch OLED 白色主機 九成新</h1>
-
-              <div class="seller-inline">
-                <div class="seller-avatar-small" id="sellerAvatar">
-                  <span>G</span>
-                </div>
-                <div class="seller-text-block">
-                  <div class="seller-main-line">
-                    <span id="sellerName" class="seller-name">game_lover_2024</span>
-                    <span id="sellerCount" class="seller-count">(127)</span>
-                  </div>
-                  <div class="seller-sub-line">
-                    <span id="sellerRatingText" class="seller-rating-text">99.9% 好評</span>
-                    <span class="seller-dot">·</span>
-                    <button class="seller-link-button" id="sellerViewItemsButton">
-                      查看賣家其他商品
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="trade-mode-badges" id="tradeModeBadges">
-                <!-- Badges will be populated by JS -->
-              </div>
-
-            </div>
-
-            <div class="listing-header-right">
-              <div id="listingModeSummary" class="listing-mode-summary"></div>
-            </div>
-          </div>
-
-          <section class="trade-rule-card" id="tradeRuleCard">
-            <h2>交換規則</h2>
-            <div id="tradeRuleBody">
-              <!-- Content will be populated by JS -->
-            </div>
           </section>
 
           <section class="item-description-section section-divider">
