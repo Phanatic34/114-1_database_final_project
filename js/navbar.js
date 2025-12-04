@@ -22,11 +22,12 @@ function updateNavbar() {
   const navRight = document.createElement('div');
   navRight.className = 'nav-right';
   
-  // Cart icon button
-  const cartButton = document.createElement('a');
-  cartButton.href = '/cart';
+  // Cart icon button (as button, not link, to show dropdown)
+  const cartButton = document.createElement('button');
+  cartButton.type = 'button';
   cartButton.className = 'nav-icon-button nav-cart-button';
   cartButton.setAttribute('aria-label', '購物車');
+  cartButton.id = 'navCartButton';
   cartButton.innerHTML = `
     <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
       <path
@@ -43,6 +44,24 @@ function updateNavbar() {
     <span class="sr-only">購物車</span>
   `;
   navRight.appendChild(cartButton);
+  
+  // Cart dropdown menu
+  const cartMenu = document.createElement('div');
+  cartMenu.className = 'header-dropdown-panel nav-cart-menu';
+  cartMenu.id = 'navCartMenu';
+  cartMenu.setAttribute('hidden', 'hidden');
+  cartMenu.innerHTML = `
+    <div class="dropdown-panel-header">
+      <h3 class="dropdown-panel-title">購物車</h3>
+    </div>
+    <div class="dropdown-panel-content">
+      <p class="dropdown-panel-empty">目前購物車沒有商品</p>
+    </div>
+    <div class="dropdown-panel-footer">
+      <a href="cart.html" class="dropdown-panel-button">前往購物車</a>
+    </div>
+  `;
+  navRight.appendChild(cartMenu);
   
   // Profile icon button
   const profileButton = document.createElement('button');
@@ -61,19 +80,24 @@ function updateNavbar() {
   
   // Profile dropdown menu
   const profileMenu = document.createElement('div');
-  profileMenu.className = 'nav-profile-menu';
+  profileMenu.className = 'header-dropdown-panel nav-profile-menu';
   profileMenu.id = 'navProfileMenu';
   profileMenu.setAttribute('hidden', 'hidden');
   
   if (user) {
     // User is logged in - show account menu items
     profileMenu.innerHTML = `
-      <a href="my_items.html" class="dropdown-item">我的商品</a>
-      <a href="requests.html" class="dropdown-item">交易請求</a>
-      <a href="transactions.html" class="dropdown-item">交易紀錄</a>
-      <a href="messages.html" class="dropdown-item">訊息</a>
-      <a href="account.html" class="dropdown-item">帳號管理</a>
-      <button class="dropdown-item logout-btn" id="logoutBtn">登出</button>
+      <div class="dropdown-panel-header">
+        <h3 class="dropdown-panel-title">我的帳號</h3>
+      </div>
+      <div class="dropdown-panel-content">
+        <a href="my_items.html" class="dropdown-item">我的商品</a>
+        <a href="requests.html" class="dropdown-item">交易請求</a>
+        <a href="transactions.html" class="dropdown-item">交易紀錄</a>
+        <a href="messages.html" class="dropdown-item">訊息</a>
+        <a href="account.html" class="dropdown-item">帳號管理</a>
+        <button class="dropdown-item logout-btn" id="logoutBtn">登出</button>
+      </div>
     `;
     
     // Logout handler
@@ -89,18 +113,40 @@ function updateNavbar() {
   } else {
     // User is not logged in - show login/register
     profileMenu.innerHTML = `
-      <a href="login.html" class="dropdown-item">登入</a>
-      <a href="register.html" class="dropdown-item">註冊</a>
+      <div class="dropdown-panel-header">
+        <h3 class="dropdown-panel-title">我的帳號</h3>
+      </div>
+      <div class="dropdown-panel-content">
+        <a href="login.html" class="dropdown-item">登入</a>
+        <a href="register.html" class="dropdown-item">註冊</a>
+      </div>
     `;
   }
   
   navRight.appendChild(profileMenu);
   headerActions.appendChild(navRight);
   
-  // Add dropdown toggle
+  // Add dropdown toggle for cart
+  if (cartButton && cartMenu) {
+    cartButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Close profile menu if open
+      if (profileMenu) profileMenu.setAttribute('hidden', 'hidden');
+      const isHidden = cartMenu.hasAttribute('hidden');
+      if (isHidden) {
+        cartMenu.removeAttribute('hidden');
+      } else {
+        cartMenu.setAttribute('hidden', 'hidden');
+      }
+    });
+  }
+  
+  // Add dropdown toggle for profile
   if (profileButton && profileMenu) {
     profileButton.addEventListener('click', (e) => {
       e.stopPropagation();
+      // Close cart menu if open
+      if (cartMenu) cartMenu.setAttribute('hidden', 'hidden');
       const isHidden = profileMenu.hasAttribute('hidden');
       if (isHidden) {
         profileMenu.removeAttribute('hidden');
@@ -108,14 +154,17 @@ function updateNavbar() {
         profileMenu.setAttribute('hidden', 'hidden');
       }
     });
-    
-    // Click outside to close
-    document.addEventListener('click', (e) => {
-      if (!profileMenu.contains(e.target) && !profileButton.contains(e.target)) {
-        profileMenu.setAttribute('hidden', 'hidden');
-      }
-    });
   }
+  
+  // Click outside to close both dropdowns
+  document.addEventListener('click', (e) => {
+    if (cartMenu && !cartMenu.contains(e.target) && !cartButton.contains(e.target)) {
+      cartMenu.setAttribute('hidden', 'hidden');
+    }
+    if (profileMenu && !profileMenu.contains(e.target) && !profileButton.contains(e.target)) {
+      profileMenu.setAttribute('hidden', 'hidden');
+    }
+  });
 }
 
 // Add CSS for navbar icons and dropdown
@@ -184,24 +233,81 @@ function addNavbarStyles() {
       position: relative;
     }
     
-    /* profile dropdown alignment */
-    .nav-profile-menu {
+    /* Common dropdown panel styles */
+    .header-dropdown-panel {
       position: absolute;
-      top: calc(100% + 8px);
+      top: calc(100% + 12px);
       right: 0;
-      min-width: 180px;
+      min-width: 260px;
       background: #ffffff;
-      color: #111827;
-      border-radius: 12px;
+      color: #222222;
+      border-radius: 16px;
       box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
-      padding: 6px 0;
-      z-index: 40;
+      padding: 16px 20px;
+      z-index: 100;
+    }
+    
+    .nav-cart-menu {
+      right: 0;
+    }
+    
+    .nav-profile-menu {
+      right: 0;
+    }
+    
+    .dropdown-panel-header {
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .dropdown-panel-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      margin: 0;
+    }
+    
+    .dropdown-panel-content {
+      color: #111827;
+    }
+    
+    .dropdown-panel-empty {
+      font-size: 14px;
+      color: #6b7280;
+      margin: 0;
+      text-align: center;
+      padding: 20px 0;
+    }
+    
+    .dropdown-panel-footer {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e7eb;
+    }
+    
+    .dropdown-panel-button {
+      display: block;
+      width: 100%;
+      padding: 10px 16px;
+      text-align: center;
+      background: #2563eb;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    
+    .dropdown-panel-button:hover {
+      background: #1d4ed8;
     }
     
     .dropdown-item {
       display: block;
       width: 100%;
-      padding: 8px 16px;
+      padding: 10px 0;
       text-align: left;
       color: #111827;
       text-decoration: none;
@@ -210,6 +316,7 @@ function addNavbarStyles() {
       background: transparent;
       cursor: pointer;
       transition: background 0.2s;
+      border-radius: 4px;
     }
     
     .dropdown-item:hover {
@@ -218,7 +325,7 @@ function addNavbarStyles() {
     
     .logout-btn {
       border-top: 1px solid #e5e7eb;
-      margin-top: 4px;
+      margin-top: 8px;
       padding-top: 12px;
       color: #dc2626;
     }
