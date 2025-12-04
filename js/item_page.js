@@ -604,19 +604,28 @@ function renderItemStatusUI() {
       const sellerConfirmed = !!tx.sellerConfirmedAt;
       const buyerConfirmed = !!tx.buyerConfirmedAt;
       
+      // Hide cancel transaction button when both parties confirmed handoff
+      const cancelTxBtn = document.getElementById('cancelTxBtn');
       if (sellerConfirmed && buyerConfirmed) {
+        if (cancelTxBtn) cancelTxBtn.style.display = 'none';
         if (handoffStatusText) handoffStatusText.textContent = '狀態：已完成面交';
         if (btnConfirmHandoff) {
           btnConfirmHandoff.disabled = true;
           btnConfirmHandoff.textContent = '雙方已確認';
         }
       } else if ((isSeller && sellerConfirmed) || (isBuyer && buyerConfirmed)) {
+        if (cancelTxBtn) cancelTxBtn.style.display = 'none';
         if (handoffStatusText) handoffStatusText.textContent = '狀態：預約中（另一方尚未按「已面交」）';
         if (btnConfirmHandoff) {
           btnConfirmHandoff.disabled = true;
           btnConfirmHandoff.textContent = '已標記為已面交';
         }
       } else {
+        // Only show cancel button if transaction is still pending (neither confirmed)
+        if (cancelTxBtn && tx.status === 'reserved') {
+          // Keep cancel button visible only for pending requests, not reserved transactions
+          cancelTxBtn.style.display = 'none';
+        }
         if (handoffStatusText) handoffStatusText.textContent = '狀態：預約中（等待雙方確認面交）';
         if (btnConfirmHandoff) {
           btnConfirmHandoff.disabled = false;
@@ -633,6 +642,10 @@ function renderItemStatusUI() {
     
     const messageBtn = document.getElementById('messageButtonMain');
     if (messageBtn) messageBtn.style.display = 'none';
+    
+    // Hide cancel transaction button when item is sold
+    const cancelTxBtn = document.getElementById('cancelTxBtn');
+    if (cancelTxBtn) cancelTxBtn.style.display = 'none';
     
     // Show sold message
     let soldMsg = document.getElementById('sold-message');
@@ -1110,7 +1123,12 @@ function updateActionButtonsState() {
 
   if (!actionGroup || !cancelBtn) return;
 
-  if (hasPending) {
+  // Check if transaction is completed - if so, hide cancel button
+  const tx = itemId ? getActiveTransactionForItem(itemId) : null;
+  const isCompleted = tx && tx.status === 'completed';
+  const bothConfirmed = tx && tx.sellerConfirmedAt && tx.buyerConfirmedAt;
+
+  if (hasPending && !isCompleted && !bothConfirmed) {
     actionGroup.classList.add('hidden');
     cancelBtn.style.display = 'block';
   } else {
@@ -1279,6 +1297,15 @@ function renderItemPage() {
   // Bind handoff button after item is loaded
   bindHandoffButton();
 
+  // Clean up seller actions container if current user is not the seller
+  const currentUser = getCurrentUser();
+  if (!currentUser || !currentItem || !isCurrentUserSeller(currentItem)) {
+    const sellerActionsContainer = document.querySelector('.seller-actions-container');
+    if (sellerActionsContainer) {
+      sellerActionsContainer.remove();
+    }
+  }
+
   // Check if current user is seller
   setTimeout(() => {
     if (currentItem && isCurrentUserSeller(currentItem)) {
@@ -1299,32 +1326,47 @@ function showSellerView(item) {
   if (messageButtonMain) messageButtonMain.style.display = 'none';
   if (actionQuantity) actionQuantity.style.display = 'none';
 
-  const sellerActionsContainer = document.createElement('div');
-  sellerActionsContainer.className = 'seller-actions-container';
-  sellerActionsContainer.style.marginTop = '0';
+  // Check if seller actions container already exists to avoid duplicates
+  let sellerActionsContainer = document.querySelector('.seller-actions-container');
+  
+  if (!sellerActionsContainer) {
+    // Create it only if it doesn't exist
+    sellerActionsContainer = document.createElement('div');
+    sellerActionsContainer.className = 'seller-actions-container';
+    sellerActionsContainer.style.marginTop = '0';
 
-  const editBtn = document.createElement('button');
-  editBtn.className = 'item-action-button item-action-button-primary';
-  editBtn.textContent = '修改商品資訊';
-  editBtn.addEventListener('click', () => handleEditItem(item));
-  sellerActionsContainer.appendChild(editBtn);
+    const editBtn = document.createElement('button');
+    editBtn.className = 'item-action-button item-action-button-primary';
+    editBtn.textContent = '修改商品資訊';
+    editBtn.addEventListener('click', () => handleEditItem(item));
+    sellerActionsContainer.appendChild(editBtn);
 
-  const helper = document.createElement('p');
-  helper.className = 'remove-helper-text';
-  helper.textContent = '此處可修改此商品的價格、描述、標籤與交易方式。';
-  sellerActionsContainer.appendChild(helper);
+    const helper = document.createElement('p');
+    helper.className = 'remove-helper-text';
+    helper.textContent = '此處可修改此商品的價格、描述、標籤與交易方式。';
+    sellerActionsContainer.appendChild(helper);
 
-  const actionCard = document.querySelector('.action-card');
-  if (actionCard) {
-    const actionPriceBlock = document.querySelector('.action-price-block');
-    const actionQuantity = document.querySelector('.action-quantity');
+    const actionCard = document.querySelector('.action-card');
+    if (actionCard) {
+      const actionPriceBlock = document.querySelector('.action-price-block');
+      const actionQuantity = document.querySelector('.action-quantity');
 
-    if (actionPriceBlock && actionPriceBlock.nextSibling) {
-      actionCard.insertBefore(sellerActionsContainer, actionPriceBlock.nextSibling);
-    } else if (actionQuantity) {
-      actionCard.insertBefore(sellerActionsContainer, actionQuantity);
-    } else {
-      actionCard.appendChild(sellerActionsContainer);
+      if (actionPriceBlock && actionPriceBlock.nextSibling) {
+        actionCard.insertBefore(sellerActionsContainer, actionPriceBlock.nextSibling);
+      } else if (actionQuantity) {
+        actionCard.insertBefore(sellerActionsContainer, actionQuantity);
+      } else {
+        actionCard.appendChild(sellerActionsContainer);
+      }
+    }
+  } else {
+    // If it exists, just update the button click handler to use current item
+    const editBtn = sellerActionsContainer.querySelector('button');
+    if (editBtn) {
+      // Remove old listeners by cloning
+      const newEditBtn = editBtn.cloneNode(true);
+      editBtn.parentNode.replaceChild(newEditBtn, editBtn);
+      newEditBtn.addEventListener('click', () => handleEditItem(item));
     }
   }
 
