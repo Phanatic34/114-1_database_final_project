@@ -90,6 +90,13 @@ body {
   opacity: 0.8;
 }
 
+.header-nav a.active {
+  font-weight: 600;
+  opacity: 1;
+  border-bottom: 2px solid white;
+  padding-bottom: 2px;
+}
+
 .header-actions {
   display: flex;
   gap: 1.5rem;

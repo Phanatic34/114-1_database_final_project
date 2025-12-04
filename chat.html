@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>聊天 - 二手交易平台</title>
+  <link rel="stylesheet" href="ItemDetailPage.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background-color: #f5f5f5;
+    }
+
+    .chat-page {
+      padding: 32px 48px;
+    }
+
+    .chat-container {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto 48px;
+    }
+
+    .chat-sidebar {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(15, 35, 95, 0.08);
+      padding: 16px 0;
+      height: calc(100vh - 200px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-title {
+      font-size: 18px;
+      font-weight: 600;
+      padding: 0 24px 16px;
+      color: #111827;
+      margin: 0;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 8px;
+    }
+
+    .conversation-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+
+    .conversation-item {
+      width: 100%;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .conversation-item:hover {
+      background-color: #f5f7ff;
+    }
+
+    .conversation-item-active {
+      background-color: #e6edff;
+    }
+
+    .conversation-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #e6edff;
+      color: #2563eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .conversation-text {
+      flex: 1;
+      text-align: left;
+      min-width: 0;
+    }
+
+    .conversation-seller {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+
+    .conversation-preview {
+      font-size: 12px;
+      color: #6b7280;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .conversation-time {
+      font-size: 11px;
+      color: #9ca3af;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .chat-thread {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(15, 35, 95, 0.08);
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 200px);
+    }
+
+    .chat-thread-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .chat-thread-seller {
+      font-weight: 600;
+      font-size: 16px;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+
+    .chat-thread-item {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .chat-messages {
+      padding: 16px 24px;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .chat-message {
+      display: flex;
+      flex-direction: column;
+      max-width: 70%;
+    }
+
+    .chat-message-seller {
+      align-self: flex-start;
+      text-align: left;
+    }
+
+    .chat-message-user {
+      align-self: flex-end;
+      text-align: right;
+    }
+
+    .chat-bubble {
+      display: inline-block;
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .chat-message-seller .chat-bubble {
+      background-color: #f5f7ff;
+      color: #111827;
+    }
+
+    .chat-message-user .chat-bubble {
+      background-color: #2563eb;
+      color: #ffffff;
+    }
+
+    .chat-time {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 4px;
+      padding: 0 4px;
+    }
+
+    .chat-input-area {
+      display: flex;
+      padding: 12px 16px;
+      border-top: 1px solid #e5e7eb;
+      gap: 8px;
+    }
+
+    .chat-input {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .chat-input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .chat-send-btn {
+      padding: 10px 20px;
+      border-radius: 999px;
+      border: none;
+      background-color: #2563eb;
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .chat-send-btn:hover {
+      background-color: #1d4ed8;
+    }
+
+    .chat-empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #6b7280;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .chat-empty-state p {
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    @media (max-width: 960px) {
+      .chat-container {
+        grid-template-columns: 1fr;
+      }
+
+      .chat-sidebar {
+        height: auto;
+        max-height: 400px;
+      }
+
+      .chat-thread {
+        height: 600px;
+      }
+
+      .chat-page {
+        padding: 24px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-content">
+      <a href="index.html" class="logo site-logo">
+        <img src="logo.png" alt="二手交易平台 Logo" />
+      </a>
+      <nav class="header-nav">
+        <a href="index.html">首頁</a>
+        <a href="item_list.html">分類</a>
+        <a href="sell.html">賣東西</a>
+        <a href="chat.html" class="active">聊天</a>
+      </nav>
+      <div class="header-actions">
+        <!-- Navbar will be populated by js/navbar.js -->
+      </div>
+    </div>
+  </header>
+
+  <main class="chat-page">
+    <div class="chat-container">
+      <section class="chat-sidebar">
+        <h2 class="chat-title">聊天</h2>
+        <div class="conversation-list" id="conversationList">
+          <!-- Conversations will be populated by JavaScript -->
+          <div class="chat-empty-state">
+            <p>目前沒有對話</p>
+            <p style="font-size: 12px; color: #9ca3af;">開始瀏覽商品並聯絡賣家吧！</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="chat-thread" id="chatThread">
+        <div class="chat-empty-state">
+          <p>選擇左側的對話開始聊天</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/navbar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const conversationList = document.getElementById('conversationList');
+      const chatThread = document.getElementById('chatThread');
+      const currentUser = getCurrentUser();
+
+      if (!currentUser) {
+        conversationList.innerHTML = '<div class="chat-empty-state"><p>請先登入才能使用聊天功能</p></div>';
+        return;
+      }
+
+      // Load conversations from messages
+      function loadConversations() {
+        const messages = getMessages();
+        const items = getItems();
+        const users = getUsers();
+        const currentUserId = currentUser.id;
+
+        // Group messages by (itemId, otherUserId)
+        const conversationMap = new Map();
+
+        messages.forEach(msg => {
+          if (msg.senderId === currentUserId || msg.receiverId === currentUserId) {
+            const otherUserId = msg.senderId === currentUserId ? msg.receiverId : msg.senderId;
+            const key = `${msg.itemId || 'no-item'}_${otherUserId}`;
+
+            if (!conversationMap.has(key) || 
+                new Date(msg.createdAt) > new Date(conversationMap.get(key).lastMessage.createdAt)) {
+              const item = items.find(i => i.id === msg.itemId);
+              const otherUser = users.find(u => u.id === otherUserId);
+
+              conversationMap.set(key, {
+                itemId: msg.itemId,
+                otherUserId,
+                otherUserName: otherUser ? otherUser.name : 'Unknown',
+                lastMessage: msg,
+                item: item || null
+              });
+            }
+          }
+        });
+
+        const conversations = Array.from(conversationMap.values()).sort((a, b) => 
+          new Date(b.lastMessage.createdAt) - new Date(a.lastMessage.createdAt)
+        );
+
+        if (conversations.length === 0) {
+          conversationList.innerHTML = '<div class="chat-empty-state"><p>目前沒有對話</p><p style="font-size: 12px; color: #9ca3af;">開始瀏覽商品並聯絡賣家吧！</p></div>';
+          return;
+        }
+
+        conversationList.innerHTML = '';
+        conversations.forEach((conv, index) => {
+          const button = document.createElement('button');
+          button.className = 'conversation-item';
+          if (index === 0) button.classList.add('conversation-item-active');
+
+          const avatar = document.createElement('div');
+          avatar.className = 'conversation-avatar';
+          avatar.textContent = conv.otherUserName[0].toUpperCase();
+
+          const text = document.createElement('div');
+          text.className = 'conversation-text';
+          text.innerHTML = `
+            <div class="conversation-seller">${conv.otherUserName}</div>
+            <div class="conversation-preview">${conv.lastMessage.text || ''}</div>
+          `;
+
+          const time = document.createElement('div');
+          time.className = 'conversation-time';
+          const msgDate = new Date(conv.lastMessage.createdAt);
+          const now = new Date();
+          const diffMs = now - msgDate;
+          const diffMins = Math.floor(diffMs / 60000);
+          const diffHours = Math.floor(diffMs / 3600000);
+          const diffDays = Math.floor(diffMs / 86400000);
+
+          if (diffMins < 1) {
+            time.textContent = '剛剛';
+          } else if (diffMins < 60) {
+            time.textContent = `${diffMins}分鐘前`;
+          } else if (diffHours < 24) {
+            time.textContent = `${diffHours}小時前`;
+          } else if (diffDays < 7) {
+            time.textContent = `${diffDays}天前`;
+          } else {
+            time.textContent = msgDate.toLocaleDateString('zh-TW');
+          }
+
+          button.appendChild(avatar);
+          button.appendChild(text);
+          button.appendChild(time);
+
+          button.addEventListener('click', () => {
+            document.querySelectorAll('.conversation-item').forEach(item => {
+              item.classList.remove('conversation-item-active');
+            });
+            button.classList.add('conversation-item-active');
+            loadChatThread(conv);
+          });
+
+          conversationList.appendChild(button);
+        });
+
+        // Load first conversation by default
+        if (conversations.length > 0) {
+          loadChatThread(conversations[0]);
+        }
+      }
+
+      function loadChatThread(conversation) {
+        const messages = getMessages();
+        const currentUserId = currentUser.id;
+
+        // Get all messages for this conversation
+        const threadMessages = messages.filter(msg => {
+          const matchesItem = msg.itemId === conversation.itemId;
+          const matchesUsers = (msg.senderId === currentUserId && msg.receiverId === conversation.otherUserId) ||
+                              (msg.senderId === conversation.otherUserId && msg.receiverId === currentUserId);
+          return matchesItem && matchesUsers;
+        }).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+        // Build thread HTML
+        const itemTitle = conversation.item ? conversation.item.title : '未知商品';
+        chatThread.innerHTML = `
+          <header class="chat-thread-header">
+            <div class="chat-thread-seller">${conversation.otherUserName}</div>
+            <div class="chat-thread-item">${itemTitle}</div>
+          </header>
+          <div class="chat-messages" id="chatMessages">
+            ${threadMessages.map(msg => {
+              const isUser = msg.senderId === currentUserId;
+              const msgDate = new Date(msg.createdAt);
+              const timeStr = msgDate.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+              return `
+                <div class="chat-message ${isUser ? 'chat-message-user' : 'chat-message-seller'}">
+                  <div class="chat-bubble">${msg.text}</div>
+                  <div class="chat-time">${timeStr}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+          <form class="chat-input-area" id="chatInputForm">
+            <input type="text" class="chat-input" id="chatInput" placeholder="輸入訊息..." />
+            <button type="submit" class="chat-send-btn">送出</button>
+          </form>
+        `;
+
+        // Scroll to bottom
+        const messagesArea = document.getElementById('chatMessages');
+        if (messagesArea) {
+          messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        // Handle form submission
+        const chatInputForm = document.getElementById('chatInputForm');
+        const chatInput = document.getElementById('chatInput');
+        if (chatInputForm && chatInput) {
+          chatInputForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            // Create message
+            createMessage({
+              itemId: conversation.itemId,
+              senderId: currentUserId,
+              receiverId: conversation.otherUserId,
+              text: text
+            });
+
+            // Reload thread
+            loadChatThread(conversation);
+            chatInput.value = '';
+          });
+        }
+      }
+
+      loadConversations();
+    });
+  </script>
+</body>
+</html>
+
