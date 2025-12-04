@@ -483,11 +483,21 @@
 
     .trade-mode-badges {
       display: flex;
-      flex-wrap: nowrap;       /* keep them on one line */
+      flex-wrap: wrap;         /* allow wrapping for better responsiveness */
       align-items: center;
       gap: 8px;
-      margin-top: 16px;        /* spacing from seller info row */
-      margin-bottom: 8px;
+      margin-top: 8px;         /* small gap below title */
+      margin-bottom: 0;
+    }
+    
+    .item-header-divider {
+      margin-top: 16px;        /* gap between tags row and divider */
+      margin-bottom: 16px;     /* gap between divider and seller row */
+      border-top: 1px solid rgba(0, 0, 0, 0.06);  /* subtle divider line */
+    }
+    
+    .item-seller-row {
+      margin-top: 0;           /* spacing handled by divider above */
     }
 
     /* On very small screens, allow wrapping so it doesn't overflow */
@@ -978,6 +988,12 @@
                   <div id="listingModeSummary" class="item-availability"></div>
                 </div>
 
+              <div class="trade-mode-badges" id="tradeModeBadges">
+                <!-- Badges will be populated by JS -->
+              </div>
+
+              <div class="item-header-divider"></div>
+
                 <div class="item-seller-row">
               <div class="seller-inline">
                 <div class="seller-avatar-small" id="sellerAvatar">
@@ -998,10 +1014,6 @@
                     </div>
                   </div>
                 </div>
-              </div>
-
-              <div class="trade-mode-badges" id="tradeModeBadges">
-                <!-- Badges will be populated by JS -->
               </div>
 
             </div>
