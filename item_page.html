@@ -944,9 +944,30 @@
 
     function handlePurchase() {
       const quantity = document.getElementById('qty').value;
-      const total = 8500 * parseInt(quantity);
-      if (confirm(`確認購買\n\n商品：Nintendo Switch OLED\n數量：${quantity}\n總計：NT$ ${total.toLocaleString()}\n\n確定要購買嗎？`)) {
-        alert('購買成功！將跳轉至付款頁面...');
+      const itemTitle = document.getElementById('itemTitle').textContent;
+      const actionPrice = document.getElementById('actionPrice');
+      const priceText = actionPrice ? actionPrice.textContent.trim() : '';
+      const priceMatch = priceText.match(/NT\$\s*([\d,]+)/);
+      const price = priceMatch ? parseInt(priceMatch[1].replace(/,/g, '')) : 8500;
+      const total = price * parseInt(quantity);
+      
+      if (confirm(`確認購買\n\n商品：${itemTitle}\n數量：${quantity}\n總計：NT$ ${total.toLocaleString()}\n\n確定要購買嗎？`)) {
+        // TODO: in real system, call API to create a purchase request
+        const itemId = new URLSearchParams(window.location.search).get('id') || '0';
+        console.log('Purchase request created for item id:', itemId);
+        
+        // Open chat modal
+        handleOpenChat();
+        
+        // Prefill chat input with a standard message
+        setTimeout(() => {
+          const chatInput = document.getElementById('chat-message');
+          if (chatInput) {
+            chatInput.value = `您好，我想購買「${itemTitle}」，請問可以成交嗎？`;
+          }
+        }, 150);
+        
+        alert('已送出購買請求，並已開啟與賣家的對話視窗。');
       }
     }
 
