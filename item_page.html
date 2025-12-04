@@ -2195,6 +2195,12 @@
     function showSellerView(item) {
       console.log('showSellerView called for item:', item.id);
       
+      // Remove any existing seller actions container
+      const existingContainer = document.querySelector('.seller-actions-container');
+      if (existingContainer) {
+        existingContainer.remove();
+      }
+      
       const actionButtonsGroup = document.getElementById('actionButtonsGroup');
       const cancelTxBtn = document.getElementById('cancelTxBtn');
       const messageButtonMain = document.getElementById('messageButtonMain');
