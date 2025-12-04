@@ -1780,16 +1780,18 @@
           recentlyViewed = recentlyViewed.filter(item => String(item.id) !== currentItemIdStr);
           
           // Add current item to front
+          // Ensure mode exists before accessing
+          const hasPurchase = currentItem.mode && currentItem.mode.purchase;
           const itemData = {
             id: String(currentItem.id), // Ensure ID is stored as string consistently
             title: currentItem.title,
-            price: currentItem.mode.purchase ? currentItem.price : null,
+            price: hasPurchase ? currentItem.price : null,
             imageUrl: currentItem.images && currentItem.images.length > 0 ? currentItem.images[0] : '',
             condition: currentItem.condition,
             mode: {
-              purchase: currentItem.mode.purchase,
-              trade: currentItem.mode.trade,
-              wish: currentItem.mode.wish
+              purchase: hasPurchase || false,
+              trade: (currentItem.mode && currentItem.mode.trade) || false,
+              wish: (currentItem.mode && currentItem.mode.wish) || false
             }
           };
           
@@ -1876,13 +1878,13 @@
               avatarSpan.textContent = currentItem.seller.name[0].toUpperCase();
             }
           }
-          
-          // Wire up seller buttons
-          const sellerViewItemsButton = document.getElementById('sellerViewItemsButton');
-          if (sellerViewItemsButton) {
-            sellerViewItemsButton.addEventListener('click', () => {
-              window.location.href = `item_list.html?seller=${encodeURIComponent(currentItem.seller.name)}`;
-            });
+        
+        // Wire up seller buttons
+        const sellerViewItemsButton = document.getElementById('sellerViewItemsButton');
+        if (sellerViewItemsButton) {
+          sellerViewItemsButton.addEventListener('click', () => {
+            window.location.href = `item_list.html?seller=${encodeURIComponent(currentItem.seller.name)}`;
+          });
           }
         } else {
           // Fallback if seller info is missing - re-initialize it
@@ -1962,20 +1964,21 @@
 
         // Price (only in action card, not in header)
         const actionPrice = document.getElementById('actionPrice');
-        if (currentItem.mode.purchase && actionPrice) {
+        if (currentItem.mode && currentItem.mode.purchase && actionPrice) {
           actionPrice.textContent = `NT$ ${currentItem.price.toLocaleString('zh-TW')}`;
         }
 
         // Mode badges
         const badgesContainer = document.getElementById('tradeModeBadges');
+        if (badgesContainer) {
         badgesContainer.innerHTML = '';
-        if (currentItem.mode.purchase) {
+          if (currentItem.mode && currentItem.mode.purchase) {
           const badge = document.createElement('span');
           badge.className = 'badge mode-sale';
           badge.textContent = '販售中';
           badgesContainer.appendChild(badge);
         }
-        if (currentItem.mode.trade) {
+          if (currentItem.mode && currentItem.mode.trade) {
           const badge = document.createElement('span');
           badge.className = 'badge mode-trade';
           if (currentItem.mode.tradeMode === 'target') {
@@ -2580,6 +2583,28 @@
           condition
         };
         
+        // Preserve modes structure (important for normalizeItem to work)
+        if (currentItem.modes && typeof currentItem.modes === 'object') {
+          updateData.modes = { ...currentItem.modes };
+        } else if (currentItem.mode && typeof currentItem.mode === 'object') {
+          // Convert old mode format to new modes format
+          updateData.modes = {
+            sale: currentItem.mode.purchase || false,
+            tradeTarget: currentItem.mode.tradeMode === 'target' || currentItem.mode.tradeMode === 'both',
+            tradeOpen: currentItem.mode.tradeMode === 'offer' || currentItem.mode.tradeMode === 'both'
+          };
+          if (currentItem.mode.tradeSummary) {
+            updateData.tradeTargetNote = currentItem.mode.tradeSummary;
+          }
+        } else {
+          // Default modes if none exist
+          updateData.modes = {
+            sale: true,
+            tradeTarget: false,
+            tradeOpen: false
+          };
+        }
+        
         // Handle pickup - preserve existing structure if available
         if (currentItem.pickup && typeof currentItem.pickup === 'object') {
           updateData.pickup = {
@@ -2594,6 +2619,12 @@
           };
         }
         
+        // Preserve other important fields
+        if (currentItem.sellerId) updateData.sellerId = currentItem.sellerId;
+        if (currentItem.images) updateData.images = currentItem.images;
+        if (currentItem.location) updateData.location = currentItem.location;
+        if (currentItem.quantity !== undefined) updateData.quantity = currentItem.quantity;
+        
         // Update item
         const updated = updateItem(currentItem.id, updateData);
         
@@ -2604,6 +2635,9 @@
         
         // Update currentItem reference
         currentItem = updated;
+        
+        // Normalize item format (creates mode from modes)
+        currentItem = normalizeItem(currentItem);
         
         // Re-initialize seller info if missing (preserve from original)
         if (!currentItem.seller && currentItem.sellerId) {
@@ -2625,6 +2659,17 @@
             rating: 0,
             ratingText: '無評價',
             deals: 0
+          };
+        }
+        
+        // Ensure mode object exists (safety check)
+        if (!currentItem.mode) {
+          currentItem.mode = {
+            purchase: currentItem.modes?.sale || false,
+            trade: currentItem.modes?.tradeTarget || currentItem.modes?.tradeOpen || false,
+            wish: currentItem.modes?.tradeOpen || false,
+            tradeMode: null,
+            tradeSummary: ''
           };
         }
         
