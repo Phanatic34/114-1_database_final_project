@@ -293,6 +293,7 @@
   </main>
 
   <script src="js/data.js"></script>
+  <script src="js/images.js"></script>
   <script src="js/navbar.js"></script>
   <script>
     // Check login
@@ -336,7 +337,7 @@
           
           item.innerHTML = `
             <div class="conversation-header">
-              <img src="${conv.item?.images[0] || 'https://via.placeholder.com/48/f3f4f6/9ca3af?text=No+Image'}" 
+              <img src="${conv.item ? getProductImageUrl(conv.item) : 'images/no-image.png'}" 
                    alt="${conv.item?.title || '商品'}" 
                    class="conversation-image">
               <div class="conversation-info">
@@ -347,6 +348,10 @@
               </div>
             </div>
           `;
+          
+          // Attach fallback to the image
+          const img = item.querySelector('.conversation-image');
+          if (img) attachImageFallback(img);
           
           item.addEventListener('click', () => {
             openChat(conv.itemId, conv.otherUserId);
@@ -384,7 +389,7 @@
       const chatPanel = document.getElementById('chatPanel');
       chatPanel.innerHTML = `
         <div class="chat-header">
-          <img src="${item.images[0] || 'https://via.placeholder.com/40/f3f4f6/9ca3af?text=No+Image'}" 
+          <img src="${getProductImageUrl(item)}" 
                alt="${item.title}" 
                class="chat-header-image">
           <div class="chat-header-info">

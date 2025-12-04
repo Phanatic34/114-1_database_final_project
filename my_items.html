@@ -219,6 +219,7 @@
   </main>
 
   <script src="js/data.js"></script>
+  <script src="js/images.js"></script>
   <script src="js/navbar.js"></script>
   <script>
     // Check login
@@ -277,7 +278,7 @@
       }
       
       card.innerHTML = `
-        <img src="${item.images[0] || 'https://via.placeholder.com/280/f3f4f6/9ca3af?text=No+Image'}" 
+        <img src="${getProductImageUrl(item)}" 
              alt="${item.title}" 
              class="item-card-image">
         <div class="item-card-body">

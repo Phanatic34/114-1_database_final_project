@@ -62,13 +62,45 @@
  * @property {boolean} [read] - Whether message is read
  */
 
+/**
+ * @typedef {Object} Transaction
+ * @property {string} id - Transaction ID
+ * @property {string} itemId - Item ID
+ * @property {string} sellerId - Seller user ID
+ * @property {string} buyerId - Buyer user ID
+ * @property {string} type - Transaction type: 'purchase' | 'trade-open' | 'trade-target'
+ * @property {string} status - Status: 'pending' | 'declined' | 'reserved' | 'completed' | 'cancelled'
+ * @property {number} quantity - Quantity
+ * @property {string} createdAt - Creation timestamp
+ * @property {string} [reservedAt] - When seller accepted (ISO datetime)
+ * @property {string} [completedAt] - When both confirmed (ISO datetime)
+ * @property {string} [sellerConfirmedAt] - When seller clicked 已面交
+ * @property {string} [buyerConfirmedAt] - When buyer clicked 已面交
+ * @property {string} [note] - Optional note
+ * @property {string} [offeredItemId] - Offered item ID for trades
+ */
+
+/**
+ * @typedef {Object} Review
+ * @property {string} id - Review ID
+ * @property {string} itemId - Item ID
+ * @property {string} transactionId - Transaction ID
+ * @property {string} fromUserId - User who wrote the review
+ * @property {string} toUserId - User being reviewed
+ * @property {number} rating - Rating 1-5
+ * @property {string} comment - Review comment
+ * @property {string} createdAt - Creation timestamp
+ */
+
 // Storage keys
 const STORAGE_KEYS = {
   USERS: 'users',
   CURRENT_USER_ID: 'currentUserId',
   ITEMS: 'items',
   REQUESTS: 'requests',
-  MESSAGES: 'messages'
+  MESSAGES: 'messages',
+  TRANSACTIONS: 'transactions',
+  REVIEWS: 'reviews'
 };
 
 // Helper: Get data from localStorage
@@ -248,16 +280,129 @@ function saveItems(items) {
 }
 
 /**
- * Get item by ID
+ * Get all items including seed items
+ * @returns {Item[]}
+ */
+function getAllItems() {
+  const userItems = getItems();
+  const seedItems = getSeedItems();
+  
+  // Combine seed items and user items, avoiding duplicates by ID
+  const itemMap = new Map();
+  
+  // Add seed items first
+  seedItems.forEach(item => {
+    itemMap.set(String(item.id), item);
+  });
+  
+  // Add user items (they override seed items if same ID)
+  userItems.forEach(item => {
+    itemMap.set(String(item.id), item);
+  });
+  
+  return Array.from(itemMap.values());
+}
+
+/**
+ * Get seed items (demo items)
+ * @returns {Item[]}
+ */
+function getSeedItems() {
+  // Return the demo items that are seeded on first load
+  const demoItems = [
+    {
+      id: 'i1',
+      sellerId: 'u1',
+      title: 'Nintendo Switch OLED 白色主機',
+      category: '遊戲與主機',
+      condition: '九成新',
+      price: 8500,
+      description: 'Nintendo Switch OLED 白色主機，使用約一年，功能完全正常。',
+      tags: ['Nintendo', 'Switch', 'OLED', '遊戲主機', '二手'],
+      location: '台北市信義區',
+      quantity: 1,
+      modes: {
+        sale: true,
+        tradeTarget: true,
+        tradeOpen: false
+      },
+      tradeTargetNote: '想換 PlayStation 5 或 Xbox Series X，也接受其他 Nintendo 主機相關商品',
+      images: [
+        'https://via.placeholder.com/600x600/0064D2/FFFFFF?text=Nintendo+Switch+1',
+        'https://via.placeholder.com/600x600/0052A3/FFFFFF?text=Nintendo+Switch+2'
+      ],
+      views: 342,
+      addedToCartCount: 18,
+      isActive: true,
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'i2',
+      sellerId: 'u2',
+      title: 'PlayStation 5 光碟版 主機',
+      category: '遊戲與主機',
+      condition: '全新',
+      price: 12000,
+      description: 'PlayStation 5 光碟版主機，全新未拆封，原廠保固。',
+      tags: ['PlayStation', 'PS5', '遊戲主機', '全新'],
+      location: '新北市板橋區',
+      quantity: 1,
+      modes: {
+        sale: true,
+        tradeTarget: false,
+        tradeOpen: false
+      },
+      images: [
+        'https://via.placeholder.com/600x600/0064D2/FFFFFF?text=PS5+1',
+        'https://via.placeholder.com/600x600/0052A3/FFFFFF?text=PS5+2'
+      ],
+      views: 521,
+      addedToCartCount: 23,
+      isActive: true,
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'i3',
+      sellerId: 'u3',
+      title: 'iPhone 13 Pro 256GB 深藍色',
+      category: '手機／平板',
+      condition: '九成新',
+      price: 18000,
+      description: 'iPhone 13 Pro 256GB 深藍色，使用約一年半，功能完全正常。',
+      tags: ['Apple', 'iPhone', '13 Pro', '256GB', '二手'],
+      location: '台北市大安區',
+      quantity: 1,
+      modes: {
+        sale: true,
+        tradeTarget: true,
+        tradeOpen: true
+      },
+      tradeTargetNote: '接受各種 3C 產品交換提案',
+      images: [
+        'https://via.placeholder.com/600x600/003D7A/FFFFFF?text=iPhone+1',
+        'https://via.placeholder.com/600x600/002855/FFFFFF?text=iPhone+2'
+      ],
+      views: 678,
+      addedToCartCount: 34,
+      isActive: true,
+      createdAt: new Date().toISOString()
+    }
+  ];
+  
+  return demoItems;
+}
+
+/**
+ * Get item by ID (searches both seed and user items)
  * @param {string|number} itemId
  * @returns {Item|null}
  */
 function getItemById(itemId) {
   if (!itemId) return null;
-  const items = getItems();
+  const allItems = getAllItems();
   // Convert both to strings for comparison to handle type mismatches
   const itemIdStr = String(itemId);
-  return items.find(i => String(i.id) === itemIdStr) || null;
+  return allItems.find(i => String(i.id) === itemIdStr) || null;
 }
 
 /**
@@ -397,6 +542,48 @@ function updateRequest(requestId, updates) {
   return null;
 }
 
+/**
+ * Cancel a request (only by the buyer who created it)
+ * @param {string} requestId
+ * @param {string} userId - User ID of the person cancelling (must be the buyer)
+ * @returns {Request|null}
+ */
+function cancelRequest(requestId, userId) {
+  const requests = getRequests();
+  const index = requests.findIndex(r => r.id === requestId);
+  
+  if (index === -1) return null;
+  
+  const request = requests[index];
+  
+  // Only the buyer (req.buyerId) is allowed to cancel their own request
+  if (userId && request.buyerId && request.buyerId !== userId) {
+    return null;
+  }
+  
+  requests[index] = {
+    ...request,
+    status: 'cancelled',
+    cancelledAt: new Date().toISOString()
+  };
+  
+  saveRequests(requests);
+  return requests[index];
+}
+
+/**
+ * Get active (pending) requests for an item
+ * @param {string} itemId
+ * @returns {Request[]}
+ */
+function getActiveRequestsForItem(itemId) {
+  const all = getRequests();
+  return all.filter(req => 
+    String(req.itemId) === String(itemId) && 
+    req.status === 'pending'
+  );
+}
+
 // ========== Message Functions ==========
 
 /**
@@ -519,7 +706,7 @@ function seedDemoData() {
         id: 'i1',
         sellerId: 'u1',
         title: 'Nintendo Switch OLED 白色主機',
-        category: 'games',
+        category: '遊戲與主機',
         condition: '九成新',
         price: 8500,
         description: 'Nintendo Switch OLED 白色主機，使用約一年，功能完全正常。',
@@ -545,7 +732,7 @@ function seedDemoData() {
         id: 'i2',
         sellerId: 'u2',
         title: 'PlayStation 5 光碟版 主機',
-        category: 'games',
+        category: '遊戲與主機',
         condition: '全新',
         price: 12000,
         description: 'PlayStation 5 光碟版主機，全新未拆封，原廠保固。',
@@ -570,7 +757,7 @@ function seedDemoData() {
         id: 'i3',
         sellerId: 'u3',
         title: 'iPhone 13 Pro 256GB 深藍色',
-        category: 'electronics',
+        category: '手機／平板',
         condition: '九成新',
         price: 18000,
         description: 'iPhone 13 Pro 256GB 深藍色，使用約一年半，功能完全正常。',
@@ -656,6 +843,222 @@ function clearPendingTransaction(itemId) {
 function hasPendingTransaction(itemId) {
   const map = loadPendingTransactions();
   return !!map[itemId];
+}
+
+// ========== Transaction Functions ==========
+
+/**
+ * Get all transactions
+ * @returns {Transaction[]}
+ */
+function getTransactions() {
+  return getStorage(STORAGE_KEYS.TRANSACTIONS, []);
+}
+
+/**
+ * Save transactions
+ * @param {Transaction[]} transactions
+ */
+function saveTransactions(transactions) {
+  setStorage(STORAGE_KEYS.TRANSACTIONS, transactions);
+}
+
+/**
+ * Get transaction by ID
+ * @param {string} transactionId
+ * @returns {Transaction|null}
+ */
+function getTransactionById(transactionId) {
+  const transactions = getTransactions();
+  return transactions.find(t => t.id === transactionId) || null;
+}
+
+/**
+ * Get transactions by item ID
+ * @param {string} itemId
+ * @returns {Transaction[]}
+ */
+function getTransactionsByItem(itemId) {
+  const transactions = getTransactions();
+  return transactions.filter(t => String(t.itemId) === String(itemId));
+}
+
+/**
+ * Get active transaction for item (reserved or completed)
+ * @param {string} itemId
+ * @returns {Transaction|null}
+ */
+function getActiveTransactionForItem(itemId) {
+  const transactions = getTransactionsByItem(itemId);
+  return transactions.find(t => t.status === 'reserved' || t.status === 'completed') || null;
+}
+
+/**
+ * Create transaction from request
+ * @param {Request} request
+ * @returns {Transaction}
+ */
+function createTransactionFromRequest(request) {
+  const transactions = getTransactions();
+  
+  // Check if transaction already exists for this request
+  const existing = transactions.find(t => 
+    String(t.itemId) === String(request.itemId) &&
+    String(t.buyerId) === String(request.buyerId) &&
+    (t.status === 'reserved' || t.status === 'pending')
+  );
+  
+  if (existing) {
+    return existing;
+  }
+  
+  const transaction = {
+    id: generateId('tx'),
+    itemId: request.itemId,
+    sellerId: request.sellerId,
+    buyerId: request.buyerId,
+    type: request.type,
+    quantity: request.quantity || 1,
+    status: 'pending',
+    createdAt: request.createdAt || new Date().toISOString(),
+    note: request.note,
+    offeredItemId: request.offeredItemId
+  };
+  
+  transactions.push(transaction);
+  saveTransactions(transactions);
+  return transaction;
+}
+
+/**
+ * Update transaction
+ * @param {string} transactionId
+ * @param {Partial<Transaction>} updates
+ * @returns {Transaction|null}
+ */
+function updateTransaction(transactionId, updates) {
+  const transactions = getTransactions();
+  const index = transactions.findIndex(t => t.id === transactionId);
+  if (index !== -1) {
+    transactions[index] = { ...transactions[index], ...updates };
+    saveTransactions(transactions);
+    return transactions[index];
+  }
+  return null;
+}
+
+// ========== Item Status Functions ==========
+
+/**
+ * Set item as reserved
+ * @param {string} itemId
+ * @param {string} buyerId
+ * @param {string} reservedAt
+ */
+function setItemReserved(itemId, buyerId, reservedAt) {
+  const items = getItems();
+  const index = items.findIndex(i => i.id === itemId);
+  if (index !== -1) {
+    items[index] = {
+      ...items[index],
+      status: 'reserved',
+      reservedForUserId: buyerId,
+      reservedAt: reservedAt
+    };
+    saveItems(items);
+    return items[index];
+  }
+  return null;
+}
+
+/**
+ * Set item as sold
+ * @param {string} itemId
+ * @param {string} completedAt
+ */
+function setItemSold(itemId, completedAt) {
+  const items = getItems();
+  const index = items.findIndex(i => i.id === itemId);
+  if (index !== -1) {
+    items[index] = {
+      ...items[index],
+      status: 'sold',
+      soldAt: completedAt
+    };
+    saveItems(items);
+    return items[index];
+  }
+  return null;
+}
+
+// ========== Review Functions ==========
+
+/**
+ * Get all reviews
+ * @returns {Review[]}
+ */
+function getReviews() {
+  return getStorage(STORAGE_KEYS.REVIEWS, []);
+}
+
+/**
+ * Save reviews
+ * @param {Review[]} reviews
+ */
+function saveReviews(reviews) {
+  setStorage(STORAGE_KEYS.REVIEWS, reviews);
+}
+
+/**
+ * Create a review
+ * @param {Partial<Review>} reviewData
+ * @returns {Review}
+ */
+function createReview(reviewData) {
+  const reviews = getReviews();
+  const review = {
+    id: generateId('rv'),
+    createdAt: new Date().toISOString(),
+    ...reviewData
+  };
+  
+  reviews.push(review);
+  saveReviews(reviews);
+  return review;
+}
+
+/**
+ * Get reviews by item ID
+ * @param {string} itemId
+ * @returns {Review[]}
+ */
+function getReviewsByItem(itemId) {
+  const reviews = getReviews();
+  return reviews.filter(r => String(r.itemId) === String(itemId));
+}
+
+/**
+ * Get reviews for a user (as the reviewed party)
+ * @param {string} userId
+ * @returns {Review[]}
+ */
+function getReviewsForUser(userId) {
+  const reviews = getReviews();
+  return reviews.filter(r => String(r.toUserId) === String(userId));
+}
+
+/**
+ * Get review by user and transaction
+ * @param {string} fromUserId
+ * @param {string} transactionId
+ * @returns {Review|null}
+ */
+function getReviewByUserAndTransaction(fromUserId, transactionId) {
+  const reviews = getReviews();
+  return reviews.find(r => 
+    String(r.fromUserId) === String(fromUserId) &&
+    String(r.transactionId) === String(transactionId)
+  ) || null;
 }
 
 // Initialize on load

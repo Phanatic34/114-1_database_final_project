@@ -5,7 +5,7 @@ const mockItems = [
     title: 'Nintendo Switch OLED 白色主機',
     subtitle: '含原廠配件，九成新',
     price: 8500,
-    category: 'games',
+    category: '遊戲與主機',
     location: '台北市信義區',
     seller: {
       name: 'game_lover_2024',
@@ -61,7 +61,7 @@ const mockItems = [
     title: 'PlayStation 5 光碟版 主機',
     subtitle: '全新未拆封',
     price: 12000,
-    category: 'games',
+    category: '遊戲與主機',
     location: '新北市板橋區',
     seller: {
       name: 'ps5_seller',
@@ -115,7 +115,7 @@ const mockItems = [
     title: 'iPhone 13 Pro 256GB 深藍色',
     subtitle: '九成新，功能正常',
     price: 18000,
-    category: 'electronics',
+    category: '筆電／3C',
     location: '台北市大安區',
     seller: {
       name: 'phone_dealer',
@@ -169,7 +169,7 @@ const mockItems = [
     title: 'MacBook Pro 14吋 M1 晶片',
     subtitle: '僅接受以物易物',
     price: 0,
-    category: 'electronics',
+    category: '筆電／3C',
     location: '台北市信義區',
     seller: {
       name: 'mac_user',
@@ -221,7 +221,7 @@ const mockItems = [
     title: '資料庫系統概論 第五版',
     subtitle: '二手課本，有筆記',
     price: 300,
-    category: 'books',
+    category: '課本／學習用品',
     location: '新竹市東區',
     seller: {
       name: 'book_worm',
@@ -270,7 +270,7 @@ const mockItems = [
     title: 'Xbox Series X 主機',
     subtitle: '九成新，含遊戲',
     price: 11000,
-    category: 'games',
+    category: '遊戲與主機',
     location: '台中市西區',
     seller: {
       name: 'xbox_fan',
@@ -324,7 +324,7 @@ const mockItems = [
     title: 'AirPods Pro 第二代',
     subtitle: '全新未拆',
     price: 5500,
-    category: 'electronics',
+    category: '筆電／3C',
     location: '台北市中山區',
     seller: {
       name: 'audio_lover',
@@ -377,7 +377,7 @@ const mockItems = [
     title: '線性代數 課本',
     subtitle: '二手，有筆記',
     price: 250,
-    category: 'books',
+    category: '課本／學習用品',
     location: '桃園市中壢區',
     seller: {
       name: 'student_2024',

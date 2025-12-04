@@ -197,6 +197,7 @@
   </main>
 
   <script src="js/data.js"></script>
+  <script src="js/images.js"></script>
   <script src="js/navbar.js"></script>
   <script>
     // Check login
@@ -237,7 +238,7 @@
       }
       
       card.innerHTML = `
-        <img src="${item.images[0] || 'https://via.placeholder.com/120/f3f4f6/9ca3af?text=No+Image'}" 
+        <img src="${getProductImageUrl(item)}" 
              alt="${item.title}" 
              class="transaction-image">
         <div class="transaction-info">
@@ -259,6 +260,10 @@
           <button class="btn-small btn-chat" onclick="openChat('${request.itemId}', '${otherUser.id}')">查看對話</button>
         </div>
       `;
+      
+      // Attach fallback to the image
+      const img = card.querySelector('.transaction-image');
+      if (img) attachImageFallback(img);
       
       return card;
     }

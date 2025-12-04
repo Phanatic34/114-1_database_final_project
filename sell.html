@@ -433,13 +433,14 @@
               <label for="category">分類 *</label>
               <select id="category" name="category" required>
                 <option value="">請選擇分類</option>
-                <option value="console">遊戲主機</option>
-                <option value="phone">手機 / 平板</option>
-                <option value="computer">電腦 / 週邊</option>
-                <option value="camera">相機 / 3C 產品</option>
-                <option value="appliance">生活家電</option>
-                <option value="books">書籍 / 課本</option>
-                <option value="other">其他</option>
+                <option value="課本／學習用品">課本／學習用品</option>
+                <option value="筆電／3C">筆電／3C</option>
+                <option value="手機／平板">手機／平板</option>
+                <option value="遊戲與主機">遊戲與主機</option>
+                <option value="宿舍家電與家具">宿舍家電與家具</option>
+                <option value="服飾／生活用品">服飾／生活用品</option>
+                <option value="運動／興趣嗜好">運動／興趣嗜好</option>
+                <option value="其他">其他</option>
               </select>
             </div>
 
@@ -564,6 +565,7 @@
   </main>
 
   <script src="js/data.js"></script>
+  <script src="js/categories.js"></script>
   <script src="js/navbar.js"></script>
   <script>
     // Check login
@@ -591,7 +593,8 @@
         // Load item data into form
         document.getElementById('pageTitle').textContent = '編輯商品';
         document.getElementById('title').value = editingItem.title;
-        document.getElementById('category').value = editingItem.category;
+        // Normalize category to official category name
+        document.getElementById('category').value = normalizeCategory(editingItem.category);
         document.getElementById('condition').value = editingItem.condition;
         document.getElementById('price').value = editingItem.price;
         document.getElementById('quantity').value = editingItem.quantity;
@@ -892,6 +895,15 @@
       // Extract image sources for storage (keep full objects for preview, but store src for compatibility)
       const imageSources = images.map(img => img.src);
       
+      // Generate unique ID for new items
+      function generateItemId() {
+        if (window.crypto && crypto.randomUUID) {
+          return crypto.randomUUID();
+        } else {
+          return `item-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        }
+      }
+      
       const itemData = {
         sellerId: currentUser.id,
         title,
@@ -899,7 +911,7 @@
         condition,
         price,
         description,
-        tags: tags.length > 0 ? tags : [],
+        tags: tags.length > 0 ? tags : [],  // Ensure tags are stored as array of strings
         location,
         quantity,
         modes: {
@@ -907,7 +919,7 @@
           tradeTarget: modeTradeTarget,
           tradeOpen: modeTradeOpen
         },
-        images: imageSources.length > 0 ? imageSources : ['https://via.placeholder.com/600x600/f3f4f6/9ca3af?text=No+Image'],
+        images: imageSources.length > 0 ? imageSources : [],
         views: editingItem ? editingItem.views : 0,
         addedToCartCount: editingItem ? editingItem.addedToCartCount : 0,
         isActive: true
@@ -918,12 +930,14 @@
       }
       
       if (editingItem) {
-        // Update existing item
+        // Update existing item - preserve the ID
+        itemData.id = editingItem.id;
         updateItem(itemId, itemData);
         alert('商品已更新！');
         window.location.href = `item_page.html?id=${itemId}`;
       } else {
-        // Create new item
+        // Create new item - generate unique ID
+        itemData.id = generateItemId();
         const newItem = createItem(itemData);
         alert('商品已成功刊登！');
         window.location.href = `item_page.html?id=${newItem.id}`;

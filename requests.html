@@ -294,6 +294,7 @@
   </main>
 
   <script src="js/data.js"></script>
+  <script src="js/images.js"></script>
   <script src="js/navbar.js"></script>
   <script>
     // Check login
@@ -359,7 +360,7 @@
       if (isOutgoing) {
         if (request.status === 'pending') {
           actionsHTML = `
-            <button class="btn-small btn-cancel" onclick="cancelRequest('${request.id}')">取消請求</button>
+            <button class="btn-small btn-cancel" onclick="handleCancelRequest('${request.id}')">取消請求</button>
             <button class="btn-small btn-chat" onclick="openChat('${request.itemId}', '${otherUser.id}')">查看對話</button>
           `;
         } else {
@@ -391,7 +392,7 @@
       });
       
       card.innerHTML = `
-        <img src="${item.images[0] || 'https://via.placeholder.com/120/f3f4f6/9ca3af?text=No+Image'}" 
+        <img src="${getProductImageUrl(item)}" 
              alt="${item.title}" 
              class="request-image">
         <div class="request-info">
@@ -419,6 +420,10 @@
           ${actionsHTML}
         </div>
       `;
+      
+      // Attach fallback to the image
+      const img = card.querySelector('.request-image');
+      if (img) attachImageFallback(img);
       
       return card;
     }
@@ -502,10 +507,41 @@
     }
 
     // Cancel request
-    function cancelRequest(requestId) {
+    function handleCancelRequest(requestId) {
       if (!confirm('確定要取消此請求嗎？')) return;
       
-      updateRequest(requestId, { status: 'cancelled' });
+      const currentUser = getCurrentUser();
+      if (!currentUser) {
+        alert('請先登入');
+        return;
+      }
+      
+      // Call the data layer cancelRequest function (from data.js)
+      // Check if request exists and user is the buyer
+      const request = getRequestById(requestId);
+      if (!request) {
+        alert('找不到此請求。');
+        return;
+      }
+      
+      if (String(request.buyerId) !== String(currentUser.id)) {
+        alert('只能取消自己的請求。');
+        return;
+      }
+      
+      // Use updateRequest to set status to cancelled (cancelRequest from data.js should be available)
+      // If cancelRequest function exists in global scope, use it; otherwise use updateRequest
+      if (typeof cancelRequest === 'function') {
+        const cancelled = cancelRequest(requestId, currentUser.id);
+        if (!cancelled) {
+          alert('無法取消此請求。');
+          return;
+        }
+      } else {
+        // Fallback to updateRequest
+        updateRequest(requestId, { status: 'cancelled', cancelledAt: new Date().toISOString() });
+      }
+      
       alert('已取消此請求。');
       renderRequests();
     }
@@ -518,7 +554,7 @@
     // Make functions global
     window.acceptRequest = acceptRequest;
     window.rejectRequest = rejectRequest;
-    window.cancelRequest = cancelRequest;
+    window.handleCancelRequest = handleCancelRequest;
     window.openChat = openChat;
 
     // Initial render

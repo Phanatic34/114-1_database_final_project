@@ -204,8 +204,8 @@
     /* Upper section: image + main info + purchase card */
     .item-top-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.3fr) 320px;
-      column-gap: 32px;
+      grid-template-columns: minmax(420px, 480px) minmax(0, 1.3fr) 320px;
+      column-gap: 40px;
       align-items: flex-start;
     }
 
@@ -225,22 +225,34 @@
       border-top: 1px solid #e5e7eb;
     }
 
-    /* Left Column - Image Gallery + 商品資訊 */
+    /* Left Column - Image Gallery */
+    .item-col-left {
+      position: sticky;
+      top: 100px;
+      align-self: flex-start;
+    }
+
     .item-image-main {
       background: #f3f4f6;
       border-radius: 16px;
       padding: 16px;
-      min-height: 320px;
+      width: 100%;
+      max-width: 480px;
+      aspect-ratio: 4 / 5;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
+      overflow: hidden;
     }
 
     .item-image-main .main-image {
-      max-width: 100%;
-      height: auto;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
       border-radius: 8px;
+      display: block;
+      cursor: pointer;
     }
 
     .item-image-main .image-badge {
@@ -257,28 +269,33 @@
 
     .item-thumbnails {
       display: flex;
-      gap: 8px;
-      margin-top: 12px;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
     }
 
     .item-thumbnails .thumbnail {
-      flex: 1;
-      min-width: 0;
+      width: 90px;
+      height: 90px;
+      min-width: 90px;
       border: 2px solid transparent;
-      border-radius: 8px;
+      border-radius: 12px;
       overflow: hidden;
       cursor: pointer;
       background: #f3f4f6;
       padding: 0;
+      flex-shrink: 0;
     }
 
     .item-thumbnails .thumbnail.active {
       border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
     }
 
     .item-thumbnails .thumbnail img {
       width: 100%;
-      height: auto;
+      height: 100%;
+      object-fit: cover;
       display: block;
     }
 
@@ -338,6 +355,34 @@
       background: #e0edff;
       color: #2563eb;
       font-size: 13px;
+    }
+
+    /* Item tags row - positioned under title, above divider */
+    .item-tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;        /* close to the title/badges above */
+      margin-bottom: 12px;    /* small gap before the divider */
+    }
+
+    .item-tag-pill {
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      line-height: 1.4;
+      background-color: #e7f1ff;
+      color: #1554d1;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    /* Tags in description section */
+    .item-description-tags {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     /* Listing Header - spans center + right visually */
@@ -491,7 +536,7 @@
     }
     
     .item-header-divider {
-      margin-top: 16px;        /* gap between tags row and divider */
+      margin-top: 0;            /* gap handled by item-tags-row margin-bottom */
       margin-bottom: 16px;     /* gap between divider and seller row */
       border-top: 1px solid rgba(0, 0, 0, 0.06);  /* subtle divider line */
     }
@@ -605,11 +650,7 @@
       color: #6b7280;
     }
 
-    /* Right Column - Sticky Action Card */
-    .item-col-right {
-      position: sticky;
-      top: 100px;
-    }
+    /* Right Column - Action Card (sticky positioning removed - scrolls normally) */
 
     .action-card {
       background: #ffffff;
@@ -841,7 +882,68 @@
       background: #eff6ff;
     }
 
+    /* Purchase Modal Footer Styles */
+    .purchase-modal-footer {
+      margin-top: 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
 
+    .purchase-modal-footer .btn-primary {
+      min-width: 140px;
+      height: 48px;
+      padding: 0 24px;
+      border-radius: 999px;
+      border: none;
+      background-color: #1554d1;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .purchase-modal-footer .btn-primary:hover {
+      filter: brightness(1.05);
+      background-color: #1d4ed8;
+    }
+
+    .purchase-modal-footer .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      filter: none;
+    }
+
+    .purchase-modal-footer .btn-secondary {
+      min-width: 120px;
+      height: 48px;
+      padding: 0 24px;
+      border-radius: 999px;
+      border: 1px solid #1554d1;
+      background-color: #fff;
+      color: #1554d1;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .purchase-modal-footer .btn-secondary:hover {
+      background-color: #f3f6ff;
+    }
+
+    @media (max-width: 768px) {
+      .purchase-modal-footer {
+        flex-direction: column-reverse;
+        gap: 8px;
+      }
+
+      .purchase-modal-footer .btn-primary,
+      .purchase-modal-footer .btn-secondary {
+        width: 100%;
+      }
+    }
 
     .pickup-section h4 {
       font-size: 14px;
@@ -856,10 +958,155 @@
       margin: 0;
     }
 
+    /* Handoff Section Styles */
+    .handoff-section {
+      margin-top: 16px;
+      padding-top: 16px;
+    }
+
+    .handoff-status-text {
+      font-size: 14px;
+      color: #111827;
+      margin-bottom: 8px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .handoff-hint {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #6b7280;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    /* Review Modal Styles */
+    .rating-stars {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .star-btn {
+      background: none;
+      border: none;
+      font-size: 32px;
+      color: #d1d5db;
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.2s;
+      line-height: 1;
+    }
+
+    .star-btn:hover,
+    .star-btn.active {
+      color: #fbbf24;
+      transform: scale(1.1);
+    }
+
+    .star-btn.filled {
+      color: #fbbf24;
+    }
+
+    /* Image Lightbox Styles */
+    .image-lightbox {
+      position: fixed;
+      inset: 0;
+      display: none;
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .image-lightbox.is-open {
+      display: flex;
+    }
+
+    .image-lightbox-backdrop {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.75);
+      cursor: pointer;
+    }
+
+    .image-lightbox-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2001;
+      padding: 40px 20px 20px;
+      box-sizing: border-box;
+    }
+
+    .image-lightbox-content img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .image-lightbox-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 40px;
+      height: 40px;
+      border: none;
+      background-color: rgba(255, 255, 255, 0.9);
+      color: #111827;
+      font-size: 28px;
+      font-weight: 300;
+      line-height: 1;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2002;
+      transition: all 0.2s;
+      padding: 0;
+    }
+
+    .image-lightbox-close:hover {
+      background-color: #ffffff;
+      transform: scale(1.1);
+    }
+
+    .image-lightbox-close:active {
+      transform: scale(0.95);
+    }
+
+    /* Prevent body scroll when lightbox is open */
+    body.body--no-scroll {
+      overflow: hidden;
+    }
+
+    @media (max-width: 768px) {
+      .image-lightbox-content {
+        padding: 50px 10px 10px;
+      }
+
+      .image-lightbox-close {
+        width: 36px;
+        height: 36px;
+        font-size: 24px;
+        top: 5px;
+        right: 5px;
+      }
+    }
+
     /* Responsive behavior */
     @media (max-width: 960px) {
       .item-top-grid {
         grid-template-columns: minmax(280px, 1.4fr) minmax(280px, 1.6fr);
+      }
+      .item-col-left {
+        position: static;
       }
       .item-col-right {
         position: static;
@@ -875,6 +1122,28 @@
       }
       .listing-header-right {
         display: none; /* Hide header price on tablet, show in action card */
+      }
+    }
+
+    @media (max-width: 768px) {
+      .item-top-grid {
+        grid-template-columns: 1fr;
+      }
+      .item-col-left {
+        position: static;
+        margin-bottom: 24px;
+      }
+      .item-image-main {
+        max-width: 100%;
+        aspect-ratio: 3 / 4;
+      }
+      .item-thumbnails {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+      .item-thumbnails .thumbnail {
+        flex-shrink: 0;
       }
     }
 
@@ -960,18 +1229,7 @@
           </div>
 
           <div class="item-thumbnails">
-            <button class="thumbnail active" onclick="changeImage(0)">
-              <img src="https://via.placeholder.com/150/0064D2/FFFFFF?text=1" alt="View 1" />
-            </button>
-            <button class="thumbnail" onclick="changeImage(1)">
-              <img src="https://via.placeholder.com/150/0052A3/FFFFFF?text=2" alt="View 2" />
-            </button>
-            <button class="thumbnail" onclick="changeImage(2)">
-              <img src="https://via.placeholder.com/150/003D7A/FFFFFF?text=3" alt="View 3" />
-            </button>
-            <button class="thumbnail" onclick="changeImage(3)">
-              <img src="https://via.placeholder.com/150/002855/FFFFFF?text=4" alt="View 4" />
-            </button>
+            <!-- Thumbnails will be populated by JavaScript -->
           </div>
         </div>
 
@@ -990,6 +1248,10 @@
 
               <div class="trade-mode-badges" id="tradeModeBadges">
                 <!-- Badges will be populated by JS -->
+              </div>
+
+              <div id="item-tags-row" class="item-tags-row">
+                <!-- Tags will be populated by JS -->
               </div>
 
               <div class="item-header-divider"></div>
@@ -1073,6 +1335,17 @@
             <button id="cancelTxBtn" class="item-action-button item-action-button-primary cancel-tx-btn" style="display: none;" onclick="handleCancelTransaction()">取消交易請求</button>
             <button id="messageButtonMain" class="item-action-button item-action-button-outline" onclick="handleOpenChat()" style="margin-top: 16px;">聯絡賣家</button>
 
+            <!-- Handoff Section (已面交) -->
+            <div id="handoff-section" class="handoff-section section-divider" style="display: none;">
+              <div class="handoff-status-text" id="handoff-status-text"></div>
+              <button id="btnConfirmHandoff" class="item-action-button item-action-button-primary" style="margin-top: 12px;">
+                已面交
+              </button>
+              <p class="handoff-hint" style="margin-top: 8px; font-size: 12px; color: #6b7280; text-align: center;">
+                雙方都按下「已面交」後，交易才會結束並開放評價（限預約後 7 天內）。
+              </p>
+            </div>
+
             <div class="pickup-section section-divider">
               <h4>取貨方式：</h4>
               <p id="pickupInfo">面交 | 台北市信義區 | 時間可議</p>
@@ -1112,6 +1385,8 @@
             <div class="description-content" id="itemDescription">
               <!-- Content will be populated by JS -->
             </div>
+            <!-- Tags inside description section -->
+            <div id="item-description-tags" class="item-description-tags"></div>
             <p class="view-stats" id="viewStats">瀏覽次數：342　追蹤人數：8</p>
           </section>
       </div>
@@ -1133,14 +1408,7 @@
         <div class="user-items-list">
           <h3>選擇你的物品（僅可選擇一項）：</h3>
           <div class="items-grid">
-            <div class="trade-item-card item-card" data-item-id="ps5" onclick="selectTradeItem(this)">
-              <img src="https://via.placeholder.com/150/0064D2/FFFFFF?text=PS5" alt="PlayStation 5" />
-              <div class="item-card-title">PlayStation 5 光碟版</div>
-            </div>
-            <div class="trade-item-card item-card" data-item-id="xbox-series-x" onclick="selectTradeItem(this)">
-              <img src="https://via.placeholder.com/150/0052A3/FFFFFF?text=Xbox" alt="Xbox Series X" />
-              <div class="item-card-title">Xbox Series X</div>
-            </div>
+            <!-- Trade items will be populated by JavaScript -->
           </div>
         </div>
         <div class="trade-message">
@@ -1184,1653 +1452,52 @@
     </div>
   </div>
 
-  <script>
-    // Image gallery
-    const images = [
-      'https://via.placeholder.com/600x600/0064D2/FFFFFF?text=Nintendo+Switch+1',
-      'https://via.placeholder.com/600x600/0052A3/FFFFFF?text=Nintendo+Switch+2',
-      'https://via.placeholder.com/600x600/003D7A/FFFFFF?text=Nintendo+Switch+3',
-      'https://via.placeholder.com/600x600/002855/FFFFFF?text=Nintendo+Switch+4',
-    ];
+  <!-- Image Lightbox -->
+  <div id="image-lightbox" class="image-lightbox" aria-hidden="true">
+    <div class="image-lightbox-backdrop"></div>
+    <div class="image-lightbox-content">
+      <button class="image-lightbox-close" aria-label="關閉圖片">×</button>
+      <img id="image-lightbox-img" src="" alt="商品圖片放大檢視" />
+    </div>
+  </div>
 
-    function changeImage(index) {
-      document.getElementById('main-image').src = images[index];
-      document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
-        thumb.classList.toggle('active', i === index);
-      });
-    }
-
-    // Quantity and total
-    function updateTotal() {
-      const quantity = parseInt(document.getElementById('qty').value);
-      const price = 8500;
-      // Note: total price display removed from new layout
-    }
-
-    // Actions
-    function handleAddToCart() {
-      const quantity = document.getElementById('qty').value;
-      alert(`已將 ${quantity} 件商品加入購物車`);
-    }
-
-    function handlePurchase() {
-      // Check login
-      const currentUser = getCurrentUser();
-      if (!currentUser) {
-        if (confirm('請先登入才能提出購買請求，是否前往登入頁面？')) {
-          window.location.href = `login.html?redirect=${encodeURIComponent(window.location.href)}`;
-        }
-        return;
-      }
-      
-      // Check if user is seller
-      if (currentItem.sellerId === currentUser.id) {
-        alert('無法對自己刊登的商品提出請求。');
-        return;
-      }
-      
-      // Show purchase confirmation modal
-      const quantity = parseInt(document.getElementById('qty').value) || 1;
-      const price = currentItem.price || 0;
-      const total = price * quantity;
-      const itemTitle = currentItem.title;
-      
-      // Create modal HTML
-      const modalHTML = `
-        <div class="modal-overlay" id="purchaseModal" style="display: flex;">
+  <!-- Review Modal -->
+  <div id="review-modal" class="modal-overlay" style="display: none;" onclick="closeReviewModal()">
           <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
-              <h2>確認購買</h2>
-              <button class="modal-close" onclick="closePurchaseModal()">×</button>
+        <h2>為這次交易評價</h2>
+        <button class="modal-close" onclick="closeReviewModal()">×</button>
             </div>
             <div class="modal-body">
-              <div style="margin-bottom: 16px;">
-                <strong>商品：</strong>${itemTitle}
+        <div class="rating-stars" id="review-stars">
+          <button class="star-btn" data-value="1" aria-label="1 星">☆</button>
+          <button class="star-btn" data-value="2" aria-label="2 星">☆</button>
+          <button class="star-btn" data-value="3" aria-label="3 星">☆</button>
+          <button class="star-btn" data-value="4" aria-label="4 星">☆</button>
+          <button class="star-btn" data-value="5" aria-label="5 星">☆</button>
               </div>
-              <div style="margin-bottom: 16px;">
-                <label>數量：</label>
-                <select id="purchaseQuantity" style="margin-left: 8px; padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 8px;">
-                  ${Array.from({length: Math.min(currentItem.quantity || 1, 10)}, (_, i) => 
-                    `<option value="${i+1}" ${i+1 === quantity ? 'selected' : ''}>${i+1}</option>`
-                  ).join('')}
-                </select>
-              </div>
-              <div style="margin-bottom: 16px;">
-                <strong>單價：</strong>NT$ ${price.toLocaleString('zh-TW')}
-              </div>
-              <div style="margin-bottom: 16px; font-size: 18px; font-weight: 600; color: #2563eb;">
-                <strong>總計：</strong>NT$ <span id="purchaseTotal">${total.toLocaleString('zh-TW')}</span>
-              </div>
-              <div class="form-group">
-                <label for="purchaseNote">給賣家的訊息（選填）：</label>
-                <textarea id="purchaseNote" placeholder="例如：希望週末面交" rows="3" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit;"></textarea>
-              </div>
+        <textarea id="review-comment" placeholder="可以分享此次面交或交易的感受…" rows="4" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit; margin-top: 12px; resize: vertical;"></textarea>
             </div>
             <div class="modal-footer">
-              <button class="btn-secondary" onclick="closePurchaseModal()">取消</button>
-              <button class="btn-primary" onclick="confirmPurchase()">確認購買</button>
+        <button class="btn-secondary" onclick="closeReviewModal()">取消</button>
+        <button id="btnSubmitReview" class="btn-primary" onclick="handleSubmitReview()">送出評價</button>
             </div>
           </div>
         </div>
-      `;
-      
-      // Remove existing modal if any
-      const existingModal = document.getElementById('purchaseModal');
-      if (existingModal) existingModal.remove();
-      
-      // Add modal to body
-      document.body.insertAdjacentHTML('beforeend', modalHTML);
-      
-      // Update total when quantity changes
-      document.getElementById('purchaseQuantity').addEventListener('change', function() {
-        const qty = parseInt(this.value);
-        const newTotal = price * qty;
-        document.getElementById('purchaseTotal').textContent = newTotal.toLocaleString('zh-TW');
-      });
-    }
-    
-    function closePurchaseModal() {
-      const modal = document.getElementById('purchaseModal');
-      if (modal) modal.remove();
-    }
-    
-    function confirmPurchase() {
-      const quantity = parseInt(document.getElementById('purchaseQuantity').value);
-      const note = document.getElementById('purchaseNote').value.trim();
-      const currentUser = getCurrentUser();
-      
-      if (!currentUser || !currentItem) return;
-      
-      // Create purchase request
-      const request = createRequest({
-        itemId: currentItem.id,
-        sellerId: currentItem.sellerId,
-        buyerId: currentUser.id,
-        type: 'purchase',
-        quantity: quantity,
-        note: note || undefined
-      });
-      
-      // Create initial message if note provided
-      if (note) {
-        createMessage({
-          itemId: currentItem.id,
-          senderId: currentUser.id,
-          receiverId: currentItem.sellerId,
-          text: note
-        });
-      }
-      
-      closePurchaseModal();
-      
-      // Mark as pending transaction
-      const currentItemId = getCurrentItemId();
-      if (currentItemId) {
-        setPendingTransaction(currentItemId, 'buy');
-      }
-      
-      alert('購買請求已送出！賣家將收到通知。\n賣家接受前，你可以取消這筆交易請求。');
-      updateActionButtonsState();
-    }
 
-    // Trade modal state - single selection only
-    let selectedItemId = null;
-
-    function handleTrade() {
-      // Check login
-      const currentUser = getCurrentUser();
-      if (!currentUser) {
-        if (confirm('請先登入才能提出交換請求，是否前往登入頁面？')) {
-          window.location.href = `login.html?redirect=${encodeURIComponent(window.location.href)}`;
-        }
-        return;
-      }
-      
-      // Check if user is seller
-      if (currentItem.sellerId === currentUser.id) {
-        alert('無法對自己刊登的商品提出請求。');
-        return;
-      }
-      
-      // Load user's items for trade
-      const userItems = getItemsBySeller(currentUser.id).filter(i => i.isActive);
-      
-      // Update trade modal content
-      const tradeRequirementText = document.getElementById('tradeRequirementText');
-      const itemsGrid = document.querySelector('.items-grid');
-      
-      if (currentItem.modes.tradeTarget && currentItem.tradeTargetNote) {
-        if (tradeRequirementText) {
-          tradeRequirementText.textContent = currentItem.tradeTargetNote;
-        }
-      } else if (currentItem.modes.tradeOpen) {
-        if (tradeRequirementText) {
-          tradeRequirementText.textContent = '賣家開放任何交換提案。';
-        }
-      }
-      
-      // Populate user items
-      if (itemsGrid) {
-        itemsGrid.innerHTML = '';
-        if (userItems.length === 0) {
-          itemsGrid.innerHTML = '<p style="color: #6b7280; padding: 20px; text-align: center;">你目前沒有可交換的商品。請先刊登商品。</p>';
-        } else {
-          userItems.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'trade-item-card item-card';
-            card.dataset.itemId = item.id;
-            card.onclick = () => selectTradeItem(card);
-            card.innerHTML = `
-              <img src="${item.images[0] || 'https://via.placeholder.com/150/f3f4f6/9ca3af?text=No+Image'}" alt="${item.title}" />
-              <div class="item-card-title">${item.title}</div>
-            `;
-            itemsGrid.appendChild(card);
-          });
-        }
-      }
-      
-      // Reset selection when opening modal
-      selectedItemId = null;
-      document.querySelectorAll('.trade-item-card').forEach(card => {
-        card.classList.remove('selected');
-      });
-      updateSubmitButtonState();
-      document.getElementById('trade-modal').style.display = 'flex';
-    }
-
-    function closeTradeModal() {
-      document.getElementById('trade-modal').style.display = 'none';
-      // Reset selection when closing
-      selectedItemId = null;
-      document.querySelectorAll('.trade-item-card').forEach(card => {
-        card.classList.remove('selected');
-      });
-    }
-
-    function selectTradeItem(card) {
-      const itemId = card.dataset.itemId;
-      
-      // If clicking the same selected card, toggle it off
-      if (selectedItemId === itemId) {
-        card.classList.remove('selected');
-        selectedItemId = null;
-      } else {
-        // Clear all selections
-        document.querySelectorAll('.trade-item-card').forEach(c => {
-          c.classList.remove('selected');
-        });
-        // Select only this card
-        card.classList.add('selected');
-        selectedItemId = itemId;
-      }
-      
-      updateSubmitButtonState();
-    }
-
-    function updateSubmitButtonState() {
-      const submitBtn = document.getElementById('submitTradeBtn');
-      if (selectedItemId) {
-        submitBtn.disabled = false;
-        submitBtn.classList.remove('disabled');
-      } else {
-        submitBtn.disabled = true;
-        submitBtn.classList.add('disabled');
-      }
-    }
-
-    function handleSubmitTrade() {
-      if (!selectedItemId) {
-        return;
-      }
-
-      const currentUser = getCurrentUser();
-      if (!currentUser || !currentItem) return;
-
-      const messageTextarea = document.getElementById('trade-message');
-      const note = messageTextarea ? messageTextarea.value.trim() : '';
-
-      // Determine request type
-      let requestType = 'trade-open';
-      if (currentItem.modes.tradeTarget) {
-        requestType = 'trade-target';
-      }
-
-      // Create trade request
-      const request = createRequest({
-        itemId: currentItem.id,
-        sellerId: currentItem.sellerId,
-        buyerId: currentUser.id,
-        type: requestType,
-        quantity: 1,
-        offeredItemId: selectedItemId,
-        note: note || undefined
-      });
-
-      // Create initial message if note provided
-      if (note) {
-        createMessage({
-          itemId: currentItem.id,
-          senderId: currentUser.id,
-          receiverId: currentItem.sellerId,
-          text: note
-        });
-      }
-      
-      // Mark as pending transaction
-      const currentItemId = getCurrentItemId();
-      if (currentItemId) {
-        setPendingTransaction(currentItemId, 'trade');
-      }
-      
-      alert('交換提案已送出！賣家將收到通知。\n賣家接受前，你可以取消這筆交易請求。');
-      closeTradeModal();
-      updateActionButtonsState();
-    }
-
-    function handleOpenChat() {
-      // Check login
-      const currentUser = getCurrentUser();
-      if (!currentUser) {
-        if (confirm('請先登入才能聯絡賣家，是否前往登入頁面？')) {
-          window.location.href = `login.html?redirect=${encodeURIComponent(window.location.href)}`;
-        }
-        return;
-      }
-      
-      // Check if user is seller
-      if (currentItem.sellerId === currentUser.id) {
-        alert('無法對自己刊登的商品發送訊息。');
-        return;
-      }
-      
-      // Load messages for this conversation
-      loadChatMessages();
-      
-      document.getElementById('chat-modal').style.display = 'flex';
-      // Focus on input when modal opens
-      setTimeout(() => {
-        document.getElementById('chat-message').focus();
-      }, 100);
-    }
-    
-    function loadChatMessages() {
-      const currentUser = getCurrentUser();
-      if (!currentUser || !currentItem) return;
-      
-      const messages = getMessagesForConversation(
-        currentItem.id,
-        currentUser.id,
-        currentItem.sellerId
-      );
-      
-      const messagesArea = document.getElementById('messages-area');
-      messagesArea.innerHTML = '';
-      
-      if (messages.length === 0) {
-        messagesArea.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">與此商品相關的留言將會顯示在這裡。</div>';
-      } else {
-        messages.forEach(msg => {
-          const isSender = msg.senderId === currentUser.id;
-          const senderName = isSender ? '你' : (currentItem.seller?.name || '賣家');
-          const bubble = document.createElement('div');
-          bubble.className = `message-bubble ${isSender ? 'message-user' : 'message-seller'}`;
-          
-          const time = new Date(msg.createdAt);
-          const timeStr = time.toLocaleString('zh-TW', { 
-            month: 'short', 
-            day: 'numeric', 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          });
-          
-          bubble.innerHTML = `
-            <div class="message-content">${msg.text}</div>
-            <div class="message-time">${timeStr}</div>
-          `;
-          messagesArea.appendChild(bubble);
-        });
-      }
-      
-      // Scroll to bottom
-      messagesArea.scrollTop = messagesArea.scrollHeight;
-    }
-
-    function closeChatModal() {
-      document.getElementById('chat-modal').style.display = 'none';
-      document.getElementById('chat-message').value = '';
-    }
-
-    function handleSendMessage(event) {
-      if (event) {
-        event.preventDefault();
-      }
-      const currentUser = getCurrentUser();
-      if (!currentUser || !currentItem) return;
-      
-      const input = document.getElementById('chat-message');
-      const messageText = input.value.trim();
-      
-      if (!messageText) {
-        return;
-      }
-
-      // Create message in data layer
-      createMessage({
-        itemId: currentItem.id,
-        senderId: currentUser.id,
-        receiverId: currentItem.sellerId,
-        text: messageText
-      });
-      
-      // Reload messages to show new one
-      loadChatMessages();
-      
-      // Clear input
-      input.value = '';
-    }
-
-    // Allow Enter key to send message
-    // Since script is at bottom of body, DOM is already loaded
+  <script>
+    // Mode handling logic - this will be overridden by item_page.js but kept for initial render
     (function() {
-      const chatInput = document.getElementById('chat-message');
-      if (chatInput) {
-        chatInput.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') {
-            handleSendMessage(e);
-          }
-        });
-      }
-    })();
-
-    // messageButtonMain is already wired via onclick="handleOpenChat()" in HTML
-    // No need for additional event listener
-
-    // Mode handling logic (purchase + trade / trade only / wish only)
-    (function() {
-      // For now use hard-coded mode for the demo.
-      // Later, this should come from backend or templating.
       const listingMode = 'purchase_and_trade';
-      // options: 'purchase_and_trade', 'trade_only', 'wish_only'
-
       const listingModeSummary = document.getElementById('listingModeSummary');
-      const actionPriceBlock = document.getElementById('actionPriceBlock');
-      const btnAddToCart = document.getElementById('btnAddToCart');
-      const btnBuyNow = document.getElementById('btnBuyNow');
-      const btnTrade = document.getElementById('btnTrade');
-      const actionQuantity = document.querySelector('.action-quantity');
-
-      function applyMode() {
-        if (listingMode === 'purchase_and_trade') {
-          // Show price, show all buttons
           if (listingModeSummary) listingModeSummary.textContent = '可購買・可交換';
-          if (actionPriceBlock) actionPriceBlock.style.display = 'block';
-          if (btnAddToCart) btnAddToCart.style.display = 'block';
-          if (btnBuyNow) btnBuyNow.style.display = 'block';
-          if (btnTrade) btnTrade.style.display = 'block';
-          if (actionQuantity) actionQuantity.style.display = 'flex';
-        } else if (listingMode === 'trade_only') {
-          // Hide price, hide purchase buttons, show trade only
-          if (listingModeSummary) listingModeSummary.textContent = '僅接受以物易物';
-          if (actionPriceBlock) {
-            actionPriceBlock.innerHTML = `
-              <div class="purchase-card-header">
-                <span class="action-price-label">價格</span>
-                <button
-                  id="purchaseMoreBtn"
-                  class="purchase-more-btn"
-                  type="button"
-                  aria-label="更多選項"
-                >
-                  ⋮
-                </button>
-                <div id="purchaseMoreMenu" class="purchase-more-menu" hidden>
-                  <button id="reportItemBtn" type="button" class="purchase-more-menu-item">
-                    檢舉商品
-                  </button>
-                </div>
-              </div>
-              <div class="action-price" style="color: #6b7280; font-size: 14px;">僅接受以物易物</div>
-            `;
-            actionPriceBlock.style.display = 'block';
-            // Re-attach event listeners after innerHTML update
-            attachPurchaseMenuListeners();
-          }
-          if (btnAddToCart) btnAddToCart.style.display = 'none';
-          if (btnBuyNow) btnBuyNow.style.display = 'none';
-          if (btnTrade) btnTrade.style.display = 'block';
-          if (actionQuantity) actionQuantity.style.display = 'none';
-        } else if (listingMode === 'wish_only') {
-          // Hide price, show wish message
-          if (listingModeSummary) listingModeSummary.textContent = '開放式許願';
-          if (actionPriceBlock) {
-            actionPriceBlock.innerHTML = `
-              <div class="purchase-card-header">
-                <span class="action-price-label">價格</span>
-                <button
-                  id="purchaseMoreBtn"
-                  class="purchase-more-btn"
-                  type="button"
-                  aria-label="更多選項"
-                >
-                  ⋮
-                </button>
-                <div id="purchaseMoreMenu" class="purchase-more-menu" hidden>
-                  <button id="reportItemBtn" type="button" class="purchase-more-menu-item">
-                    檢舉商品
-                  </button>
-                </div>
-              </div>
-              <div class="action-price" style="color: #6b7280; font-size: 14px;">開放式許願</div>
-            `;
-            actionPriceBlock.style.display = 'block';
-            // Re-attach event listeners after innerHTML update
-            attachPurchaseMenuListeners();
-          }
-          if (btnAddToCart) btnAddToCart.style.display = 'none';
-          if (btnBuyNow) btnBuyNow.style.display = 'none';
-          if (btnTrade) btnTrade.style.display = 'block';
-          if (actionQuantity) actionQuantity.style.display = 'none';
-        }
-      }
-
-      // Apply mode on page load
-      applyMode();
     })();
   </script>
 
   <script src="js/data.js"></script>
+  <script src="js/images.js"></script>
+  <script src="js/categories.js"></script>
   <script src="js/navbar.js"></script>
-  <script>
-    // Get current item ID from URL
-    function getCurrentItemId() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('id');
-    }
-
-    // Get item ID from URL
-    const params = new URLSearchParams(window.location.search);
-    const itemId = params.get('id');
-    let currentItem = null;
-    
-    if (itemId) {
-      // Try new data layer first
-      currentItem = getItemById(itemId);
-      
-      // If not found, try old mockItems (for backward compatibility)
-      if (!currentItem && typeof mockItems !== 'undefined') {
-        const oldItem = mockItems.find(i => String(i.id) === String(itemId));
-        if (oldItem) {
-          // Convert old format to new format
-          currentItem = {
-            id: String(oldItem.id),
-            sellerId: 'u1', // Default seller
-            title: oldItem.title,
-            category: oldItem.category,
-            condition: oldItem.condition,
-            price: oldItem.price,
-            description: oldItem.description?.main || '',
-            tags: oldItem.tags || [],
-            location: oldItem.location,
-            quantity: 1,
-            modes: {
-              sale: oldItem.mode?.purchase || false,
-              tradeTarget: oldItem.mode?.trade && (oldItem.mode?.tradeMode === 'target' || oldItem.mode?.tradeMode === 'both'),
-              tradeOpen: oldItem.mode?.trade && (oldItem.mode?.tradeMode === 'offer' || oldItem.mode?.tradeMode === 'both')
-            },
-            tradeTargetNote: oldItem.mode?.tradeSummary || '',
-            images: oldItem.images || [],
-            views: oldItem.stats?.views || 0,
-            addedToCartCount: oldItem.stats?.watchers || 0,
-            isActive: true
-          };
-          
-          // Get seller info from old format
-          if (oldItem.seller) {
-            currentItem.seller = oldItem.seller;
-          }
-        }
-      }
-    }
-
-    if (!currentItem || (currentItem.isActive === false)) {
-      document.body.innerHTML = '<div style="padding: 40px; text-align: center;"><h1>商品不存在</h1><p><a href="item_list.html">返回商品列表</a></p></div>';
-    } else {
-      // Increment view count
-      if (currentItem.id) {
-        updateItem(currentItem.id, { views: (currentItem.views || 0) + 1 });
-        currentItem.views = (currentItem.views || 0) + 1;
-      }
-      
-      // Get seller info
-      if (!currentItem.seller && currentItem.sellerId) {
-        const seller = getUsers().find(u => u.id === currentItem.sellerId);
-        if (seller) {
-          currentItem.seller = {
-            name: seller.name,
-            rating: 4.8,
-            ratingText: '99.9% 好評',
-            deals: 0
-          };
-        }
-      }
-      
-      if (!currentItem.seller) {
-        currentItem.seller = {
-          name: 'Unknown',
-          rating: 0,
-          ratingText: '無評價',
-          deals: 0
-        };
-      }
-      // Track recently viewed items
-      (function() {
-        try {
-          let recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewedItems') || '[]');
-          
-          // Remove duplicate if exists (compare as strings to handle type mismatches)
-          const currentItemIdStr = String(currentItem.id);
-          recentlyViewed = recentlyViewed.filter(item => String(item.id) !== currentItemIdStr);
-          
-          // Add current item to front
-          // Ensure mode exists before accessing
-          const hasPurchase = currentItem.mode && currentItem.mode.purchase;
-          const itemData = {
-            id: String(currentItem.id), // Ensure ID is stored as string consistently
-            title: currentItem.title,
-            price: hasPurchase ? currentItem.price : null,
-            imageUrl: currentItem.images && currentItem.images.length > 0 ? currentItem.images[0] : '',
-            condition: currentItem.condition,
-            mode: {
-              purchase: hasPurchase || false,
-              trade: (currentItem.mode && currentItem.mode.trade) || false,
-              wish: (currentItem.mode && currentItem.mode.wish) || false
-            }
-          };
-          
-          recentlyViewed.unshift(itemData);
-          
-          // Limit to max 8 items
-          if (recentlyViewed.length > 8) {
-            recentlyViewed = recentlyViewed.slice(0, 8);
-          }
-          
-          // Save back to localStorage
-          localStorage.setItem('recentlyViewedItems', JSON.stringify(recentlyViewed));
-        } catch (e) {
-          console.error('Error saving recently viewed items:', e);
-        }
-      })();
-      // Normalize item format for compatibility
-      function normalizeItem(item) {
-        // Convert new format to old format for display compatibility
-        if (item.modes) {
-          item.mode = {
-            purchase: item.modes.sale || false,
-            trade: item.modes.tradeTarget || item.modes.tradeOpen || false,
-            wish: item.modes.tradeOpen || false,
-            tradeMode: item.modes.tradeTarget && item.modes.tradeOpen ? 'both' :
-                      item.modes.tradeTarget ? 'target' :
-                      item.modes.tradeOpen ? 'offer' : null,
-            tradeSummary: item.tradeTargetNote || ''
-          };
-        }
-        
-        // Convert description from string to object format if needed
-        if (typeof item.description === 'string') {
-          item.description = {
-            main: item.description,
-            includes: [],
-            conditionDetails: [],
-            extra: ''
-          };
-        }
-        
-        // Ensure stats object exists
-        if (!item.stats) {
-          item.stats = {
-            views: item.views || 0,
-            watchers: item.addedToCartCount || 0
-          };
-        }
-        
-        // Ensure pickup object exists
-        if (!item.pickup) {
-          item.pickup = {
-            type: '面交',
-            place: item.location || '未指定',
-            time: '時間可議'
-          };
-        }
-        
-        return item;
-      }
-      
-      // Normalize current item
-      currentItem = normalizeItem(currentItem);
-      
-      // Populate page with currentItem data
-      function populateItemPage() {
-        // Title
-        document.getElementById('itemTitle').textContent = currentItem.title;
-
-        // Seller info (with safety checks)
-        if (currentItem.seller && currentItem.seller.name) {
-          const sellerNameEl = document.getElementById('sellerName');
-          const sellerCountEl = document.getElementById('sellerCount');
-          const sellerRatingTextEl = document.getElementById('sellerRatingText');
-          const sellerAvatarEl = document.getElementById('sellerAvatar');
-          
-          if (sellerNameEl) sellerNameEl.textContent = currentItem.seller.name;
-          if (sellerCountEl) sellerCountEl.textContent = `(${currentItem.seller.deals || 0})`;
-          if (sellerRatingTextEl) sellerRatingTextEl.textContent = currentItem.seller.ratingText || '無評價';
-          
-          if (sellerAvatarEl) {
-            const avatarSpan = sellerAvatarEl.querySelector('span');
-            if (avatarSpan && currentItem.seller.name) {
-              avatarSpan.textContent = currentItem.seller.name[0].toUpperCase();
-            }
-          }
-        
-        // Wire up seller buttons
-        const sellerViewItemsButton = document.getElementById('sellerViewItemsButton');
-        if (sellerViewItemsButton) {
-          sellerViewItemsButton.addEventListener('click', () => {
-            window.location.href = `item_list.html?seller=${encodeURIComponent(currentItem.seller.name)}`;
-          });
-          }
-        } else {
-          // Fallback if seller info is missing - re-initialize it
-          if (currentItem.sellerId) {
-            const seller = getUsers().find(u => u.id === currentItem.sellerId);
-            if (seller) {
-              currentItem.seller = {
-                name: seller.name,
-                rating: 4.8,
-                ratingText: '99.9% 好評',
-                deals: 0
-              };
-              // Retry with initialized seller
-              const sellerNameEl = document.getElementById('sellerName');
-              const sellerCountEl = document.getElementById('sellerCount');
-              const sellerRatingTextEl = document.getElementById('sellerRatingText');
-              const sellerAvatarEl = document.getElementById('sellerAvatar');
-              
-              if (sellerNameEl) sellerNameEl.textContent = currentItem.seller.name;
-              if (sellerCountEl) sellerCountEl.textContent = `(${currentItem.seller.deals || 0})`;
-              if (sellerRatingTextEl) sellerRatingTextEl.textContent = currentItem.seller.ratingText || '無評價';
-              
-              if (sellerAvatarEl) {
-                const avatarSpan = sellerAvatarEl.querySelector('span');
-                if (avatarSpan) {
-                  avatarSpan.textContent = currentItem.seller.name[0].toUpperCase();
-                }
-              }
-            } else {
-              // No seller found - use fallback
-              const sellerNameEl = document.getElementById('sellerName');
-              if (sellerNameEl) sellerNameEl.textContent = '未知賣家';
-            }
-          } else {
-            // No sellerId - use fallback
-            const sellerNameEl = document.getElementById('sellerName');
-            if (sellerNameEl) sellerNameEl.textContent = '未知賣家';
-          }
-        }
-
-        // Condition badge
-        document.getElementById('conditionBadge').textContent = currentItem.condition;
-        document.getElementById('itemCondition').textContent = currentItem.condition;
-
-        // Location
-        document.getElementById('itemLocation').textContent = currentItem.location;
-
-        // Tags
-        const tagsContainer = document.getElementById('itemTags');
-        tagsContainer.innerHTML = '';
-        currentItem.tags.forEach(tag => {
-          const span = document.createElement('span');
-          span.className = 'tag-pill';
-          span.textContent = tag;
-          tagsContainer.appendChild(span);
-        });
-
-        // Images
-        const mainImage = document.getElementById('main-image');
-        if (currentItem.images && currentItem.images.length > 0) {
-          mainImage.src = currentItem.images[0];
-          mainImage.alt = currentItem.title;
-
-          // Update thumbnails
-          const thumbnailContainer = document.querySelector('.item-thumbnails');
-          if (thumbnailContainer) {
-            thumbnailContainer.innerHTML = '';
-            currentItem.images.forEach((img, index) => {
-              const button = document.createElement('button');
-              button.className = `thumbnail ${index === 0 ? 'active' : ''}`;
-              button.onclick = () => changeImage(index);
-              button.innerHTML = `<img src="${img}" alt="View ${index + 1}" />`;
-              thumbnailContainer.appendChild(button);
-            });
-          }
-        }
-
-        // Price (only in action card, not in header)
-        const actionPrice = document.getElementById('actionPrice');
-        if (currentItem.mode && currentItem.mode.purchase && actionPrice) {
-          actionPrice.textContent = `NT$ ${currentItem.price.toLocaleString('zh-TW')}`;
-        }
-
-        // Mode badges
-        const badgesContainer = document.getElementById('tradeModeBadges');
-        if (badgesContainer) {
-        badgesContainer.innerHTML = '';
-          if (currentItem.mode && currentItem.mode.purchase) {
-          const badge = document.createElement('span');
-          badge.className = 'badge mode-sale';
-          badge.textContent = '販售中';
-          badgesContainer.appendChild(badge);
-        }
-          if (currentItem.mode && currentItem.mode.trade) {
-          const badge = document.createElement('span');
-          badge.className = 'badge mode-trade';
-          if (currentItem.mode.tradeMode === 'target') {
-            badge.textContent = '可交換（指定目標）';
-          } else if (currentItem.mode.tradeMode === 'offer') {
-            badge.className = 'badge mode-wish';
-            badge.textContent = '開放式許願';
-          } else {
-            badge.textContent = '可交換（指定目標）';
-            const badge2 = document.createElement('span');
-            badge2.className = 'badge mode-wish';
-            badge2.textContent = '開放式許願';
-            badgesContainer.appendChild(badge2);
-          }
-          badgesContainer.appendChild(badge);
-        }
-        if (currentItem.mode.wish && !currentItem.mode.trade) {
-          const badge = document.createElement('span');
-          badge.className = 'badge mode-wish';
-          badge.textContent = '開放式許願';
-          badgesContainer.appendChild(badge);
-        }
-
-        // Trade summary line removed - only blue trade-rule-card shows trade info now
-
-        // Trade rule card
-        const tradeRuleBody = document.getElementById('tradeRuleBody');
-        if (currentItem.mode.trade && currentItem.mode.tradeSummary) {
-          tradeRuleBody.innerHTML = `<p><strong>想換：</strong>${currentItem.mode.tradeSummary}</p>`;
-          if (currentItem.mode.tradeMode === 'offer' || currentItem.mode.tradeMode === 'both') {
-            tradeRuleBody.innerHTML += '<p>也接受開放交換，買家可提出任何商品提案</p>';
-          }
-        } else {
-          document.getElementById('tradeRuleCard').style.display = 'none';
-        }
-
-        // Description
-        const descContainer = document.getElementById('itemDescription');
-        if (descContainer) {
-        descContainer.innerHTML = '';
-        
-          // Handle both string and object formats
-          if (typeof currentItem.description === 'string') {
-            const mainP = document.createElement('p');
-            mainP.textContent = currentItem.description;
-            descContainer.appendChild(mainP);
-          } else if (currentItem.description && typeof currentItem.description === 'object') {
-            if (currentItem.description.main) {
-        const mainP = document.createElement('p');
-        mainP.textContent = currentItem.description.main;
-        descContainer.appendChild(mainP);
-            }
-
-        if (currentItem.description.includes && currentItem.description.includes.length > 0) {
-          const includesP = document.createElement('p');
-          includesP.innerHTML = '<strong>包含：</strong>';
-          descContainer.appendChild(includesP);
-          const includesUl = document.createElement('ul');
-          currentItem.description.includes.forEach(item => {
-            const li = document.createElement('li');
-            li.textContent = item;
-            includesUl.appendChild(li);
-          });
-          descContainer.appendChild(includesUl);
-        }
-
-        if (currentItem.description.conditionDetails && currentItem.description.conditionDetails.length > 0) {
-          const conditionP = document.createElement('p');
-          conditionP.innerHTML = '<strong>外觀狀況：</strong>';
-          descContainer.appendChild(conditionP);
-          const conditionUl = document.createElement('ul');
-          currentItem.description.conditionDetails.forEach(item => {
-            const li = document.createElement('li');
-            li.textContent = item;
-            conditionUl.appendChild(li);
-          });
-          descContainer.appendChild(conditionUl);
-        }
-
-        if (currentItem.description.extra) {
-          const extraP = document.createElement('p');
-          extraP.textContent = currentItem.description.extra;
-          descContainer.appendChild(extraP);
-            }
-          }
-        }
-
-        // Stats
-        document.getElementById('viewStats').textContent = 
-          `瀏覽次數：${currentItem.stats.views}　追蹤人數：${currentItem.stats.watchers}`;
-
-        // Pickup info
-        document.getElementById('pickupInfo').textContent = 
-          `${currentItem.pickup.type} | ${currentItem.pickup.place} | ${currentItem.pickup.time}`;
-
-        // Trade hint removed - information is in the blue 交換規則 card
-
-        // Update trade modal requirement text
-        const tradeReqText = document.getElementById('tradeRequirementText');
-        if (tradeReqText && currentItem.mode.tradeSummary) {
-          tradeReqText.textContent = currentItem.mode.tradeSummary;
-        }
-
-        // Update chat modal seller info
-        const chatSellerName = document.getElementById('chatSellerName');
-        const chatSellerAvatar = document.getElementById('chatSellerAvatar');
-        if (chatSellerName) chatSellerName.textContent = currentItem.seller.name;
-        if (chatSellerAvatar) chatSellerAvatar.textContent = currentItem.seller.name[0].toUpperCase();
-
-        // Apply listing mode
-        let listingMode = 'purchase_and_trade';
-        if (!currentItem.mode.purchase && currentItem.mode.trade && !currentItem.mode.wish) {
-          listingMode = 'trade_only';
-        } else if (!currentItem.mode.purchase && currentItem.mode.wish) {
-          listingMode = 'wish_only';
-        }
-
-        // Update mode handling
-        const listingModeSummary = document.getElementById('listingModeSummary');
-        const actionPriceBlock = document.getElementById('actionPriceBlock');
-        const btnAddToCart = document.getElementById('btnAddToCart');
-        const btnBuyNow = document.getElementById('btnBuyNow');
-        const btnTrade = document.getElementById('btnTrade');
-        const actionQuantity = document.querySelector('.action-quantity');
-
-        if (listingMode === 'purchase_and_trade') {
-          if (listingModeSummary) {
-            listingModeSummary.textContent = '可購買・可交換';
-          }
-          if (actionPriceBlock) {
-            actionPriceBlock.innerHTML = `
-              <div class="purchase-card-header">
-              <span class="action-price-label">價格</span>
-                <button
-                  id="purchaseMoreBtn"
-                  class="purchase-more-btn"
-                  type="button"
-                  aria-label="更多選項"
-                >
-                  ⋮
-                </button>
-                <div id="purchaseMoreMenu" class="purchase-more-menu" hidden>
-                  <button id="reportItemBtn" type="button" class="purchase-more-menu-item">
-                    檢舉商品
-                  </button>
-                </div>
-              </div>
-              <div class="action-price">NT$ ${currentItem.price.toLocaleString('zh-TW')}</div>
-            `;
-            actionPriceBlock.style.display = 'block';
-            // Re-attach event listeners after innerHTML update
-            attachPurchaseMenuListeners();
-          }
-          if (btnAddToCart) btnAddToCart.style.display = 'block';
-          if (btnBuyNow) btnBuyNow.style.display = 'block';
-          if (btnTrade) btnTrade.style.display = 'block';
-          if (actionQuantity) actionQuantity.style.display = 'flex';
-        } else if (listingMode === 'trade_only') {
-          if (listingModeSummary) {
-            listingModeSummary.textContent = '僅接受以物易物';
-          }
-          if (actionPriceBlock) {
-            actionPriceBlock.innerHTML = `
-              <div class="purchase-card-header">
-                <span class="action-price-label">價格</span>
-                <button
-                  id="purchaseMoreBtn"
-                  class="purchase-more-btn"
-                  type="button"
-                  aria-label="更多選項"
-                >
-                  ⋮
-                </button>
-                <div id="purchaseMoreMenu" class="purchase-more-menu" hidden>
-                  <button id="reportItemBtn" type="button" class="purchase-more-menu-item">
-                    檢舉商品
-                  </button>
-                </div>
-              </div>
-              <div class="action-price" style="color: #6b7280; font-size: 14px;">僅接受以物易物</div>
-            `;
-            actionPriceBlock.style.display = 'block';
-            // Re-attach event listeners after innerHTML update
-            attachPurchaseMenuListeners();
-          }
-          if (btnAddToCart) btnAddToCart.style.display = 'none';
-          if (btnBuyNow) btnBuyNow.style.display = 'none';
-          if (btnTrade) btnTrade.style.display = 'block';
-          if (actionQuantity) actionQuantity.style.display = 'none';
-        } else if (listingMode === 'wish_only') {
-          if (listingModeSummary) {
-            listingModeSummary.textContent = '開放式許願';
-          }
-          if (actionPriceBlock) {
-            actionPriceBlock.innerHTML = `
-              <div class="purchase-card-header">
-                <span class="action-price-label">價格</span>
-                <button
-                  id="purchaseMoreBtn"
-                  class="purchase-more-btn"
-                  type="button"
-                  aria-label="更多選項"
-                >
-                  ⋮
-                </button>
-                <div id="purchaseMoreMenu" class="purchase-more-menu" hidden>
-                  <button id="reportItemBtn" type="button" class="purchase-more-menu-item">
-                    檢舉商品
-                  </button>
-                </div>
-              </div>
-              <div class="action-price" style="color: #6b7280; font-size: 14px;">開放式許願</div>
-            `;
-            actionPriceBlock.style.display = 'block';
-            // Re-attach event listeners after innerHTML update
-            attachPurchaseMenuListeners();
-          }
-          if (btnAddToCart) btnAddToCart.style.display = 'none';
-          if (btnBuyNow) btnBuyNow.style.display = 'none';
-          if (btnTrade) {
-            btnTrade.style.display = 'block';
-            btnTrade.textContent = '提出交換提案';
-          }
-          if (actionQuantity) actionQuantity.style.display = 'none';
-        }
-
-        // Update image gallery function to use currentItem images
-        window.currentItemImages = currentItem.images || [];
-      }
-
-      // Update changeImage function to work with dynamic images
-      const originalChangeImage = window.changeImage;
-      window.changeImage = function(index) {
-        if (window.currentItemImages && window.currentItemImages[index]) {
-          document.getElementById('main-image').src = window.currentItemImages[index];
-          document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
-            thumb.classList.toggle('active', i === index);
-          });
-        } else if (originalChangeImage) {
-          originalChangeImage(index);
-        }
-      };
-
-      // Populate on load
-      populateItemPage();
-      
-      // Update action buttons state based on pending transactions
-      updateActionButtonsState();
-      
-      // Check if current user is seller and show appropriate UI
-      // Use setTimeout to ensure DOM is fully rendered
-      setTimeout(() => {
-        const currentUserId = getCurrentUserId();
-        const itemSellerId = currentItem ? currentItem.sellerId : null;
-        
-        console.log('Checking seller status:', {
-          currentItem: currentItem ? currentItem.id : null,
-          itemSellerId: itemSellerId,
-          currentUserId: currentUserId,
-          isSeller: currentItem && isCurrentUserSeller(currentItem),
-          comparison: currentUserId && itemSellerId ? String(currentUserId) === String(itemSellerId) : false,
-          currentUser: getCurrentUser()
-        });
-        
-        // Check if user is logged in
-        if (!currentUserId) {
-          console.warn('User is not logged in. Please log in to edit your items.');
-        }
-        
-        if (currentItem && isCurrentUserSeller(currentItem)) {
-          console.log('Current user is seller, showing seller view');
-          showSellerView(currentItem);
-        } else {
-          const reason = !currentItem ? 'No current item' : 
-                    !currentUserId ? 'Not logged in - please log in first' :
-                    !itemSellerId ? 'Item has no sellerId' :
-                    String(currentUserId) !== String(itemSellerId) ? `IDs do not match (current: ${currentUserId}, item seller: ${itemSellerId})` : 'Unknown';
-          console.log('Not seller - showing buyer view', { reason });
-          
-          // For debugging: show alert if user thinks they should be seller
-          // Uncomment this if you want to see why seller view isn't showing:
-          // if (currentItem && currentUserId) {
-          //   alert(`Debug: Current User ID: ${currentUserId}\nItem Seller ID: ${itemSellerId}\nMatch: ${String(currentUserId) === String(itemSellerId)}`);
-          // }
-        }
-      }, 100);
-    }
-    
-    // Show seller view (hide buy buttons, show remove button)
-    function showSellerView(item) {
-      console.log('showSellerView called for item:', item.id);
-      
-      // Remove any existing seller actions container
-      const existingContainer = document.querySelector('.seller-actions-container');
-      if (existingContainer) {
-        existingContainer.remove();
-      }
-      
-      const actionButtonsGroup = document.getElementById('actionButtonsGroup');
-      const cancelTxBtn = document.getElementById('cancelTxBtn');
-      const messageButtonMain = document.getElementById('messageButtonMain');
-      const actionQuantity = document.querySelector('.action-quantity');
-      
-      console.log('Found elements:', {
-        actionButtonsGroup: !!actionButtonsGroup,
-        cancelTxBtn: !!cancelTxBtn,
-        messageButtonMain: !!messageButtonMain,
-        actionQuantity: !!actionQuantity
-      });
-      
-      // Hide all normal action buttons
-      if (actionButtonsGroup) actionButtonsGroup.style.display = 'none';
-      if (cancelTxBtn) cancelTxBtn.style.display = 'none';
-      if (messageButtonMain) messageButtonMain.style.display = 'none';
-      if (actionQuantity) actionQuantity.style.display = 'none';
-      
-      // Create container for seller actions
-      const sellerActionsContainer = document.createElement('div');
-      sellerActionsContainer.className = 'seller-actions-container';
-      sellerActionsContainer.style.marginTop = '0';
-      
-      // Create edit button
-      const editBtn = document.createElement('button');
-      editBtn.className = 'item-action-button item-action-button-primary';
-      editBtn.textContent = '修改商品資訊';
-      editBtn.addEventListener('click', () => handleEditItem(item));
-      sellerActionsContainer.appendChild(editBtn);
-      
-      // Create helper text
-      const helper = document.createElement('p');
-      helper.className = 'remove-helper-text';
-      helper.textContent = '此處可修改此商品的價格、描述、標籤與交易方式。';
-      sellerActionsContainer.appendChild(helper);
-      
-      // Insert after action-price-block (before action-quantity or action-buttons-group)
-      const actionCard = document.querySelector('.action-card');
-      if (actionCard) {
-        // Try to insert after action-price-block, or before action-quantity
-        const actionPriceBlock = document.querySelector('.action-price-block');
-        const actionQuantity = document.querySelector('.action-quantity');
-        
-        if (actionPriceBlock && actionPriceBlock.nextSibling) {
-          actionCard.insertBefore(sellerActionsContainer, actionPriceBlock.nextSibling);
-        } else if (actionQuantity) {
-          actionCard.insertBefore(sellerActionsContainer, actionQuantity);
-        } else {
-          // Fallback: append to action-card
-          actionCard.appendChild(sellerActionsContainer);
-        }
-      }
-      
-      // Add transactions section
-      addTransactionsSection(item);
-    }
-    
-    // Add transactions section for seller
-    function addTransactionsSection(item) {
-      // Remove existing transactions section if any
-      const existingSection = document.getElementById('transactions-section');
-      if (existingSection) {
-        existingSection.remove();
-      }
-      
-      // Get requests for this item
-      const requests = getRequests().filter(r => String(r.itemId) === String(item.id));
-      
-      // Create transactions section
-      const transactionsSection = document.createElement('div');
-      transactionsSection.id = 'transactions-section';
-      transactionsSection.className = 'transactions-section';
-      transactionsSection.style.cssText = 'margin-top: 24px; padding-top: 24px; border-top: 1px solid #e5e7eb;';
-      
-      const sectionTitle = document.createElement('h3');
-      sectionTitle.textContent = '此商品的交易請求';
-      sectionTitle.style.cssText = 'font-size: 16px; font-weight: 600; color: #111827; margin: 0 0 16px 0;';
-      transactionsSection.appendChild(sectionTitle);
-      
-      const transactionsList = document.createElement('div');
-      transactionsList.className = 'transactions-list';
-      transactionsList.style.cssText = 'max-height: 300px; overflow-y: auto;';
-      
-      if (requests.length === 0) {
-        const emptyState = document.createElement('p');
-        emptyState.textContent = '目前尚未收到任何交易請求。';
-        emptyState.style.cssText = 'text-align: center; color: #6b7280; padding: 24px; margin: 0;';
-        transactionsList.appendChild(emptyState);
-      } else {
-        requests.forEach(request => {
-          const buyer = getUsers().find(u => u.id === request.buyerId);
-          const buyerName = buyer ? buyer.name : '未知買家';
-          
-          const requestRow = document.createElement('div');
-          requestRow.className = 'transaction-row';
-          requestRow.style.cssText = 'padding: 12px; background: #f9fafb; border-radius: 8px; margin-bottom: 8px;';
-          
-          const rowContent = document.createElement('div');
-          rowContent.style.cssText = 'display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;';
-          
-          const leftInfo = document.createElement('div');
-          leftInfo.style.cssText = 'flex: 1;';
-          
-          const buyerNameEl = document.createElement('div');
-          buyerNameEl.textContent = buyerName;
-          buyerNameEl.style.cssText = 'font-weight: 600; color: #111827; margin-bottom: 4px;';
-          leftInfo.appendChild(buyerNameEl);
-          
-          const typeChip = document.createElement('span');
-          typeChip.textContent = request.type === 'purchase' ? '購買' : '以物易物';
-          typeChip.style.cssText = 'display: inline-block; padding: 2px 8px; background: #e0e7ff; color: #3730a3; border-radius: 4px; font-size: 12px; margin-right: 8px;';
-          leftInfo.appendChild(typeChip);
-          
-          const quantityEl = document.createElement('span');
-          quantityEl.textContent = `數量：${request.quantity || 1}`;
-          quantityEl.style.cssText = 'font-size: 12px; color: #6b7280;';
-          leftInfo.appendChild(quantityEl);
-          
-          rowContent.appendChild(leftInfo);
-          
-          const rightInfo = document.createElement('div');
-          rightInfo.style.cssText = 'text-align: right;';
-          
-          const statusChip = document.createElement('span');
-          let statusText = '';
-          let statusStyle = '';
-          if (request.status === 'pending') {
-            statusText = '待賣家回覆';
-            statusStyle = 'border: 1px solid #2563eb; color: #2563eb; background: transparent;';
-          } else if (request.status === 'accepted') {
-            statusText = '已接受';
-            statusStyle = 'background: #ecfdf3; color: #15803d;';
-          } else if (request.status === 'rejected') {
-            statusText = '已拒絕';
-            statusStyle = 'border: 1px solid #dc2626; color: #dc2626; background: transparent;';
-          } else if (request.status === 'cancelled') {
-            statusText = '已取消';
-            statusStyle = 'background: #f3f4f6; color: #6b7280;';
-          }
-          statusChip.textContent = statusText;
-          statusChip.style.cssText = `display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; ${statusStyle}`;
-          rightInfo.appendChild(statusChip);
-          
-          const timeEl = document.createElement('div');
-          const createdAt = new Date(request.createdAt);
-          timeEl.textContent = createdAt.toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-          timeEl.style.cssText = 'font-size: 11px; color: #9ca3af; margin-top: 4px;';
-          rightInfo.appendChild(timeEl);
-          
-          rowContent.appendChild(rightInfo);
-          requestRow.appendChild(rowContent);
-          
-          // Add action buttons for pending requests
-          if (request.status === 'pending') {
-            const actionsDiv = document.createElement('div');
-            actionsDiv.style.cssText = 'display: flex; gap: 8px; margin-top: 8px;';
-            
-            const acceptBtn = document.createElement('button');
-            acceptBtn.textContent = '接受';
-            acceptBtn.style.cssText = 'padding: 6px 12px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;';
-            acceptBtn.addEventListener('click', () => handleAcceptRequest(request.id));
-            actionsDiv.appendChild(acceptBtn);
-            
-            const rejectBtn = document.createElement('button');
-            rejectBtn.textContent = '拒絕';
-            rejectBtn.style.cssText = 'padding: 6px 12px; background: transparent; color: #dc2626; border: 1px solid #dc2626; border-radius: 6px; font-size: 12px; cursor: pointer;';
-            rejectBtn.addEventListener('click', () => handleRejectRequest(request.id));
-            actionsDiv.appendChild(rejectBtn);
-            
-            requestRow.appendChild(actionsDiv);
-          }
-          
-          transactionsList.appendChild(requestRow);
-        });
-      }
-      
-      transactionsSection.appendChild(transactionsList);
-      
-      // Insert after seller actions container
-      const actionCard = document.querySelector('.action-card');
-      if (actionCard) {
-        actionCard.appendChild(transactionsSection);
-      }
-    }
-    
-    function handleAcceptRequest(requestId) {
-      const updated = updateRequest(requestId, { status: 'accepted' });
-      if (updated && currentItem) {
-        addTransactionsSection(currentItem);
-      }
-    }
-    
-    function handleRejectRequest(requestId) {
-      const updated = updateRequest(requestId, { status: 'rejected' });
-      if (updated && currentItem) {
-        addTransactionsSection(currentItem);
-      }
-    }
-    
-    // Handle edit item
-    function handleEditItem(item) {
-      openEditItemModal(item);
-    }
-    
-    // Open edit item modal
-    function openEditItemModal(item) {
-      // Get categories for dropdown
-      const categories = [
-        { id: 'textbooks', label: '課本／學習用品' },
-        { id: 'laptop_3c', label: '筆電／3C' },
-        { id: 'phone_tablet', label: '手機／平板' },
-        { id: 'game_console', label: '遊戲與主機' },
-        { id: 'dorm_furniture', label: '宿舍家電與家具' },
-        { id: 'clothing_life', label: '服飾／生活用品' },
-        { id: 'sports_hobby', label: '運動／興趣嗜好' },
-        { id: 'others', label: '其他' }
-      ];
-      
-      const modalHTML = `
-        <div class="modal-overlay" id="editItemModal" style="display: flex;">
-          <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
-            <div class="modal-header">
-              <h2>修改商品資訊</h2>
-              <button class="modal-close" onclick="closeEditItemModal()">×</button>
-            </div>
-            <div class="modal-body">
-              <div class="form-group">
-                <label for="editItemTitle">商品名稱：</label>
-                <input type="text" id="editItemTitle" value="${(item.title || '').replace(/"/g, '&quot;')}" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit;">
-              </div>
-              <div class="form-group">
-                <label for="editItemPrice">價格：</label>
-                <input type="number" id="editItemPrice" value="${item.price || 0}" min="0" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit;">
-              </div>
-              <div class="form-group">
-                <label for="editItemDescription">商品敘述：</label>
-                <textarea id="editItemDescription" rows="5" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit; resize: vertical;">${(typeof item.description === 'string' ? item.description : (item.description?.main || '')).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
-              </div>
-              <div class="form-group">
-                <label for="editItemCategory">商品分類：</label>
-                <select id="editItemCategory" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit;">
-                  ${categories.map(cat => `<option value="${cat.id}" ${item.category === cat.id ? 'selected' : ''}>${cat.label}</option>`).join('')}
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="editItemTags">商品標籤（用逗號分隔）：</label>
-                <input type="text" id="editItemTags" value="${((item.tags || []).join(', ')).replace(/"/g, '&quot;')}" placeholder="例如：二手, 九成新, 面交" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit;">
-              </div>
-              <div class="form-group">
-                <label for="editItemCondition">商品狀況：</label>
-                <select id="editItemCondition" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit;">
-                  <option value="全新" ${item.condition === '全新' ? 'selected' : ''}>全新</option>
-                  <option value="九成新" ${item.condition === '九成新' ? 'selected' : ''}>九成新</option>
-                  <option value="可接受使用痕跡" ${item.condition === '可接受使用痕跡' ? 'selected' : ''}>可接受使用痕跡</option>
-                  <option value="二手" ${item.condition === '二手' ? 'selected' : ''}>二手</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="editItemPickup">交易方式說明：</label>
-                <input type="text" id="editItemPickup" value="${(item.pickup?.method || '面交').replace(/"/g, '&quot;')}" placeholder="例如：面交 | 台北市信義區 | 時間可議" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit;">
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button class="btn-secondary" onclick="closeEditItemModal()">取消</button>
-              <button class="btn-primary" onclick="saveItemChanges()">儲存變更</button>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      // Remove existing modal if any
-      const existingModal = document.getElementById('editItemModal');
-      if (existingModal) existingModal.remove();
-      
-      // Add modal to body
-      document.body.insertAdjacentHTML('beforeend', modalHTML);
-    }
-    
-    function closeEditItemModal() {
-      const modal = document.getElementById('editItemModal');
-      if (modal) modal.remove();
-    }
-    
-    function saveItemChanges() {
-      try {
-        if (!currentItem) {
-          alert('無法找到商品資訊，請重新載入頁面。');
-          return;
-        }
-        
-        const titleEl = document.getElementById('editItemTitle');
-        const priceEl = document.getElementById('editItemPrice');
-        const descriptionEl = document.getElementById('editItemDescription');
-        const categoryEl = document.getElementById('editItemCategory');
-        const tagsEl = document.getElementById('editItemTags');
-        const conditionEl = document.getElementById('editItemCondition');
-        const pickupEl = document.getElementById('editItemPickup');
-        
-        if (!titleEl || !priceEl || !descriptionEl || !categoryEl || !tagsEl || !conditionEl || !pickupEl) {
-          alert('無法讀取表單資料，請重新開啟編輯視窗。');
-          return;
-        }
-        
-        const title = titleEl.value.trim();
-        const price = parseFloat(priceEl.value) || 0;
-        const description = descriptionEl.value.trim();
-        const category = categoryEl.value;
-        const tagsStr = tagsEl.value.trim();
-        const condition = conditionEl.value;
-        const pickup = pickupEl.value.trim();
-        
-        if (!title) {
-          alert('請輸入商品名稱');
-          return;
-        }
-        
-        // Parse tags
-        const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t) : [];
-        
-        // Prepare update data
-        const updateData = {
-          title,
-          price,
-          description,
-          category,
-          tags,
-          condition
-        };
-        
-        // Preserve modes structure (important for normalizeItem to work)
-        if (currentItem.modes && typeof currentItem.modes === 'object') {
-          updateData.modes = { ...currentItem.modes };
-        } else if (currentItem.mode && typeof currentItem.mode === 'object') {
-          // Convert old mode format to new modes format
-          updateData.modes = {
-            sale: currentItem.mode.purchase || false,
-            tradeTarget: currentItem.mode.tradeMode === 'target' || currentItem.mode.tradeMode === 'both',
-            tradeOpen: currentItem.mode.tradeMode === 'offer' || currentItem.mode.tradeMode === 'both'
-          };
-          if (currentItem.mode.tradeSummary) {
-            updateData.tradeTargetNote = currentItem.mode.tradeSummary;
-          }
-        } else {
-          // Default modes if none exist
-          updateData.modes = {
-            sale: true,
-            tradeTarget: false,
-            tradeOpen: false
-          };
-        }
-        
-        // Handle pickup - preserve existing structure if available
-        if (currentItem.pickup && typeof currentItem.pickup === 'object') {
-          updateData.pickup = {
-            ...currentItem.pickup,
-            method: pickup || currentItem.pickup.method || '面交'
-          };
-        } else {
-          updateData.pickup = {
-            method: pickup || '面交',
-            location: currentItem.location || '',
-            time: '時間可議'
-          };
-        }
-        
-        // Preserve other important fields
-        if (currentItem.sellerId) updateData.sellerId = currentItem.sellerId;
-        if (currentItem.images) updateData.images = currentItem.images;
-        if (currentItem.location) updateData.location = currentItem.location;
-        if (currentItem.quantity !== undefined) updateData.quantity = currentItem.quantity;
-        
-        // Update item
-        const updated = updateItem(currentItem.id, updateData);
-        
-        if (!updated) {
-          alert('更新商品時發生錯誤，請稍後再試。');
-          return;
-        }
-        
-        // Update currentItem reference
-        currentItem = updated;
-        
-        // Normalize item format (creates mode from modes)
-        currentItem = normalizeItem(currentItem);
-        
-        // Re-initialize seller info if missing (preserve from original)
-        if (!currentItem.seller && currentItem.sellerId) {
-          const seller = getUsers().find(u => u.id === currentItem.sellerId);
-          if (seller) {
-            currentItem.seller = {
-              name: seller.name,
-              rating: 4.8,
-              ratingText: '99.9% 好評',
-              deals: 0
-            };
-          }
-        }
-        
-        // Ensure seller object exists
-        if (!currentItem.seller) {
-          currentItem.seller = {
-            name: 'Unknown',
-            rating: 0,
-            ratingText: '無評價',
-            deals: 0
-          };
-        }
-        
-        // Ensure mode object exists (safety check)
-        if (!currentItem.mode) {
-          currentItem.mode = {
-            purchase: currentItem.modes?.sale || false,
-            trade: currentItem.modes?.tradeTarget || currentItem.modes?.tradeOpen || false,
-            wish: currentItem.modes?.tradeOpen || false,
-            tradeMode: null,
-            tradeSummary: ''
-          };
-        }
-        
-        // Re-render relevant sections
-        populateItemPage();
-        
-        // Re-show seller view if user is still the seller
-        if (isCurrentUserSeller(currentItem)) {
-          setTimeout(() => {
-            showSellerView(currentItem);
-          }, 100);
-        }
-        
-        // Close modal
-        closeEditItemModal();
-        
-        alert('商品資訊已更新');
-      } catch (error) {
-        console.error('Error saving item changes:', error);
-        alert('儲存時發生錯誤：' + error.message);
-      }
-    }
-    
-    // Make function globally accessible
-    window.saveItemChanges = saveItemChanges;
-    window.closeEditItemModal = closeEditItemModal;
-    
-    // Update action buttons state based on pending transactions
-    function updateActionButtonsState() {
-      const itemId = getCurrentItemId();
-      const hasPending = itemId ? hasPendingTransaction(itemId) : false;
-      
-      const actionGroup = document.getElementById('actionButtonsGroup');
-      const cancelBtn = document.getElementById('cancelTxBtn');
-      
-      if (!actionGroup || !cancelBtn) return;
-      
-      if (hasPending) {
-        // Hide main three buttons, show cancel
-        actionGroup.classList.add('hidden');
-        cancelBtn.style.display = 'block';
-      } else {
-        // Show main three buttons, hide cancel
-        actionGroup.classList.remove('hidden');
-        cancelBtn.style.display = 'none';
-      }
-    }
-    
-    // Handle cancel transaction request
-    function handleCancelTransaction() {
-      const itemId = getCurrentItemId();
-      if (!itemId) return;
-      
-      const ok = confirm('確定要取消這筆交易請求嗎？\n賣家將不會再看到這筆新請求。');
-      if (!ok) return;
-      
-      clearPendingTransaction(itemId);
-      alert('已取消交易請求。');
-      
-      updateActionButtonsState();
-    }
-
-    // Handle header search
-    function handleHeaderSearch() {
-      const keyword = document.getElementById('headerSearchInput').value.trim();
-      const params = new URLSearchParams();
-      if (keyword) params.set('q', keyword);
-      window.location.href = 'item_list.html?' + params.toString();
-    }
-
-    // Allow Enter key in header search
-    (function() {
-      const headerSearchInput = document.getElementById('headerSearchInput');
-      if (headerSearchInput) {
-        headerSearchInput.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-            handleHeaderSearch();
-          }
-        });
-      }
-    })();
-
-    // Helper function to attach purchase menu listeners
-    function attachPurchaseMenuListeners() {
-      const moreBtn = document.getElementById('purchaseMoreBtn');
-      const moreMenu = document.getElementById('purchaseMoreMenu');
-      const reportBtn = document.getElementById('reportItemBtn');
-
-      if (moreBtn && moreMenu) {
-        // Remove existing listeners if any (by cloning and replacing)
-        const newMoreBtn = moreBtn.cloneNode(true);
-        moreBtn.parentNode.replaceChild(newMoreBtn, moreBtn);
-        
-        newMoreBtn.addEventListener('click', function (event) {
-          event.stopPropagation();
-          moreMenu.hidden = !moreMenu.hidden;
-        });
-      }
-
-      if (reportBtn) {
-        // Remove existing listeners if any
-        const newReportBtn = reportBtn.cloneNode(true);
-        reportBtn.parentNode.replaceChild(newReportBtn, reportBtn);
-        
-        newReportBtn.addEventListener('click', function () {
-          moreMenu.hidden = true;
-          // For now just show a confirmation; in a real system we would call an API
-          alert('已收到你的檢舉，我們會儘快處理，謝謝你的協助。');
-        });
-      }
-    }
-
-    // Three-dot menu functionality
-    document.addEventListener('DOMContentLoaded', function () {
-      attachPurchaseMenuListeners();
-
-      // Click outside to close
-      document.addEventListener('click', function (event) {
-        const moreMenu = document.getElementById('purchaseMoreMenu');
-        const moreBtn = document.getElementById('purchaseMoreBtn');
-        if (moreMenu && moreBtn && !moreMenu.contains(event.target) && !moreBtn.contains(event.target)) {
-          moreMenu.hidden = true;
-        }
-      });
-    });
-  </script>
+  <script src="js/item_page.js"></script>
 </body>
 </html>
-

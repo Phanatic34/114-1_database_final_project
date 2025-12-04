@@ -470,6 +470,8 @@
   </main>
 
   <script src="js/data.js"></script>
+  <script src="js/images.js"></script>
+  <script src="js/categories.js"></script>
   <script src="js/navbar.js"></script>
   <script>
     // Category data structure
@@ -614,8 +616,13 @@
 
     // Render trending items
     function renderTrendingItems() {
-      // Get items from data layer
-      let items = getItems().filter(i => i.isActive);
+      // Get all items (seed + user items) from data layer
+      let items = [];
+      if (typeof getAllItems === 'function') {
+        items = getAllItems().filter(i => i.isActive);
+      } else {
+        items = getItems().filter(i => i.isActive);
+      }
       
       // Fallback to mockItems if available (backward compatibility)
       if (items.length === 0 && typeof mockItems !== 'undefined') {
@@ -664,7 +671,7 @@
 
         card.innerHTML = `
           <div class="item-card-image-wrapper">
-            <img src="${item.images[0] || 'https://via.placeholder.com/220/f3f4f6/9ca3af?text=No+Image'}" alt="${item.title}" class="item-card-image">
+            <img src="${getProductImageUrl(item)}" alt="${item.title}" class="item-card-image">
             <span class="item-card-badge">${item.condition}</span>
           </div>
           <div class="item-card-body">
@@ -676,6 +683,10 @@
         `;
 
         grid.appendChild(card);
+        
+        // Attach fallback to the image
+        const img = card.querySelector('.item-card-image');
+        if (img) attachImageFallback(img);
       });
     }
 
@@ -705,7 +716,7 @@
 
         card.innerHTML = `
           <div class="recent-item-image-container">
-            <img src="${item.imageUrl}" alt="${item.title}" class="recent-item-image">
+            <img src="${getProductImageUrl(item)}" alt="${item.title}" class="recent-item-image">
           </div>
           <div class="recent-item-body">
             <div class="recent-item-title">${item.title}</div>
@@ -715,6 +726,10 @@
         `;
 
         grid.appendChild(card);
+        
+        // Attach fallback to the image
+        const img = card.querySelector('.recent-item-image');
+        if (img) attachImageFallback(img);
       });
 
       container.innerHTML = '';

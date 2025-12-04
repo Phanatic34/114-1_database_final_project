@@ -574,6 +574,8 @@
   </main>
 
   <script src="js/data.js"></script>
+  <script src="js/images.js"></script>
+  <script src="js/categories.js"></script>
   <script src="js/navbar.js"></script>
   <script>
     // State
@@ -637,20 +639,19 @@
     
     currentItems = loadItems();
 
-    // Category mapping from URL param to data category
-    // Category data structure (matches index.html)
+    // Category data structure - using official category names directly
     const categories = [
-      { id: 'textbooks', label: '課本／學習用品', itemCategory: 'books' },
-      { id: 'laptop_3c', label: '筆電／3C', itemCategory: 'electronics' },
-      { id: 'phone_tablet', label: '手機／平板', itemCategory: 'electronics' },
-      { id: 'game_console', label: '遊戲與主機', itemCategory: 'games' },
-      { id: 'dorm_furniture', label: '宿舍家電與家具', itemCategory: 'others' },
-      { id: 'clothing_life', label: '服飾／生活用品', itemCategory: 'others' },
-      { id: 'sports_hobby', label: '運動／興趣嗜好', itemCategory: 'others' },
-      { id: 'others', label: '其他', itemCategory: 'others' }
+      { id: 'textbooks', label: '課本／學習用品', itemCategory: '課本／學習用品' },
+      { id: 'laptop_3c', label: '筆電／3C', itemCategory: '筆電／3C' },
+      { id: 'phone_tablet', label: '手機／平板', itemCategory: '手機／平板' },
+      { id: 'game_console', label: '遊戲與主機', itemCategory: '遊戲與主機' },
+      { id: 'dorm_furniture', label: '宿舍家電與家具', itemCategory: '宿舍家電與家具' },
+      { id: 'clothing_life', label: '服飾／生活用品', itemCategory: '服飾／生活用品' },
+      { id: 'sports_hobby', label: '運動／興趣嗜好', itemCategory: '運動／興趣嗜好' },
+      { id: 'others', label: '其他', itemCategory: '其他' }
     ];
 
-    // Map new category IDs to item.category values for filtering
+    // Map category IDs to official category names for filtering
     const urlCategoryMap = {};
     categories.forEach(cat => {
       urlCategoryMap[cat.id] = cat.itemCategory;
@@ -733,7 +734,7 @@
 
       a.innerHTML = `
         <div class="item-card-image-wrapper">
-          <img src="${item.images[0]}" alt="${item.title}" class="item-card-image">
+          <img src="${getProductImageUrl(item)}" alt="${item.title}" class="item-card-image">
           <span class="item-card-badge">${item.condition}</span>
         </div>
         <div class="item-card-body">
@@ -750,6 +751,11 @@
           </div>
         </div>
       `;
+      
+      // Attach fallback to the image
+      const img = a.querySelector('.item-card-image');
+      if (img) attachImageFallback(img);
+      
       return a;
     }
 
@@ -806,7 +812,11 @@
       if (activeCategoryId !== 'all') {
         // Map new category ID to item.category value
         const mappedCategory = urlCategoryMap[activeCategoryId] || activeCategoryId;
-        filtered = filtered.filter(item => item.category === mappedCategory);
+        // Normalize categories for comparison (handle old category values)
+        filtered = filtered.filter(item => {
+          const normalizedItemCategory = normalizeCategory(item.category);
+          return normalizedItemCategory === mappedCategory;
+        });
       }
 
       // Search filter (from input or URL)
