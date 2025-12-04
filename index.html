@@ -488,7 +488,8 @@
     </section>
   </main>
 
-  <script src="data/itemsData.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/navbar.js"></script>
   <script>
     // Category mapping
     const categoryMap = {
@@ -537,13 +538,31 @@
 
     // Render trending items
     function renderTrendingItems() {
-      // Add addedToCart to items for scoring (mock data)
-      const itemsWithScore = mockItems.map(item => ({
+      // Get items from data layer
+      let items = getItems().filter(i => i.isActive);
+      
+      // Fallback to mockItems if available (backward compatibility)
+      if (items.length === 0 && typeof mockItems !== 'undefined') {
+        items = mockItems.map(item => ({
+          id: String(item.id),
+          title: item.title,
+          price: item.price,
+          condition: item.condition,
+          images: item.images || [],
+          views: item.stats?.views || 0,
+          addedToCartCount: Math.floor((item.stats?.views || 0) * 0.1),
+          modes: {
+            sale: item.mode?.purchase || false,
+            tradeTarget: item.mode?.trade || false,
+            tradeOpen: false
+          }
+        }));
+      }
+      
+      // Add score calculation
+      const itemsWithScore = items.map(item => ({
         ...item,
-        stats: {
-          ...item.stats,
-          addedToCart: Math.floor((item.stats?.views || 0) * 0.1) // Mock: ~10% of views
-        }
+        addedToCart: item.addedToCartCount || Math.floor((item.views || 0) * 0.1)
       }));
 
       // Sort by score
@@ -560,22 +579,22 @@
         card.href = `item_page.html?id=${item.id}`;
         card.className = 'item-card';
 
-        const priceText = item.mode.purchase 
+        const priceText = (item.modes?.sale && item.price > 0)
           ? `NT$ ${item.price.toLocaleString('zh-TW')}`
-          : (item.mode.trade ? '僅接受以物易物' : '許願中');
+          : ((item.modes?.tradeTarget || item.modes?.tradeOpen) ? '僅接受以物易物' : '許願中');
 
-        const views = item.stats?.views || 0;
-        const addedToCart = item.stats?.addedToCart || 0;
+        const views = item.views || 0;
+        const addedToCart = item.addedToCart || 0;
 
         card.innerHTML = `
           <div class="item-card-image-wrapper">
-            <img src="${item.images[0]}" alt="${item.title}" class="item-card-image">
+            <img src="${item.images[0] || 'https://via.placeholder.com/220/f3f4f6/9ca3af?text=No+Image'}" alt="${item.title}" class="item-card-image">
             <span class="item-card-badge">${item.condition}</span>
           </div>
           <div class="item-card-body">
             <h3 class="item-card-title">${item.title}</h3>
             <div class="item-card-price">${priceText}</div>
-            ${item.mode.trade ? '<span class="item-card-trade-badge">接受以物易物</span>' : ''}
+            ${(item.modes?.tradeTarget || item.modes?.tradeOpen) ? '<span class="item-card-trade-badge">接受以物易物</span>' : ''}
             <div class="item-card-meta">瀏覽 ${views}｜加入購物車 ${addedToCart}</div>
           </div>
         `;

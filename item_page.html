@@ -950,38 +950,38 @@
       </div>
 
       <!-- LOWER SECTION: 商品資訊 + 商品描述 -->
-      <div class="item-detail-row">
-        <section class="item-info-card">
-          <h3 class="section-title">商品資訊</h3>
-          <dl class="item-info-list">
-            <div class="item-info-row">
-              <dt>商品狀況：</dt>
-              <dd id="itemCondition">九成新</dd>
-            </div>
-            <div class="item-info-row">
-              <dt>所在地：</dt>
-              <dd id="itemLocation">台北市信義區</dd>
-            </div>
-            <div class="item-info-row">
-              <dt>庫存數量：</dt>
-              <dd>1 件</dd>
-            </div>
-            <div class="item-info-row item-info-tags">
-              <dt>標籤：</dt>
-              <dd id="itemTags">
-                <!-- Tags will be populated by JS -->
-              </dd>
-            </div>
-          </dl>
-        </section>
+        <div class="item-detail-row">
+          <section class="item-info-card">
+            <h3 class="section-title">商品資訊</h3>
+            <dl class="item-info-list">
+              <div class="item-info-row">
+                <dt>商品狀況：</dt>
+                <dd id="itemCondition">九成新</dd>
+              </div>
+              <div class="item-info-row">
+                <dt>所在地：</dt>
+                <dd id="itemLocation">台北市信義區</dd>
+              </div>
+              <div class="item-info-row">
+                <dt>庫存數量：</dt>
+                <dd>1 件</dd>
+              </div>
+              <div class="item-info-row item-info-tags">
+                <dt>標籤：</dt>
+                <dd id="itemTags">
+                  <!-- Tags will be populated by JS -->
+                </dd>
+              </div>
+            </dl>
+          </section>
 
-        <section class="item-description-section">
-          <h3 class="section-title">商品描述</h3>
-          <div class="description-content" id="itemDescription">
-            <!-- Content will be populated by JS -->
-          </div>
-          <p class="view-stats" id="viewStats">瀏覽次數：342　追蹤人數：8</p>
-        </section>
+          <section class="item-description-section">
+            <h3 class="section-title">商品描述</h3>
+            <div class="description-content" id="itemDescription">
+              <!-- Content will be populated by JS -->
+            </div>
+            <p class="view-stats" id="viewStats">瀏覽次數：342　追蹤人數：8</p>
+          </section>
       </div>
     </div>
   </main>
@@ -1082,38 +1082,173 @@
     }
 
     function handlePurchase() {
-      const quantity = document.getElementById('qty').value;
-      const itemTitle = document.getElementById('itemTitle').textContent;
-      const actionPrice = document.getElementById('actionPrice');
-      const priceText = actionPrice ? actionPrice.textContent.trim() : '';
-      const priceMatch = priceText.match(/NT\$\s*([\d,]+)/);
-      const price = priceMatch ? parseInt(priceMatch[1].replace(/,/g, '')) : 8500;
-      const total = price * parseInt(quantity);
-      
-      if (confirm(`確認購買\n\n商品：${itemTitle}\n數量：${quantity}\n總計：NT$ ${total.toLocaleString()}\n\n確定要購買嗎？`)) {
-        // TODO: in real system, call API to create a purchase request
-        const itemId = new URLSearchParams(window.location.search).get('id') || '0';
-        console.log('Purchase request created for item id:', itemId);
-        
-        // Open chat modal
-        handleOpenChat();
-        
-        // Prefill chat input with a standard message
-        setTimeout(() => {
-          const chatInput = document.getElementById('chat-message');
-          if (chatInput) {
-            chatInput.value = `您好，我想購買「${itemTitle}」，請問可以成交嗎？`;
-          }
-        }, 150);
-        
-        alert('已送出購買請求，並已開啟與賣家的對話視窗。');
+      // Check login
+      const currentUser = getCurrentUser();
+      if (!currentUser) {
+        if (confirm('請先登入才能提出購買請求，是否前往登入頁面？')) {
+          window.location.href = `login.html?redirect=${encodeURIComponent(window.location.href)}`;
+        }
+        return;
       }
+      
+      // Check if user is seller
+      if (currentItem.sellerId === currentUser.id) {
+        alert('無法對自己刊登的商品提出請求。');
+        return;
+      }
+      
+      // Show purchase confirmation modal
+      const quantity = parseInt(document.getElementById('qty').value) || 1;
+      const price = currentItem.price || 0;
+      const total = price * quantity;
+      const itemTitle = currentItem.title;
+      
+      // Create modal HTML
+      const modalHTML = `
+        <div class="modal-overlay" id="purchaseModal" style="display: flex;">
+          <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+              <h2>確認購買</h2>
+              <button class="modal-close" onclick="closePurchaseModal()">×</button>
+            </div>
+            <div class="modal-body">
+              <div style="margin-bottom: 16px;">
+                <strong>商品：</strong>${itemTitle}
+              </div>
+              <div style="margin-bottom: 16px;">
+                <label>數量：</label>
+                <select id="purchaseQuantity" style="margin-left: 8px; padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+                  ${Array.from({length: Math.min(currentItem.quantity || 1, 10)}, (_, i) => 
+                    `<option value="${i+1}" ${i+1 === quantity ? 'selected' : ''}>${i+1}</option>`
+                  ).join('')}
+                </select>
+              </div>
+              <div style="margin-bottom: 16px;">
+                <strong>單價：</strong>NT$ ${price.toLocaleString('zh-TW')}
+              </div>
+              <div style="margin-bottom: 16px; font-size: 18px; font-weight: 600; color: #2563eb;">
+                <strong>總計：</strong>NT$ <span id="purchaseTotal">${total.toLocaleString('zh-TW')}</span>
+              </div>
+              <div class="form-group">
+                <label for="purchaseNote">給賣家的訊息（選填）：</label>
+                <textarea id="purchaseNote" placeholder="例如：希望週末面交" rows="3" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit;"></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-secondary" onclick="closePurchaseModal()">取消</button>
+              <button class="btn-primary" onclick="confirmPurchase()">確認購買</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Remove existing modal if any
+      const existingModal = document.getElementById('purchaseModal');
+      if (existingModal) existingModal.remove();
+      
+      // Add modal to body
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+      
+      // Update total when quantity changes
+      document.getElementById('purchaseQuantity').addEventListener('change', function() {
+        const qty = parseInt(this.value);
+        const newTotal = price * qty;
+        document.getElementById('purchaseTotal').textContent = newTotal.toLocaleString('zh-TW');
+      });
+    }
+    
+    function closePurchaseModal() {
+      const modal = document.getElementById('purchaseModal');
+      if (modal) modal.remove();
+    }
+    
+    function confirmPurchase() {
+      const quantity = parseInt(document.getElementById('purchaseQuantity').value);
+      const note = document.getElementById('purchaseNote').value.trim();
+      const currentUser = getCurrentUser();
+      
+      if (!currentUser || !currentItem) return;
+      
+      // Create purchase request
+      const request = createRequest({
+        itemId: currentItem.id,
+        sellerId: currentItem.sellerId,
+        buyerId: currentUser.id,
+        type: 'purchase',
+        quantity: quantity,
+        note: note || undefined
+      });
+      
+      // Create initial message if note provided
+      if (note) {
+        createMessage({
+          itemId: currentItem.id,
+          senderId: currentUser.id,
+          receiverId: currentItem.sellerId,
+          text: note
+        });
+      }
+      
+      closePurchaseModal();
+      alert('已送出購買請求，請等待賣家回覆。');
     }
 
     // Trade modal state - single selection only
     let selectedItemId = null;
 
     function handleTrade() {
+      // Check login
+      const currentUser = getCurrentUser();
+      if (!currentUser) {
+        if (confirm('請先登入才能提出交換請求，是否前往登入頁面？')) {
+          window.location.href = `login.html?redirect=${encodeURIComponent(window.location.href)}`;
+        }
+        return;
+      }
+      
+      // Check if user is seller
+      if (currentItem.sellerId === currentUser.id) {
+        alert('無法對自己刊登的商品提出請求。');
+        return;
+      }
+      
+      // Load user's items for trade
+      const userItems = getItemsBySeller(currentUser.id).filter(i => i.isActive);
+      
+      // Update trade modal content
+      const tradeRequirementText = document.getElementById('tradeRequirementText');
+      const itemsGrid = document.querySelector('.items-grid');
+      
+      if (currentItem.modes.tradeTarget && currentItem.tradeTargetNote) {
+        if (tradeRequirementText) {
+          tradeRequirementText.textContent = currentItem.tradeTargetNote;
+        }
+      } else if (currentItem.modes.tradeOpen) {
+        if (tradeRequirementText) {
+          tradeRequirementText.textContent = '賣家開放任何交換提案。';
+        }
+      }
+      
+      // Populate user items
+      if (itemsGrid) {
+        itemsGrid.innerHTML = '';
+        if (userItems.length === 0) {
+          itemsGrid.innerHTML = '<p style="color: #6b7280; padding: 20px; text-align: center;">你目前沒有可交換的商品。請先刊登商品。</p>';
+        } else {
+          userItems.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'trade-item-card item-card';
+            card.dataset.itemId = item.id;
+            card.onclick = () => selectTradeItem(card);
+            card.innerHTML = `
+              <img src="${item.images[0] || 'https://via.placeholder.com/150/f3f4f6/9ca3af?text=No+Image'}" alt="${item.title}" />
+              <div class="item-card-title">${item.title}</div>
+            `;
+            itemsGrid.appendChild(card);
+          });
+        }
+      }
+      
       // Reset selection when opening modal
       selectedItemId = null;
       document.querySelectorAll('.trade-item-card').forEach(card => {
@@ -1168,26 +1303,109 @@
         return;
       }
 
+      const currentUser = getCurrentUser();
+      if (!currentUser || !currentItem) return;
+
       const messageTextarea = document.getElementById('trade-message');
-      const message = messageTextarea ? messageTextarea.value.trim() : '';
+      const note = messageTextarea ? messageTextarea.value.trim() : '';
 
-      const payload = {
+      // Determine request type
+      let requestType = 'trade-open';
+      if (currentItem.modes.tradeTarget) {
+        requestType = 'trade-target';
+      }
+
+      // Create trade request
+      const request = createRequest({
+        itemId: currentItem.id,
+        sellerId: currentItem.sellerId,
+        buyerId: currentUser.id,
+        type: requestType,
+        quantity: 1,
         offeredItemId: selectedItemId,
-        message: message,
-      };
+        note: note || undefined
+      });
 
-      console.log('Submitting 1-to-1 trade offer', payload);
+      // Create initial message if note provided
+      if (note) {
+        createMessage({
+          itemId: currentItem.id,
+          senderId: currentUser.id,
+          receiverId: currentItem.sellerId,
+          text: note
+        });
+      }
       
       alert('交換提案已送出！賣家將收到通知。');
       closeTradeModal();
     }
 
     function handleOpenChat() {
+      // Check login
+      const currentUser = getCurrentUser();
+      if (!currentUser) {
+        if (confirm('請先登入才能聯絡賣家，是否前往登入頁面？')) {
+          window.location.href = `login.html?redirect=${encodeURIComponent(window.location.href)}`;
+        }
+        return;
+      }
+      
+      // Check if user is seller
+      if (currentItem.sellerId === currentUser.id) {
+        alert('無法對自己刊登的商品發送訊息。');
+        return;
+      }
+      
+      // Load messages for this conversation
+      loadChatMessages();
+      
       document.getElementById('chat-modal').style.display = 'flex';
       // Focus on input when modal opens
       setTimeout(() => {
         document.getElementById('chat-message').focus();
       }, 100);
+    }
+    
+    function loadChatMessages() {
+      const currentUser = getCurrentUser();
+      if (!currentUser || !currentItem) return;
+      
+      const messages = getMessagesForConversation(
+        currentItem.id,
+        currentUser.id,
+        currentItem.sellerId
+      );
+      
+      const messagesArea = document.getElementById('messages-area');
+      messagesArea.innerHTML = '';
+      
+      if (messages.length === 0) {
+        messagesArea.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">與此商品相關的留言將會顯示在這裡。</div>';
+      } else {
+        messages.forEach(msg => {
+          const isSender = msg.senderId === currentUser.id;
+          const senderName = isSender ? '你' : (currentItem.seller?.name || '賣家');
+          const bubble = document.createElement('div');
+          bubble.className = `message-bubble ${isSender ? 'message-user' : 'message-seller'}`;
+          
+          const time = new Date(msg.createdAt);
+          const timeStr = time.toLocaleString('zh-TW', { 
+            month: 'short', 
+            day: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          });
+          
+          bubble.innerHTML = `
+            <div class="message-content">${msg.text}</div>
+            <div class="message-time">${timeStr}</div>
+          `;
+          messagesArea.appendChild(bubble);
+        });
+      }
+      
+      // Scroll to bottom
+      messagesArea.scrollTop = messagesArea.scrollHeight;
     }
 
     function closeChatModal() {
@@ -1199,39 +1417,29 @@
       if (event) {
         event.preventDefault();
       }
-      const input = document.getElementById('chat-message');
-      const message = input.value.trim();
+      const currentUser = getCurrentUser();
+      if (!currentUser || !currentItem) return;
       
-      if (!message) {
+      const input = document.getElementById('chat-message');
+      const messageText = input.value.trim();
+      
+      if (!messageText) {
         return;
       }
 
-      // Create new message bubble
-      const messagesArea = document.getElementById('messages-area');
-      const messageBubble = document.createElement('div');
-      messageBubble.className = 'message-bubble message-user';
+      // Create message in data layer
+      createMessage({
+        itemId: currentItem.id,
+        senderId: currentUser.id,
+        receiverId: currentItem.sellerId,
+        text: messageText
+      });
       
-      const messageContent = document.createElement('div');
-      messageContent.className = 'message-content';
-      messageContent.textContent = message;
-      
-      const messageTime = document.createElement('div');
-      messageTime.className = 'message-time';
-      const now = new Date();
-      messageTime.textContent = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-      
-      messageBubble.appendChild(messageContent);
-      messageBubble.appendChild(messageTime);
-      messagesArea.appendChild(messageBubble);
-      
-      // Scroll to bottom
-      messagesArea.scrollTop = messagesArea.scrollHeight;
+      // Reload messages to show new one
+      loadChatMessages();
       
       // Clear input
       input.value = '';
-      
-      // Log to console
-      console.log('Message sent:', message);
     }
 
     // Allow Enter key to send message
@@ -1343,16 +1551,84 @@
     })();
   </script>
 
-  <script src="data/itemsData.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/navbar.js"></script>
   <script>
     // Get item ID from URL
     const params = new URLSearchParams(window.location.search);
-    const itemId = Number(params.get('id') || '0');
-    const currentItem = mockItems.find(i => i.id === itemId) || mockItems[0];
+    const itemId = params.get('id');
+    let currentItem = null;
+    
+    if (itemId) {
+      // Try new data layer first
+      currentItem = getItemById(itemId);
+      
+      // If not found, try old mockItems (for backward compatibility)
+      if (!currentItem && typeof mockItems !== 'undefined') {
+        const oldItem = mockItems.find(i => String(i.id) === String(itemId));
+        if (oldItem) {
+          // Convert old format to new format
+          currentItem = {
+            id: String(oldItem.id),
+            sellerId: 'u1', // Default seller
+            title: oldItem.title,
+            category: oldItem.category,
+            condition: oldItem.condition,
+            price: oldItem.price,
+            description: oldItem.description?.main || '',
+            tags: oldItem.tags || [],
+            location: oldItem.location,
+            quantity: 1,
+            modes: {
+              sale: oldItem.mode?.purchase || false,
+              tradeTarget: oldItem.mode?.trade && (oldItem.mode?.tradeMode === 'target' || oldItem.mode?.tradeMode === 'both'),
+              tradeOpen: oldItem.mode?.trade && (oldItem.mode?.tradeMode === 'offer' || oldItem.mode?.tradeMode === 'both')
+            },
+            tradeTargetNote: oldItem.mode?.tradeSummary || '',
+            images: oldItem.images || [],
+            views: oldItem.stats?.views || 0,
+            addedToCartCount: oldItem.stats?.watchers || 0,
+            isActive: true
+          };
+          
+          // Get seller info from old format
+          if (oldItem.seller) {
+            currentItem.seller = oldItem.seller;
+          }
+        }
+      }
+    }
 
     if (!currentItem) {
       document.body.innerHTML = '<div style="padding: 40px; text-align: center;"><h1>商品不存在</h1><p><a href="item_list.html">返回商品列表</a></p></div>';
     } else {
+      // Increment view count
+      if (currentItem.id) {
+        updateItem(currentItem.id, { views: (currentItem.views || 0) + 1 });
+        currentItem.views = (currentItem.views || 0) + 1;
+      }
+      
+      // Get seller info
+      if (!currentItem.seller && currentItem.sellerId) {
+        const seller = getUsers().find(u => u.id === currentItem.sellerId);
+        if (seller) {
+          currentItem.seller = {
+            name: seller.name,
+            rating: 4.8,
+            ratingText: '99.9% 好評',
+            deals: 0
+          };
+        }
+      }
+      
+      if (!currentItem.seller) {
+        currentItem.seller = {
+          name: 'Unknown',
+          rating: 0,
+          ratingText: '無評價',
+          deals: 0
+        };
+      }
       // Track recently viewed items
       (function() {
         try {
@@ -1388,6 +1664,26 @@
           console.error('Error saving recently viewed items:', e);
         }
       })();
+      // Normalize item format for compatibility
+      function normalizeItem(item) {
+        // Convert new format to old format for display compatibility
+        if (item.modes) {
+          item.mode = {
+            purchase: item.modes.sale || false,
+            trade: item.modes.tradeTarget || item.modes.tradeOpen || false,
+            wish: item.modes.tradeOpen || false,
+            tradeMode: item.modes.tradeTarget && item.modes.tradeOpen ? 'both' :
+                      item.modes.tradeTarget ? 'target' :
+                      item.modes.tradeOpen ? 'offer' : null,
+            tradeSummary: item.tradeTargetNote || ''
+          };
+        }
+        return item;
+      }
+      
+      // Normalize current item
+      currentItem = normalizeItem(currentItem);
+      
       // Populate page with currentItem data
       function populateItemPage() {
         // Title
@@ -1395,8 +1691,8 @@
 
         // Seller info
         document.getElementById('sellerName').textContent = currentItem.seller.name;
-        document.getElementById('sellerCount').textContent = `(${currentItem.seller.deals})`;
-        document.getElementById('sellerRatingText').textContent = currentItem.seller.ratingText;
+        document.getElementById('sellerCount').textContent = `(${currentItem.seller.deals || 0})`;
+        document.getElementById('sellerRatingText').textContent = currentItem.seller.ratingText || '無評價';
         document.getElementById('sellerAvatar').querySelector('span').textContent = currentItem.seller.name[0].toUpperCase();
         
         // Wire up seller buttons
@@ -1581,7 +1877,7 @@
           if (actionPriceBlock) {
             actionPriceBlock.innerHTML = `
               <div class="purchase-card-header">
-                <span class="action-price-label">價格</span>
+              <span class="action-price-label">價格</span>
                 <button
                   id="purchaseMoreBtn"
                   class="purchase-more-btn"

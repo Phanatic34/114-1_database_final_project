@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的商品 - 二手交易平台</title>
+  <link rel="stylesheet" href="ItemDetailPage.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background-color: #f5f5f5;
+    }
+
+    .my-items-page {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 16px 40px;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .page-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0;
+    }
+
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .item-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      transition: all 0.2s;
+    }
+
+    .item-card:hover {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .item-card-image {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      background: #f3f4f6;
+    }
+
+    .item-card-body {
+      padding: 16px;
+    }
+
+    .item-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 8px;
+    }
+
+    .item-card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      margin: 0;
+      flex: 1;
+    }
+
+    .item-status {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-active {
+      background: #ecfdf3;
+      color: #15803d;
+    }
+
+    .status-inactive {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+
+    .item-card-price {
+      font-size: 18px;
+      font-weight: 700;
+      color: #2563eb;
+      margin-bottom: 8px;
+    }
+
+    .item-card-modes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .mode-badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .mode-sale {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .mode-trade {
+      background: #ecfdf3;
+      color: #15803d;
+    }
+
+    .mode-wish {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .item-card-stats {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 12px;
+    }
+
+    .item-card-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-small {
+      flex: 1;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-edit {
+      background: #2563eb;
+      color: white;
+    }
+
+    .btn-edit:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-deactivate {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+
+    .btn-deactivate:hover {
+      background: #e5e7eb;
+    }
+
+    .btn-delete {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .btn-delete:hover {
+      background: #fecaca;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-content">
+      <div class="logo">二手交易平台</div>
+      <nav class="header-nav">
+        <a href="index.html">首頁</a>
+        <a href="item_list.html">分類</a>
+        <a href="sell.html">賣東西</a>
+      </nav>
+      <div class="header-actions">
+        <!-- Will be populated by navbar.js -->
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="my-items-page">
+      <div class="page-header">
+        <h1>我的商品</h1>
+        <a href="sell.html" style="padding: 10px 20px; background: #2563eb; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">+ 刊登新商品</a>
+      </div>
+
+      <div id="itemsContainer" class="items-grid">
+        <!-- Items will be rendered here -->
+      </div>
+    </div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/navbar.js"></script>
+  <script>
+    // Check login
+    if (!requireLogin()) {
+      throw new Error('Redirecting to login');
+    }
+
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      window.location.href = 'login.html';
+    }
+
+    // Render item card
+    function renderItemCard(item) {
+      const card = document.createElement('div');
+      card.className = 'item-card';
+      
+      const statusClass = item.isActive ? 'status-active' : 'status-inactive';
+      const statusText = item.isActive ? '上架中' : '已下架';
+      
+      let modesHTML = '';
+      if (item.modes.sale) {
+        modesHTML += '<span class="mode-badge mode-sale">販售中</span>';
+      }
+      if (item.modes.tradeTarget) {
+        modesHTML += '<span class="mode-badge mode-trade">可交換（指定目標）</span>';
+      }
+      if (item.modes.tradeOpen) {
+        modesHTML += '<span class="mode-badge mode-wish">開放式許願</span>';
+      }
+      
+      const priceText = item.modes.sale && item.price > 0
+        ? `NT$ ${item.price.toLocaleString('zh-TW')}`
+        : '僅接受以物易物';
+      
+      card.innerHTML = `
+        <img src="${item.images[0] || 'https://via.placeholder.com/280/f3f4f6/9ca3af?text=No+Image'}" 
+             alt="${item.title}" 
+             class="item-card-image">
+        <div class="item-card-body">
+          <div class="item-card-header">
+            <h3 class="item-card-title">${item.title}</h3>
+            <span class="item-status ${statusClass}">${statusText}</span>
+          </div>
+          <div class="item-card-price">${priceText}</div>
+          <div class="item-card-modes">${modesHTML}</div>
+          <div class="item-card-stats">
+            瀏覽 ${item.views || 0} 次 | 加入購物車 ${item.addedToCartCount || 0} 次
+          </div>
+          <div class="item-card-actions">
+            <button class="btn-small btn-edit" onclick="editItem('${item.id}')">編輯</button>
+            ${item.isActive 
+              ? `<button class="btn-small btn-deactivate" onclick="deactivateItem('${item.id}')">下架</button>`
+              : `<button class="btn-small btn-edit" onclick="activateItem('${item.id}')">重新上架</button>`
+            }
+            <button class="btn-small btn-delete" onclick="deleteItem('${item.id}')">刪除</button>
+          </div>
+        </div>
+      `;
+      
+      return card;
+    }
+
+    // Render items
+    function renderItems() {
+      const items = getItemsBySeller(currentUser.id);
+      const container = document.getElementById('itemsContainer');
+      
+      container.innerHTML = '';
+      
+      if (items.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📦</div>
+            <div style="font-size: 18px; margin-bottom: 8px;">你還沒有刊登任何商品</div>
+            <a href="sell.html" style="color: #2563eb; text-decoration: none;">立即刊登商品 →</a>
+          </div>
+        `;
+      } else {
+        items.forEach(item => {
+          container.appendChild(renderItemCard(item));
+        });
+      }
+    }
+
+    // Edit item
+    function editItem(itemId) {
+      window.location.href = `sell.html?id=${itemId}`;
+    }
+
+    // Deactivate item
+    function deactivateItem(itemId) {
+      if (!confirm('確定要下架此商品嗎？')) return;
+      updateItem(itemId, { isActive: false });
+      renderItems();
+    }
+
+    // Activate item
+    function activateItem(itemId) {
+      updateItem(itemId, { isActive: true });
+      renderItems();
+    }
+
+    // Delete item
+    function deleteItem(itemId) {
+      // Check if there are accepted requests
+      const requests = getRequests();
+      const hasAcceptedRequest = requests.some(r => 
+        r.itemId === itemId && r.status === 'accepted'
+      );
+      
+      if (hasAcceptedRequest) {
+        alert('此商品有已接受的交易請求，無法刪除。請先處理相關交易。');
+        return;
+      }
+      
+      if (!confirm('確定要刪除此商品嗎？此操作無法復原。')) return;
+      
+      // Use the data layer function
+      const items = getItems();
+      const filtered = items.filter(i => i.id !== itemId);
+      saveItems(filtered);
+      renderItems();
+    }
+
+    // Make functions global
+    window.editItem = editItem;
+    window.deactivateItem = deactivateItem;
+    window.activateItem = activateItem;
+    window.deleteItem = deleteItem;
+
+    // Initial render
+    renderItems();
+  </script>
+</body>
+</html>
+
