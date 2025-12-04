@@ -223,7 +223,7 @@
     }
 
     .item-info-card {
-      margin-top: 20px;
+      margin-top: 0; /* spacing handled by .section-divider */
       padding: 16px 20px;
       border-radius: 16px;
       background: #f5f5f5;
@@ -442,6 +442,13 @@
       border-left: 4px solid #2563eb;
       margin-top: 12px;
       margin-bottom: 24px;
+    }
+
+    /* Reusable section divider helper class */
+    .section-divider {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid #e5e7eb; /* thin, light grey line */
     }
 
     .trade-rule-card h2 {
@@ -721,7 +728,7 @@
             </button>
           </div>
 
-          <section class="item-info-card">
+          <section class="item-info-card section-divider">
             <h3 class="section-title">商品資訊</h3>
             <dl class="item-info-list">
               <div class="item-info-row">
@@ -792,7 +799,7 @@
             </div>
           </section>
 
-          <section class="item-description-section">
+          <section class="item-description-section section-divider">
             <h3 class="section-title">商品描述</h3>
             <div class="description-content" id="itemDescription">
               <!-- Content will be populated by JS -->
@@ -830,7 +837,7 @@
 
             <div class="action-divider"></div>
 
-            <div class="pickup-section">
+            <div class="pickup-section section-divider">
               <h4>取貨方式：</h4>
               <p id="pickupInfo">面交 | 台北市信義區 | 時間可議</p>
             </div>
