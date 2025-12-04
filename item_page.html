@@ -2231,15 +2231,38 @@
       // Check if current user is seller and show appropriate UI
       // Use setTimeout to ensure DOM is fully rendered
       setTimeout(() => {
+        const currentUserId = getCurrentUserId();
+        const itemSellerId = currentItem ? currentItem.sellerId : null;
+        
+        console.log('Checking seller status:', {
+          currentItem: currentItem ? currentItem.id : null,
+          itemSellerId: itemSellerId,
+          currentUserId: currentUserId,
+          isSeller: currentItem && isCurrentUserSeller(currentItem),
+          comparison: currentUserId && itemSellerId ? String(currentUserId) === String(itemSellerId) : false,
+          currentUser: getCurrentUser()
+        });
+        
+        // Check if user is logged in
+        if (!currentUserId) {
+          console.warn('User is not logged in. Please log in to edit your items.');
+        }
+        
         if (currentItem && isCurrentUserSeller(currentItem)) {
           console.log('Current user is seller, showing seller view');
           showSellerView(currentItem);
         } else {
-          console.log('Not seller or no current item', {
-            currentItem: currentItem ? currentItem.id : null,
-            sellerId: currentItem ? currentItem.sellerId : null,
-            currentUserId: getCurrentUserId()
-          });
+          const reason = !currentItem ? 'No current item' : 
+                    !currentUserId ? 'Not logged in - please log in first' :
+                    !itemSellerId ? 'Item has no sellerId' :
+                    String(currentUserId) !== String(itemSellerId) ? `IDs do not match (current: ${currentUserId}, item seller: ${itemSellerId})` : 'Unknown';
+          console.log('Not seller - showing buyer view', { reason });
+          
+          // For debugging: show alert if user thinks they should be seller
+          // Uncomment this if you want to see why seller view isn't showing:
+          // if (currentItem && currentUserId) {
+          //   alert(`Debug: Current User ID: ${currentUserId}\nItem Seller ID: ${itemSellerId}\nMatch: ${String(currentUserId) === String(itemSellerId)}`);
+          // }
         }
       }, 100);
     }
