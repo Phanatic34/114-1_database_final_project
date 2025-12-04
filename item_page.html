@@ -297,19 +297,12 @@
     .listing-header-right {
       flex: 1;
       text-align: right;
-    }
-
-    .header-price-label {
-      display: block;
       font-size: 13px;
       color: #6b7280;
-      margin-bottom: 4px;
     }
 
-    .header-price {
-      font-size: 22px;
-      font-weight: 700;
-      color: #2563eb;
+    .listing-mode-summary {
+      white-space: nowrap;
     }
 
     .trade-summary-line {
@@ -331,7 +324,6 @@
     .seller-inline {
       display: flex;
       align-items: center;
-      justify-content: space-between;
       gap: 12px;
       margin-bottom: 12px;
     }
@@ -355,20 +347,33 @@
       flex-shrink: 0;
     }
 
-    .seller-inline-text .seller-name-row {
+    .seller-text-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .seller-main-line {
+      font-size: 14px;
       font-weight: 600;
       color: #111827;
     }
 
-    .seller-inline-text .seller-rating-row {
+    .seller-sub-line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
       font-size: 13px;
       color: #6b7280;
     }
 
-    .seller-inline-links {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
+    .seller-rating-text {
+      white-space: nowrap;
+    }
+
+    .seller-dot {
+      color: #9ca3af;
     }
 
     .seller-link-button {
@@ -377,8 +382,9 @@
       padding: 0;
       font-size: 13px;
       color: #2563eb;
-      text-decoration: underline;
       cursor: pointer;
+      text-decoration: underline;
+      white-space: nowrap;
     }
 
     .seller-link-button:hover {
@@ -710,21 +716,23 @@
                   <div class="seller-avatar-small" id="sellerAvatar">
                     <span>G</span>
                   </div>
-                  <div class="seller-inline-text">
-                    <div class="seller-name-row">
-                      <span class="seller-name" id="sellerName">game_lover_2024</span>
-                      <span class="seller-count" id="sellerCount">(127)</span>
+                  <div class="seller-text-block">
+                    <div class="seller-main-line">
+                      <span id="sellerName" class="seller-name">game_lover_2024</span>
+                      <span id="sellerCount" class="seller-count">(127)</span>
                     </div>
-                    <div class="seller-rating-row" id="sellerRatingText">99.9% 好評</div>
+                    <div class="seller-sub-line">
+                      <span id="sellerRatingText" class="seller-rating-text">99.9% 好評</span>
+                      <span class="seller-dot">·</span>
+                      <button class="seller-link-button" id="sellerViewItemsButton">
+                        查看賣家其他商品
+                      </button>
+                      <span class="seller-dot">·</span>
+                      <button class="seller-link-button" id="sellerInlineMessageBtn">
+                        聯絡賣家
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <div class="seller-inline-links">
-                  <button class="seller-link-button" type="button" id="sellerOtherItemsBtn">
-                    查看賣家其他商品
-                  </button>
-                  <button class="seller-link-button" type="button" id="sellerInlineMessageBtn">
-                    聯絡賣家
-                  </button>
                 </div>
               </div>
 
@@ -738,10 +746,7 @@
             </div>
 
             <div class="listing-header-right">
-              <div id="listingHeaderPriceBlock">
-                <span class="header-price-label">價格</span>
-                <div class="header-price" id="headerPrice">NT$ 8,500</div>
-              </div>
+              <div id="listingModeSummary" class="listing-mode-summary"></div>
             </div>
           </div>
 
@@ -842,8 +847,8 @@
     <div class="modal-content chat-modal" onclick="event.stopPropagation()">
       <div class="modal-header">
         <div class="chat-header-info">
-          <div class="seller-avatar">G</div>
-          <h2>game_lover_2024</h2>
+          <div class="seller-avatar" id="chatSellerAvatar">G</div>
+          <h2 id="chatSellerName">game_lover_2024</h2>
         </div>
         <button class="modal-close" onclick="closeChatModal()">×</button>
       </div>
@@ -1055,7 +1060,7 @@
       const listingMode = 'purchase_and_trade';
       // options: 'purchase_and_trade', 'trade_only', 'wish_only'
 
-      const headerPriceBlock = document.getElementById('listingHeaderPriceBlock');
+      const listingModeSummary = document.getElementById('listingModeSummary');
       const actionPriceBlock = document.getElementById('actionPriceBlock');
       const btnAddToCart = document.getElementById('btnAddToCart');
       const btnBuyNow = document.getElementById('btnBuyNow');
@@ -1066,7 +1071,7 @@
       function applyMode() {
         if (listingMode === 'purchase_and_trade') {
           // Show price, show all buttons
-          if (headerPriceBlock) headerPriceBlock.style.display = 'block';
+          if (listingModeSummary) listingModeSummary.textContent = '可購買・可交換';
           if (actionPriceBlock) actionPriceBlock.style.display = 'block';
           if (btnAddToCart) btnAddToCart.style.display = 'block';
           if (btnBuyNow) btnBuyNow.style.display = 'block';
@@ -1075,10 +1080,11 @@
           if (tradeHint) tradeHint.style.display = 'block';
         } else if (listingMode === 'trade_only') {
           // Hide price, hide purchase buttons, show trade only
-          if (headerPriceBlock) {
-            headerPriceBlock.innerHTML = '<span style="color: #6b7280; font-size: 13px;">僅接受以物易物</span>';
+          if (listingModeSummary) listingModeSummary.textContent = '僅接受以物易物';
+          if (actionPriceBlock) {
+            actionPriceBlock.innerHTML = '<div class="action-price" style="color: #6b7280; font-size: 14px;">僅接受以物易物</div>';
+            actionPriceBlock.style.display = 'block';
           }
-          if (actionPriceBlock) actionPriceBlock.style.display = 'none';
           if (btnAddToCart) btnAddToCart.style.display = 'none';
           if (btnBuyNow) btnBuyNow.style.display = 'none';
           if (btnTrade) btnTrade.style.display = 'block';
@@ -1086,10 +1092,11 @@
           if (tradeHint) tradeHint.style.display = 'block';
         } else if (listingMode === 'wish_only') {
           // Hide price, show wish message
-          if (headerPriceBlock) {
-            headerPriceBlock.innerHTML = '<span style="color: #6b7280; font-size: 13px;">開放式許願</span>';
+          if (listingModeSummary) listingModeSummary.textContent = '開放式許願';
+          if (actionPriceBlock) {
+            actionPriceBlock.innerHTML = '<div class="action-price" style="color: #6b7280; font-size: 14px;">開放式許願</div>';
+            actionPriceBlock.style.display = 'block';
           }
-          if (actionPriceBlock) actionPriceBlock.style.display = 'none';
           if (btnAddToCart) btnAddToCart.style.display = 'none';
           if (btnBuyNow) btnBuyNow.style.display = 'none';
           if (btnTrade) btnTrade.style.display = 'block';
@@ -1123,9 +1130,14 @@
         document.getElementById('sellerCount').textContent = `(${currentItem.seller.deals})`;
         document.getElementById('sellerRatingText').textContent = currentItem.seller.ratingText;
         document.getElementById('sellerAvatar').querySelector('span').textContent = currentItem.seller.name[0].toUpperCase();
-        document.getElementById('sellerOtherItemsBtn').onclick = () => {
-          window.location.href = `item_list.html?seller=${encodeURIComponent(currentItem.seller.name)}`;
-        };
+        
+        // Wire up seller buttons
+        const sellerViewItemsButton = document.getElementById('sellerViewItemsButton');
+        if (sellerViewItemsButton) {
+          sellerViewItemsButton.addEventListener('click', () => {
+            window.location.href = `item_list.html?seller=${encodeURIComponent(currentItem.seller.name)}`;
+          });
+        }
 
         // Condition badge
         document.getElementById('conditionBadge').textContent = currentItem.condition;
@@ -1164,11 +1176,9 @@
           }
         }
 
-        // Price
-        const headerPrice = document.getElementById('headerPrice');
+        // Price (only in action card, not in header)
         const actionPrice = document.getElementById('actionPrice');
-        if (currentItem.mode.purchase) {
-          headerPrice.textContent = `NT$ ${currentItem.price.toLocaleString('zh-TW')}`;
+        if (currentItem.mode.purchase && actionPrice) {
           actionPrice.textContent = `NT$ ${currentItem.price.toLocaleString('zh-TW')}`;
         }
 
@@ -1283,6 +1293,12 @@
           tradeReqText.textContent = currentItem.mode.tradeSummary;
         }
 
+        // Update chat modal seller info
+        const chatSellerName = document.getElementById('chatSellerName');
+        const chatSellerAvatar = document.getElementById('chatSellerAvatar');
+        if (chatSellerName) chatSellerName.textContent = currentItem.seller.name;
+        if (chatSellerAvatar) chatSellerAvatar.textContent = currentItem.seller.name[0].toUpperCase();
+
         // Apply listing mode
         let listingMode = 'purchase_and_trade';
         if (!currentItem.mode.purchase && currentItem.mode.trade && !currentItem.mode.wish) {
@@ -1292,7 +1308,7 @@
         }
 
         // Update mode handling
-        const headerPriceBlock = document.getElementById('listingHeaderPriceBlock');
+        const listingModeSummary = document.getElementById('listingModeSummary');
         const actionPriceBlock = document.getElementById('actionPriceBlock');
         const btnAddToCart = document.getElementById('btnAddToCart');
         const btnBuyNow = document.getElementById('btnBuyNow');
@@ -1300,26 +1316,44 @@
         const actionQuantity = document.querySelector('.action-quantity');
 
         if (listingMode === 'purchase_and_trade') {
-          if (headerPriceBlock) headerPriceBlock.style.display = 'block';
-          if (actionPriceBlock) actionPriceBlock.style.display = 'block';
+          if (listingModeSummary) {
+            listingModeSummary.textContent = '可購買・可交換';
+          }
+          if (actionPriceBlock) {
+            actionPriceBlock.innerHTML = `
+              <span class="action-price-label">價格</span>
+              <div class="action-price">NT$ ${currentItem.price.toLocaleString('zh-TW')}</div>
+            `;
+            actionPriceBlock.style.display = 'block';
+          }
           if (btnAddToCart) btnAddToCart.style.display = 'block';
           if (btnBuyNow) btnBuyNow.style.display = 'block';
           if (btnTrade) btnTrade.style.display = 'block';
           if (actionQuantity) actionQuantity.style.display = 'flex';
         } else if (listingMode === 'trade_only') {
-          if (headerPriceBlock) {
-            headerPriceBlock.innerHTML = '<span style="color: #6b7280; font-size: 13px;">僅接受以物易物</span>';
+          if (listingModeSummary) {
+            listingModeSummary.textContent = '僅接受以物易物';
           }
-          if (actionPriceBlock) actionPriceBlock.style.display = 'none';
+          if (actionPriceBlock) {
+            actionPriceBlock.innerHTML = `
+              <div class="action-price" style="color: #6b7280; font-size: 14px;">僅接受以物易物</div>
+            `;
+            actionPriceBlock.style.display = 'block';
+          }
           if (btnAddToCart) btnAddToCart.style.display = 'none';
           if (btnBuyNow) btnBuyNow.style.display = 'none';
           if (btnTrade) btnTrade.style.display = 'block';
           if (actionQuantity) actionQuantity.style.display = 'none';
         } else if (listingMode === 'wish_only') {
-          if (headerPriceBlock) {
-            headerPriceBlock.innerHTML = '<span style="color: #6b7280; font-size: 13px;">開放式許願</span>';
+          if (listingModeSummary) {
+            listingModeSummary.textContent = '開放式許願';
           }
-          if (actionPriceBlock) actionPriceBlock.style.display = 'none';
+          if (actionPriceBlock) {
+            actionPriceBlock.innerHTML = `
+              <div class="action-price" style="color: #6b7280; font-size: 14px;">開放式許願</div>
+            `;
+            actionPriceBlock.style.display = 'block';
+          }
           if (btnAddToCart) btnAddToCart.style.display = 'none';
           if (btnBuyNow) btnBuyNow.style.display = 'none';
           if (btnTrade) {
