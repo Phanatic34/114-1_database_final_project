@@ -22,6 +22,55 @@
       text-align: center;
     }
 
+    /* Header search input */
+    .header-search {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-search input {
+      padding: 8px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 14px;
+      width: 200px;
+      transition: all 0.2s;
+    }
+
+    .header-search input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .header-search input:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .header-search button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .header-search button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      .header-search {
+        display: none;
+      }
+    }
+
     /* Item List Page Layout */
     .item-list-page {
       max-width: 1200px;
@@ -413,11 +462,15 @@
     <div class="header-content">
       <div class="logo">二手交易平台</div>
       <nav class="header-nav">
-        <a href="item_list.html">首頁</a>
-        <a href="/categories">分類</a>
+        <a href="index.html">首頁</a>
+        <a href="item_list.html">分類</a>
         <a href="/sell">賣東西</a>
       </nav>
       <div class="header-actions">
+        <div class="header-search">
+          <input type="text" id="headerSearchInput" placeholder="搜尋商品…">
+          <button onclick="handleHeaderSearch()">搜尋</button>
+        </div>
         <a href="/cart">購物車</a>
         <a href="/profile">我的帳號</a>
       </div>
@@ -426,7 +479,7 @@
 
   <main class="main-content">
     <div class="breadcrumb">
-      <a href="item_list.html">首頁</a> / <a href="item_list.html">瀏覽商品</a>
+      <a href="index.html">首頁</a> / <a href="item_list.html">分類</a> / <span id="breadcrumbCurrent">商品列表</span>
     </div>
 
     <div class="item-list-page">
@@ -434,6 +487,7 @@
         <!-- Search Bar -->
         <section class="item-search-bar">
           <h1 class="item-list-title">瀏覽商品</h1>
+          <div id="currentFilterDisplay" style="font-size: 14px; color: #6b7280; margin-top: 8px;"></div>
           <div class="item-search-controls">
             <select id="categoryFilter">
               <option value="all">所有分類</option>
@@ -532,6 +586,16 @@
     let displayedCount = 8;
     const itemsPerPage = 8;
 
+    // Category mapping from URL param to data category
+    const urlCategoryMap = {
+      'console': 'games',
+      'phone': 'electronics',
+      'computer': 'electronics',
+      'camera': 'electronics',
+      'appliance': 'others',
+      'other': 'others'
+    };
+
     // Condition mapping for old data structure compatibility
     const conditionMap = {
       'new': '全新',
@@ -608,7 +672,25 @@
     function filterAndSortItems() {
       let filtered = [...mockItems];
 
-      // Category filter (from dropdown or sidebar)
+      // Read URL params first
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlQ = urlParams.get('q');
+      const urlCategory = urlParams.get('category');
+
+      // Update search input from URL
+      if (urlQ) {
+        document.getElementById('searchInput').value = urlQ;
+      }
+
+      // Update category filter from URL
+      if (urlCategory) {
+        const mappedCategory = urlCategoryMap[urlCategory] || urlCategory;
+        document.getElementById('categoryFilter').value = mappedCategory;
+        const sidebarRadio = document.querySelector(`input[name="sidebarCategory"][value="${mappedCategory}"]`);
+        if (sidebarRadio) sidebarRadio.checked = true;
+      }
+
+      // Category filter (from dropdown, sidebar, or URL)
       const categoryFilter = document.getElementById('categoryFilter').value;
       const sidebarCategory = document.querySelector('input[name="sidebarCategory"]:checked')?.value;
       const activeCategory = sidebarCategory && sidebarCategory !== 'all' ? sidebarCategory : categoryFilter;
@@ -617,14 +699,18 @@
         filtered = filtered.filter(item => item.category === activeCategory);
       }
 
-      // Search filter
-      const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+      // Search filter (from input or URL)
+      const searchTerm = (urlQ || document.getElementById('searchInput').value).toLowerCase().trim();
       if (searchTerm) {
         filtered = filtered.filter(item => 
           item.title.toLowerCase().includes(searchTerm) ||
+          item.tags.some(tag => tag.toLowerCase().includes(searchTerm)) ||
           item.seller.name.toLowerCase().includes(searchTerm)
         );
       }
+
+      // Show current filter info
+      updateFilterDisplay(urlQ, urlCategory, activeCategory);
 
       // Mode filters
       const filterPurchase = document.getElementById('filterPurchase').checked;
@@ -676,6 +762,34 @@
       updateURLParams();
     }
 
+    // Update filter display
+    function updateFilterDisplay(searchTerm, urlCategory, activeCategory) {
+      const display = document.getElementById('currentFilterDisplay');
+      const parts = [];
+      
+      if (searchTerm) {
+        parts.push(`搜尋關鍵字：「${searchTerm}」`);
+      }
+      
+      if (urlCategory || (activeCategory && activeCategory !== 'all')) {
+        const categoryNames = {
+          'games': '遊戲主機',
+          'electronics': '手機 / 平板',
+          'books': '書籍 / 課本',
+          'others': '其他'
+        };
+        const categoryName = categoryNames[activeCategory] || activeCategory;
+        parts.push(`分類：${categoryName}`);
+      }
+      
+      if (parts.length > 0) {
+        display.textContent = parts.join('｜');
+        display.style.display = 'block';
+      } else {
+        display.style.display = 'none';
+      }
+    }
+
     // Update URL parameters
     function updateURLParams() {
       const params = new URLSearchParams();
@@ -683,7 +797,11 @@
       const category = document.getElementById('categoryFilter').value;
       
       if (searchTerm) params.set('q', searchTerm);
-      if (category !== 'all') params.set('cat', category);
+      if (category !== 'all') {
+        // Map back to URL category format if needed
+        const reverseMap = Object.entries(urlCategoryMap).find(([key, val]) => val === category);
+        params.set('category', reverseMap ? reverseMap[0] : category);
+      }
       if (currentFilter !== 'all') params.set('filter', currentFilter);
       if (currentSort !== 'default') params.set('sort', currentSort);
       
@@ -700,8 +818,17 @@
         document.getElementById('searchInput').value = q;
       }
       
+      const category = params.get('category');
+      if (category) {
+        const mappedCategory = urlCategoryMap[category] || category;
+        document.getElementById('categoryFilter').value = mappedCategory;
+        const sidebarRadio = document.querySelector(`input[name="sidebarCategory"][value="${mappedCategory}"]`);
+        if (sidebarRadio) sidebarRadio.checked = true;
+      }
+      
+      // Also check old 'cat' param for backward compatibility
       const cat = params.get('cat');
-      if (cat) {
+      if (cat && !category) {
         document.getElementById('categoryFilter').value = cat;
         const sidebarRadio = document.querySelector(`input[name="sidebarCategory"][value="${cat}"]`);
         if (sidebarRadio) sidebarRadio.checked = true;
@@ -767,6 +894,26 @@
     document.getElementById('loadMoreButton').addEventListener('click', () => {
       displayedCount += itemsPerPage;
       renderList(currentItems);
+    });
+
+    // Handle header search
+    function handleHeaderSearch() {
+      const keyword = document.getElementById('headerSearchInput').value.trim();
+      const params = new URLSearchParams();
+      if (keyword) params.set('q', keyword);
+      window.location.href = 'item_list.html?' + params.toString();
+    }
+
+    // Allow Enter key in header search
+    document.addEventListener('DOMContentLoaded', () => {
+      const headerSearchInput = document.getElementById('headerSearchInput');
+      if (headerSearchInput) {
+        headerSearchInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            handleHeaderSearch();
+          }
+        });
+      }
     });
 
     // Initial load: read URL params and render

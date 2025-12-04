@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>首頁 - 二手交易平台</title>
+  <link rel="stylesheet" href="ItemDetailPage.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background-color: #f5f5f5;
+    }
+
+    /* Header search input */
+    .header-search {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-search input {
+      padding: 8px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 14px;
+      width: 200px;
+      transition: all 0.2s;
+    }
+
+    .header-search input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .header-search input:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .header-search button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .header-search button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Main content */
+    .home-main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
+
+    /* Hero search section */
+    .hero-search {
+      background: white;
+      border-radius: 16px;
+      padding: 32px 40px;
+      margin-bottom: 32px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .hero-search-form {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .hero-search-input {
+      flex: 3;
+      padding: 14px 20px;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+
+    .hero-search-input:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .hero-search-category {
+      flex: 1;
+      padding: 14px 20px;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      font-size: 16px;
+      background: white;
+      cursor: pointer;
+      min-width: 180px;
+    }
+
+    .hero-search-category:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .hero-search-button {
+      flex: 1;
+      padding: 14px 32px;
+      border: none;
+      border-radius: 12px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .hero-search-button:hover {
+      background: #1d4ed8;
+    }
+
+    @media (max-width: 768px) {
+      .hero-search-form {
+        flex-direction: column;
+      }
+      .hero-search-category {
+        min-width: auto;
+      }
+    }
+
+    /* Section styling */
+    .home-section {
+      margin-top: 32px;
+    }
+
+    .section-header {
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 4px 0;
+    }
+
+    .section-subtitle {
+      font-size: 14px;
+      color: #6b7280;
+      margin: 0;
+    }
+
+    /* Trending items grid */
+    .trending-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .item-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .item-card:hover {
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .item-card-image-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #f3f4f6;
+      overflow: hidden;
+    }
+
+    .item-card-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .item-card-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #2563eb;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .item-card-body {
+      padding: 12px;
+    }
+
+    .item-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      color: #111827;
+    }
+
+    .item-card-price {
+      font-size: 16px;
+      font-weight: 700;
+      color: #2563eb;
+      margin-bottom: 6px;
+    }
+
+    .item-card-meta {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    .item-card-trade-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #ecfdf3;
+      color: #15803d;
+      font-size: 11px;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    /* Category shortcuts */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+
+    .category-tile {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .category-tile:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .category-tile-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .category-tile-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 6px;
+    }
+
+    .category-tile-desc {
+      font-size: 12px;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+
+    /* Recently viewed */
+    .recently-viewed-container {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .recently-viewed-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .recently-viewed-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+    }
+
+    .recent-item-card {
+      background: #f9fafb;
+      border-radius: 12px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .recent-item-card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .recent-item-image {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      background: #f3f4f6;
+    }
+
+    .recent-item-body {
+      padding: 10px;
+    }
+
+    .recent-item-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      color: #111827;
+    }
+
+    .recent-item-price {
+      font-size: 14px;
+      font-weight: 700;
+      color: #2563eb;
+    }
+
+    .recent-item-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #e0edff;
+      color: #2563eb;
+      font-size: 10px;
+      margin-top: 4px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header-search {
+        display: none;
+      }
+
+      .trending-grid,
+      .category-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+      }
+
+      .recently-viewed-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-content">
+      <div class="logo">二手交易平台</div>
+      <nav class="header-nav">
+        <a href="index.html">首頁</a>
+        <a href="item_list.html">分類</a>
+        <a href="/sell">賣東西</a>
+      </nav>
+      <div class="header-actions">
+        <div class="header-search">
+          <input type="text" id="headerSearchInput" placeholder="搜尋商品…">
+          <button onclick="handleHeaderSearch()">搜尋</button>
+        </div>
+        <a href="/cart">購物車</a>
+        <a href="/profile">我的帳號</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="home-main">
+    <!-- Hero Search Section -->
+    <section class="hero-search">
+      <form class="hero-search-form" onsubmit="handleHeroSearch(event)">
+        <input
+          type="text"
+          id="heroSearchInput"
+          class="hero-search-input"
+          placeholder="搜尋商品名稱、關鍵字…"
+        />
+        <select id="heroCategorySelect" class="hero-search-category">
+          <option value="all">所有分類</option>
+          <option value="console">遊戲主機</option>
+          <option value="phone">手機 / 平板</option>
+          <option value="computer">電腦 / 週邊</option>
+          <option value="appliance">家電</option>
+          <option value="other">其他</option>
+        </select>
+        <button type="submit" class="hero-search-button">搜尋</button>
+      </form>
+    </section>
+
+    <!-- Trending Items Section -->
+    <section class="home-section">
+      <div class="section-header">
+        <h2 class="section-title">熱門商品</h2>
+        <p class="section-subtitle">根據瀏覽次數與加入購物車次數排序</p>
+      </div>
+      <div class="trending-grid" id="trendingGrid">
+        <!-- Items will be rendered by JavaScript -->
+      </div>
+    </section>
+
+    <!-- Category Shortcuts Section -->
+    <section class="home-section">
+      <div class="section-header">
+        <h2 class="section-title">分類快速瀏覽</h2>
+      </div>
+      <div class="category-grid">
+        <a href="item_list.html?category=console" class="category-tile">
+          <div class="category-tile-icon">🎮</div>
+          <div class="category-tile-title">遊戲主機</div>
+          <div class="category-tile-desc">二手 Nintendo / PlayStation / Xbox 主機</div>
+        </a>
+        <a href="item_list.html?category=phone" class="category-tile">
+          <div class="category-tile-icon">📱</div>
+          <div class="category-tile-title">手機 / 平板</div>
+          <div class="category-tile-desc">iPhone / Android 手機與平板電腦</div>
+        </a>
+        <a href="item_list.html?category=computer" class="category-tile">
+          <div class="category-tile-icon">💻</div>
+          <div class="category-tile-title">電腦 / 週邊</div>
+          <div class="category-tile-desc">筆電、桌機、鍵盤、滑鼠等</div>
+        </a>
+        <a href="item_list.html?category=camera" class="category-tile">
+          <div class="category-tile-icon">📷</div>
+          <div class="category-tile-title">相機 / 3C 產品</div>
+          <div class="category-tile-desc">數位相機、攝影器材、3C 配件</div>
+        </a>
+        <a href="item_list.html?category=appliance" class="category-tile">
+          <div class="category-tile-icon">🏠</div>
+          <div class="category-tile-title">生活家電</div>
+          <div class="category-tile-desc">家電用品、生活必需品</div>
+        </a>
+        <a href="item_list.html?category=other" class="category-tile">
+          <div class="category-tile-icon">📦</div>
+          <div class="category-tile-title">其他</div>
+          <div class="category-tile-desc">其他商品分類</div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Recently Viewed Section -->
+    <section class="home-section">
+      <div class="section-header">
+        <h2 class="section-title">你最近瀏覽過</h2>
+      </div>
+      <div class="recently-viewed-container">
+        <div id="recentlyViewedContent">
+          <!-- Content will be rendered by JavaScript -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="data/itemsData.js"></script>
+  <script>
+    // Category mapping
+    const categoryMap = {
+      'console': 'games',
+      'phone': 'electronics',
+      'computer': 'electronics',
+      'camera': 'electronics',
+      'appliance': 'others',
+      'other': 'others'
+    };
+
+    // Handle hero search
+    function handleHeroSearch(event) {
+      event.preventDefault();
+      const keyword = document.getElementById('heroSearchInput').value.trim();
+      const category = document.getElementById('heroCategorySelect').value;
+      
+      const params = new URLSearchParams();
+      if (keyword) params.set('q', keyword);
+      if (category && category !== 'all') params.set('category', category);
+      
+      window.location.href = 'item_list.html?' + params.toString();
+    }
+
+    // Handle header search
+    function handleHeaderSearch() {
+      const keyword = document.getElementById('headerSearchInput').value.trim();
+      const params = new URLSearchParams();
+      if (keyword) params.set('q', keyword);
+      window.location.href = 'item_list.html?' + params.toString();
+    }
+
+    // Allow Enter key in header search
+    document.getElementById('headerSearchInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        handleHeaderSearch();
+      }
+    });
+
+    // Calculate trending score
+    function calculateScore(item) {
+      const views = item.stats?.views || 0;
+      const addedToCart = item.stats?.addedToCart || 0;
+      return views + addedToCart * 2;
+    }
+
+    // Render trending items
+    function renderTrendingItems() {
+      // Add addedToCart to items for scoring (mock data)
+      const itemsWithScore = mockItems.map(item => ({
+        ...item,
+        stats: {
+          ...item.stats,
+          addedToCart: Math.floor((item.stats?.views || 0) * 0.1) // Mock: ~10% of views
+        }
+      }));
+
+      // Sort by score
+      itemsWithScore.sort((a, b) => calculateScore(b) - calculateScore(a));
+
+      // Get top 6
+      const top6 = itemsWithScore.slice(0, 6);
+
+      const grid = document.getElementById('trendingGrid');
+      grid.innerHTML = '';
+
+      top6.forEach(item => {
+        const card = document.createElement('a');
+        card.href = `item_page.html?id=${item.id}`;
+        card.className = 'item-card';
+
+        const priceText = item.mode.purchase 
+          ? `NT$ ${item.price.toLocaleString('zh-TW')}`
+          : (item.mode.trade ? '僅接受以物易物' : '許願中');
+
+        const views = item.stats?.views || 0;
+        const addedToCart = item.stats?.addedToCart || 0;
+
+        card.innerHTML = `
+          <div class="item-card-image-wrapper">
+            <img src="${item.images[0]}" alt="${item.title}" class="item-card-image">
+            <span class="item-card-badge">${item.condition}</span>
+          </div>
+          <div class="item-card-body">
+            <h3 class="item-card-title">${item.title}</h3>
+            <div class="item-card-price">${priceText}</div>
+            ${item.mode.trade ? '<span class="item-card-trade-badge">接受以物易物</span>' : ''}
+            <div class="item-card-meta">瀏覽 ${views}｜加入購物車 ${addedToCart}</div>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    // Render recently viewed items
+    function renderRecentlyViewed() {
+      const container = document.getElementById('recentlyViewedContent');
+      const recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewedItems') || '[]');
+
+      if (recentlyViewed.length === 0) {
+        container.innerHTML = '<div class="recently-viewed-empty">你最近還沒有瀏覽任何商品。</div>';
+        return;
+      }
+
+      const grid = document.createElement('div');
+      grid.className = 'recently-viewed-grid';
+
+      recentlyViewed.forEach(item => {
+        const card = document.createElement('a');
+        card.href = `item_page.html?id=${item.id}`;
+        card.className = 'recent-item-card';
+
+        const priceText = item.price 
+          ? `NT$ ${item.price.toLocaleString('zh-TW')}`
+          : (item.mode?.trade ? '僅接受以物易物' : '許願中');
+
+        card.innerHTML = `
+          <img src="${item.imageUrl}" alt="${item.title}" class="recent-item-image">
+          <div class="recent-item-body">
+            <div class="recent-item-title">${item.title}</div>
+            <div class="recent-item-price">${priceText}</div>
+            ${item.condition ? `<span class="recent-item-badge">${item.condition}</span>` : ''}
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+
+      container.innerHTML = '';
+      container.appendChild(grid);
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      renderTrendingItems();
+      renderRecentlyViewed();
+    });
+  </script>
+</body>
+</html>
+

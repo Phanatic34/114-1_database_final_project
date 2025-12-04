@@ -134,6 +134,55 @@
       white-space: nowrap;
     }
 
+    /* Header search input */
+    .header-search {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-search input {
+      padding: 8px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 14px;
+      width: 200px;
+      transition: all 0.2s;
+    }
+
+    .header-search input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .header-search input:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .header-search button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .header-search button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      .header-search {
+        display: none;
+      }
+    }
+
     /* Main content and breadcrumb adjustments */
     .main-content {
       padding: 0;
@@ -145,17 +194,18 @@
       padding: 16px 16px 0;
     }
 
-    /* Main 3-column layout */
+    /* Main layout container */
     .item-page-main {
       max-width: 1200px;
       margin: 24px auto 40px;
       padding: 0 16px;
     }
 
-    .item-main-layout {
+    /* Upper section: image + main info + purchase card */
+    .item-top-grid {
       display: grid;
-      grid-template-columns: minmax(280px, 1.25fr) minmax(340px, 1.6fr) minmax(260px, 1.1fr);
-      gap: 24px;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.3fr) 320px;
+      column-gap: 32px;
       align-items: flex-start;
     }
 
@@ -165,15 +215,14 @@
       gap: 0;
     }
 
-    /* Shared row for 商品資訊 and 商品描述 with aligned top border */
+    /* Lower section: 商品資訊 + 商品描述 */
     .item-detail-row {
       display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr); /* same left/right ratio as before */
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
       column-gap: 24px;
       margin-top: 24px;
       padding-top: 18px;
-      border-top: 1px solid #e5e7eb; /* the subtle top border line */
-      grid-column: 1 / 3; /* span across left and center columns */
+      border-top: 1px solid #e5e7eb;
     }
 
     /* Left Column - Image Gallery + 商品資訊 */
@@ -303,8 +352,8 @@
     /* On larger screens, make header span visually by extending into right column space */
     @media (min-width: 961px) {
       .listing-header {
-        margin-right: -280px; /* Negative margin to extend into right column */
-        padding-right: 280px; /* Padding to maintain content spacing */
+        margin-right: -320px; /* Negative margin to extend into right column */
+        padding-right: 320px; /* Padding to maintain content spacing */
       }
     }
 
@@ -521,6 +570,62 @@
       border-radius: 16px;
       box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
       padding: 20px 20px 16px;
+      position: relative; /* positioning context for dropdown */
+    }
+
+    /* Header row: label on the left, dots on the right */
+    .purchase-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    /* Three-dot button */
+    .purchase-more-btn {
+      border: none;
+      background: transparent;
+      font-size: 20px;
+      line-height: 1;
+      color: #9ca3af; /* neutral gray */
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 999px;
+      transition: background 0.2s;
+    }
+
+    .purchase-more-btn:hover {
+      background: #e5e7eb;
+    }
+
+    /* Dropdown menu container */
+    .purchase-more-menu {
+      position: absolute;
+      top: 16px;       /* align with top padding inside card */
+      right: 16px;     /* stick to top-right corner of the card */
+      min-width: 140px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+      padding: 6px 0;
+      z-index: 20;
+    }
+
+    /* Menu item: 檢舉商品 */
+    .purchase-more-menu-item {
+      width: 100%;
+      border: none;
+      background: transparent;
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #111827;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .purchase-more-menu-item:hover {
+      background: #f3f4f6;
     }
 
     .action-price-block {
@@ -640,7 +745,7 @@
 
     /* Responsive behavior */
     @media (max-width: 960px) {
-      .item-main-layout {
+      .item-top-grid {
         grid-template-columns: minmax(280px, 1.4fr) minmax(280px, 1.6fr);
       }
       .item-col-right {
@@ -649,7 +754,6 @@
         margin-top: 24px;
       }
       .item-detail-row {
-        grid-column: 1 / -1;
         grid-template-columns: 1fr;
       }
       .listing-header {
@@ -662,7 +766,7 @@
     }
 
     @media (max-width: 640px) {
-      .item-main-layout {
+      .item-top-grid {
         grid-template-columns: 1fr;
       }
       .item-col-left,
@@ -671,7 +775,6 @@
         grid-column: 1 / -1;
       }
       .item-detail-row {
-        grid-column: 1 / -1;
         grid-template-columns: 1fr;
       }
       .seller-inline {
@@ -699,11 +802,15 @@
     <div class="header-content">
       <div class="logo">二手交易平台</div>
       <nav class="header-nav">
-        <a href="/">首頁</a>
-        <a href="/categories">分類</a>
+        <a href="index.html">首頁</a>
+        <a href="item_list.html">分類</a>
         <a href="/sell">賣東西</a>
       </nav>
       <div class="header-actions">
+        <div class="header-search">
+          <input type="text" id="headerSearchInput" placeholder="搜尋商品…">
+          <button onclick="handleHeaderSearch()">搜尋</button>
+        </div>
         <a href="/cart">購物車</a>
         <a href="/profile">我的帳號</a>
       </div>
@@ -712,12 +819,13 @@
 
   <main class="main-content">
     <div class="breadcrumb">
-      <a href="item_list.html">首頁</a> / <a href="item_list.html" id="breadcrumbCategory">分類</a> / <span id="breadcrumbSubcategory">商品詳情</span>
+      <a href="index.html">首頁</a> / <a href="item_list.html" id="breadcrumbCategory">分類</a> / <span id="breadcrumbSubcategory">商品詳情</span>
     </div>
 
     <div class="item-page-main">
-      <div class="item-main-layout">
-        <!-- Left Column - Image Gallery + 商品資訊 -->
+      <!-- UPPER SECTION: image + main info + purchase card -->
+      <div class="item-top-grid">
+        <!-- Left Column - Image Gallery -->
         <div class="item-col-left">
           <div class="item-image-main">
             <img
@@ -792,47 +900,29 @@
           </section>
         </div>
 
-        <!-- Shared row for 商品資訊 and 商品描述 with aligned top border -->
-        <div class="item-detail-row">
-          <section class="item-info-card">
-            <h3 class="section-title">商品資訊</h3>
-            <dl class="item-info-list">
-              <div class="item-info-row">
-                <dt>商品狀況：</dt>
-                <dd id="itemCondition">九成新</dd>
-              </div>
-              <div class="item-info-row">
-                <dt>所在地：</dt>
-                <dd id="itemLocation">台北市信義區</dd>
-              </div>
-              <div class="item-info-row">
-                <dt>庫存數量：</dt>
-                <dd>1 件</dd>
-              </div>
-              <div class="item-info-row item-info-tags">
-                <dt>標籤：</dt>
-                <dd id="itemTags">
-                  <!-- Tags will be populated by JS -->
-                </dd>
-              </div>
-            </dl>
-          </section>
-
-          <section class="item-description-section">
-            <h3 class="section-title">商品描述</h3>
-            <div class="description-content" id="itemDescription">
-              <!-- Content will be populated by JS -->
-            </div>
-            <p class="view-stats" id="viewStats">瀏覽次數：342　追蹤人數：8</p>
-          </section>
-        </div>
-
-        <!-- Right Column - Sticky Action Card -->
+        <!-- Right Column - Purchase Card -->
         <aside class="item-col-right">
           <div class="action-card">
             <div class="action-price-block">
               <div id="actionPriceBlock">
-                <span class="action-price-label">價格</span>
+                <div class="purchase-card-header">
+                  <span class="action-price-label">價格</span>
+                  <!-- three-dot button -->
+                  <button
+                    id="purchaseMoreBtn"
+                    class="purchase-more-btn"
+                    type="button"
+                    aria-label="更多選項"
+                  >
+                    ⋮
+                  </button>
+                  <!-- dropdown menu -->
+                  <div id="purchaseMoreMenu" class="purchase-more-menu" hidden>
+                    <button id="reportItemBtn" type="button" class="purchase-more-menu-item">
+                      檢舉商品
+                    </button>
+                  </div>
+                </div>
                 <div class="action-price" id="actionPrice">NT$ 8,500</div>
               </div>
             </div>
@@ -857,6 +947,41 @@
             </div>
           </div>
         </aside>
+      </div>
+
+      <!-- LOWER SECTION: 商品資訊 + 商品描述 -->
+      <div class="item-detail-row">
+        <section class="item-info-card">
+          <h3 class="section-title">商品資訊</h3>
+          <dl class="item-info-list">
+            <div class="item-info-row">
+              <dt>商品狀況：</dt>
+              <dd id="itemCondition">九成新</dd>
+            </div>
+            <div class="item-info-row">
+              <dt>所在地：</dt>
+              <dd id="itemLocation">台北市信義區</dd>
+            </div>
+            <div class="item-info-row">
+              <dt>庫存數量：</dt>
+              <dd>1 件</dd>
+            </div>
+            <div class="item-info-row item-info-tags">
+              <dt>標籤：</dt>
+              <dd id="itemTags">
+                <!-- Tags will be populated by JS -->
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="item-description-section">
+          <h3 class="section-title">商品描述</h3>
+          <div class="description-content" id="itemDescription">
+            <!-- Content will be populated by JS -->
+          </div>
+          <p class="view-stats" id="viewStats">瀏覽次數：342　追蹤人數：8</p>
+        </section>
       </div>
     </div>
   </main>
@@ -1152,8 +1277,28 @@
           // Hide price, hide purchase buttons, show trade only
           if (listingModeSummary) listingModeSummary.textContent = '僅接受以物易物';
           if (actionPriceBlock) {
-            actionPriceBlock.innerHTML = '<div class="action-price" style="color: #6b7280; font-size: 14px;">僅接受以物易物</div>';
+            actionPriceBlock.innerHTML = `
+              <div class="purchase-card-header">
+                <span class="action-price-label">價格</span>
+                <button
+                  id="purchaseMoreBtn"
+                  class="purchase-more-btn"
+                  type="button"
+                  aria-label="更多選項"
+                >
+                  ⋮
+                </button>
+                <div id="purchaseMoreMenu" class="purchase-more-menu" hidden>
+                  <button id="reportItemBtn" type="button" class="purchase-more-menu-item">
+                    檢舉商品
+                  </button>
+                </div>
+              </div>
+              <div class="action-price" style="color: #6b7280; font-size: 14px;">僅接受以物易物</div>
+            `;
             actionPriceBlock.style.display = 'block';
+            // Re-attach event listeners after innerHTML update
+            attachPurchaseMenuListeners();
           }
           if (btnAddToCart) btnAddToCart.style.display = 'none';
           if (btnBuyNow) btnBuyNow.style.display = 'none';
@@ -1163,8 +1308,28 @@
           // Hide price, show wish message
           if (listingModeSummary) listingModeSummary.textContent = '開放式許願';
           if (actionPriceBlock) {
-            actionPriceBlock.innerHTML = '<div class="action-price" style="color: #6b7280; font-size: 14px;">開放式許願</div>';
+            actionPriceBlock.innerHTML = `
+              <div class="purchase-card-header">
+                <span class="action-price-label">價格</span>
+                <button
+                  id="purchaseMoreBtn"
+                  class="purchase-more-btn"
+                  type="button"
+                  aria-label="更多選項"
+                >
+                  ⋮
+                </button>
+                <div id="purchaseMoreMenu" class="purchase-more-menu" hidden>
+                  <button id="reportItemBtn" type="button" class="purchase-more-menu-item">
+                    檢舉商品
+                  </button>
+                </div>
+              </div>
+              <div class="action-price" style="color: #6b7280; font-size: 14px;">開放式許願</div>
+            `;
             actionPriceBlock.style.display = 'block';
+            // Re-attach event listeners after innerHTML update
+            attachPurchaseMenuListeners();
           }
           if (btnAddToCart) btnAddToCart.style.display = 'none';
           if (btnBuyNow) btnBuyNow.style.display = 'none';
@@ -1188,6 +1353,41 @@
     if (!currentItem) {
       document.body.innerHTML = '<div style="padding: 40px; text-align: center;"><h1>商品不存在</h1><p><a href="item_list.html">返回商品列表</a></p></div>';
     } else {
+      // Track recently viewed items
+      (function() {
+        try {
+          let recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewedItems') || '[]');
+          
+          // Remove duplicate if exists
+          recentlyViewed = recentlyViewed.filter(item => item.id !== currentItem.id);
+          
+          // Add current item to front
+          const itemData = {
+            id: currentItem.id,
+            title: currentItem.title,
+            price: currentItem.mode.purchase ? currentItem.price : null,
+            imageUrl: currentItem.images && currentItem.images.length > 0 ? currentItem.images[0] : '',
+            condition: currentItem.condition,
+            mode: {
+              purchase: currentItem.mode.purchase,
+              trade: currentItem.mode.trade,
+              wish: currentItem.mode.wish
+            }
+          };
+          
+          recentlyViewed.unshift(itemData);
+          
+          // Limit to max 8 items
+          if (recentlyViewed.length > 8) {
+            recentlyViewed = recentlyViewed.slice(0, 8);
+          }
+          
+          // Save back to localStorage
+          localStorage.setItem('recentlyViewedItems', JSON.stringify(recentlyViewed));
+        } catch (e) {
+          console.error('Error saving recently viewed items:', e);
+        }
+      })();
       // Populate page with currentItem data
       function populateItemPage() {
         // Title
@@ -1380,10 +1580,27 @@
           }
           if (actionPriceBlock) {
             actionPriceBlock.innerHTML = `
-              <span class="action-price-label">價格</span>
+              <div class="purchase-card-header">
+                <span class="action-price-label">價格</span>
+                <button
+                  id="purchaseMoreBtn"
+                  class="purchase-more-btn"
+                  type="button"
+                  aria-label="更多選項"
+                >
+                  ⋮
+                </button>
+                <div id="purchaseMoreMenu" class="purchase-more-menu" hidden>
+                  <button id="reportItemBtn" type="button" class="purchase-more-menu-item">
+                    檢舉商品
+                  </button>
+                </div>
+              </div>
               <div class="action-price">NT$ ${currentItem.price.toLocaleString('zh-TW')}</div>
             `;
             actionPriceBlock.style.display = 'block';
+            // Re-attach event listeners after innerHTML update
+            attachPurchaseMenuListeners();
           }
           if (btnAddToCart) btnAddToCart.style.display = 'block';
           if (btnBuyNow) btnBuyNow.style.display = 'block';
@@ -1395,9 +1612,27 @@
           }
           if (actionPriceBlock) {
             actionPriceBlock.innerHTML = `
+              <div class="purchase-card-header">
+                <span class="action-price-label">價格</span>
+                <button
+                  id="purchaseMoreBtn"
+                  class="purchase-more-btn"
+                  type="button"
+                  aria-label="更多選項"
+                >
+                  ⋮
+                </button>
+                <div id="purchaseMoreMenu" class="purchase-more-menu" hidden>
+                  <button id="reportItemBtn" type="button" class="purchase-more-menu-item">
+                    檢舉商品
+                  </button>
+                </div>
+              </div>
               <div class="action-price" style="color: #6b7280; font-size: 14px;">僅接受以物易物</div>
             `;
             actionPriceBlock.style.display = 'block';
+            // Re-attach event listeners after innerHTML update
+            attachPurchaseMenuListeners();
           }
           if (btnAddToCart) btnAddToCart.style.display = 'none';
           if (btnBuyNow) btnBuyNow.style.display = 'none';
@@ -1409,9 +1644,27 @@
           }
           if (actionPriceBlock) {
             actionPriceBlock.innerHTML = `
+              <div class="purchase-card-header">
+                <span class="action-price-label">價格</span>
+                <button
+                  id="purchaseMoreBtn"
+                  class="purchase-more-btn"
+                  type="button"
+                  aria-label="更多選項"
+                >
+                  ⋮
+                </button>
+                <div id="purchaseMoreMenu" class="purchase-more-menu" hidden>
+                  <button id="reportItemBtn" type="button" class="purchase-more-menu-item">
+                    檢舉商品
+                  </button>
+                </div>
+              </div>
               <div class="action-price" style="color: #6b7280; font-size: 14px;">開放式許願</div>
             `;
             actionPriceBlock.style.display = 'block';
+            // Re-attach event listeners after innerHTML update
+            attachPurchaseMenuListeners();
           }
           if (btnAddToCart) btnAddToCart.style.display = 'none';
           if (btnBuyNow) btnBuyNow.style.display = 'none';
@@ -1442,6 +1695,70 @@
       // Populate on load
       populateItemPage();
     }
+
+    // Handle header search
+    function handleHeaderSearch() {
+      const keyword = document.getElementById('headerSearchInput').value.trim();
+      const params = new URLSearchParams();
+      if (keyword) params.set('q', keyword);
+      window.location.href = 'item_list.html?' + params.toString();
+    }
+
+    // Allow Enter key in header search
+    (function() {
+      const headerSearchInput = document.getElementById('headerSearchInput');
+      if (headerSearchInput) {
+        headerSearchInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            handleHeaderSearch();
+          }
+        });
+      }
+    })();
+
+    // Helper function to attach purchase menu listeners
+    function attachPurchaseMenuListeners() {
+      const moreBtn = document.getElementById('purchaseMoreBtn');
+      const moreMenu = document.getElementById('purchaseMoreMenu');
+      const reportBtn = document.getElementById('reportItemBtn');
+
+      if (moreBtn && moreMenu) {
+        // Remove existing listeners if any (by cloning and replacing)
+        const newMoreBtn = moreBtn.cloneNode(true);
+        moreBtn.parentNode.replaceChild(newMoreBtn, moreBtn);
+        
+        newMoreBtn.addEventListener('click', function (event) {
+          event.stopPropagation();
+          moreMenu.hidden = !moreMenu.hidden;
+        });
+      }
+
+      if (reportBtn) {
+        // Remove existing listeners if any
+        const newReportBtn = reportBtn.cloneNode(true);
+        reportBtn.parentNode.replaceChild(newReportBtn, reportBtn);
+        
+        newReportBtn.addEventListener('click', function () {
+          moreMenu.hidden = true;
+          // For now just show a confirmation; in a real system we would call an API
+          alert('已收到你的檢舉，我們會儘快處理，謝謝你的協助。');
+        });
+      }
+    }
+
+    // Three-dot menu functionality
+    document.addEventListener('DOMContentLoaded', function () {
+      attachPurchaseMenuListeners();
+
+      // Click outside to close
+      document.addEventListener('click', function (event) {
+        const moreMenu = document.getElementById('purchaseMoreMenu');
+        const moreBtn = document.getElementById('purchaseMoreBtn');
+        if (moreMenu && moreBtn && !moreMenu.contains(event.target) && !moreBtn.contains(event.target)) {
+          moreMenu.hidden = true;
+        }
+      });
+    });
   </script>
 </body>
 </html>
