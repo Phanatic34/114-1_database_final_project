@@ -159,6 +159,12 @@
       align-items: flex-start;
     }
 
+    .item-col-center {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
     /* Left Column - Image Gallery + 商品資訊 */
     .item-image-main {
       background: #f3f4f6;
@@ -267,6 +273,52 @@
       font-size: 13px;
     }
 
+    /* Listing Header - spans center + right visually */
+    .listing-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    /* On larger screens, make header span visually by extending into right column space */
+    @media (min-width: 961px) {
+      .listing-header {
+        margin-right: -280px; /* Negative margin to extend into right column */
+        padding-right: 280px; /* Padding to maintain content spacing */
+      }
+    }
+
+    .listing-header-left {
+      flex: 2;
+    }
+
+    .listing-header-right {
+      flex: 1;
+      text-align: right;
+    }
+
+    .header-price-label {
+      display: block;
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .header-price {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2563eb;
+    }
+
+    .trade-summary-line {
+      font-size: 13px;
+      color: #4b5563;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
     /* Center Column - Title, Seller, Trade Modes, Rules, Description */
     .item-title {
       font-size: 24px;
@@ -281,7 +333,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
     .seller-inline-left {
@@ -337,7 +389,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-bottom: 16px;
+      margin-bottom: 8px;
     }
 
     .trade-mode-badges .badge {
@@ -531,6 +583,13 @@
         grid-column: 1 / -1;
         margin-top: 24px;
       }
+      .listing-header {
+        margin-right: 0;
+        padding-right: 0;
+      }
+      .listing-header-right {
+        display: none; /* Hide header price on tablet, show in action card */
+      }
     }
 
     @media (max-width: 640px) {
@@ -545,6 +604,14 @@
       .seller-inline {
         flex-direction: column;
         align-items: flex-start;
+      }
+      .listing-header {
+        flex-direction: column;
+        gap: 12px;
+      }
+      .listing-header-right {
+        display: block;
+        text-align: left;
       }
     }
   </style>
@@ -633,37 +700,53 @@
           </section>
         </div>
 
-        <!-- Center Column - Title, Seller, Trade Modes, Rules, Description -->
+        <!-- Center Column - Listing Header + Trade Rules + Description -->
         <div class="item-col-center">
-          <h1 class="item-title">Nintendo Switch OLED 白色主機 九成新</h1>
+          <!-- Listing Header spans center + right visually -->
+          <div class="listing-header">
+            <div class="listing-header-left">
+              <h1 class="item-title">Nintendo Switch OLED 白色主機 九成新</h1>
 
-          <div class="seller-inline">
-            <div class="seller-inline-left">
-              <div class="seller-avatar-small">
-                <span>G</span>
-              </div>
-              <div class="seller-inline-text">
-                <div class="seller-name-row">
-                  <span class="seller-name">game_lover_2024</span>
-                  <span class="seller-count">(127)</span>
+              <div class="seller-inline">
+                <div class="seller-inline-left">
+                  <div class="seller-avatar-small">
+                    <span>G</span>
+                  </div>
+                  <div class="seller-inline-text">
+                    <div class="seller-name-row">
+                      <span class="seller-name">game_lover_2024</span>
+                      <span class="seller-count">(127)</span>
+                    </div>
+                    <div class="seller-rating-row">99.9% 好評</div>
+                  </div>
                 </div>
-                <div class="seller-rating-row">99.9% 好評</div>
+                <div class="seller-inline-links">
+                  <button class="seller-link-button" type="button" onclick="window.location.href='/seller/game_lover_2024'">
+                    查看賣家其他商品
+                  </button>
+                  <button class="seller-link-button" type="button" id="sellerInlineMessageBtn">
+                    聯絡賣家
+                  </button>
+                </div>
+              </div>
+
+              <div class="trade-mode-badges">
+                <span class="badge active">販售中</span>
+                <span class="badge active">可交換（指定目標）</span>
+                <span class="badge active">開放式許願</span>
+              </div>
+
+              <p class="trade-summary-line">
+                想換 PlayStation 5 或 Xbox Series X，也接受其他 Nintendo 主機相關商品（詳見下方「交換規則」）
+              </p>
+            </div>
+
+            <div class="listing-header-right">
+              <div id="listingHeaderPriceBlock">
+                <span class="header-price-label">價格</span>
+                <div class="header-price">NT$ 8,500</div>
               </div>
             </div>
-            <div class="seller-inline-links">
-              <button class="seller-link-button" type="button" onclick="window.location.href='/seller/game_lover_2024'">
-                查看賣家其他商品
-              </button>
-              <button class="seller-link-button" type="button" id="sellerInlineMessageBtn">
-                聯絡賣家
-              </button>
-            </div>
-          </div>
-
-          <div class="trade-mode-badges">
-            <span class="badge active">販售中</span>
-            <span class="badge active">可交換（指定目標）</span>
-            <span class="badge active">開放式許願</span>
           </div>
 
           <section class="trade-rule-card">
@@ -701,8 +784,10 @@
         <aside class="item-col-right">
           <div class="action-card">
             <div class="action-price-block">
-              <span class="action-price-label">價格</span>
-              <div class="action-price">NT$ 8,500</div>
+              <div id="actionPriceBlock">
+                <span class="action-price-label">價格</span>
+                <div class="action-price">NT$ 8,500</div>
+              </div>
             </div>
 
             <div class="action-quantity">
@@ -713,11 +798,13 @@
             </div>
 
             <div class="action-buttons">
-              <button class="btn-primary" onclick="handleAddToCart()">加入購物車</button>
-              <button class="btn-primary" onclick="handlePurchase()">立即購買</button>
-              <button class="btn-primary" onclick="handleTrade()">以物易物 (Trade)</button>
-              <button class="btn-outline" id="messageButtonMain" onclick="handleOpenChat()">Message</button>
-              <p class="trade-hint">想換 PS5 / Xbox Series X，也接受其他 Nintendo 主機，詳見「交換規則」</p>
+              <button id="btnAddToCart" class="btn-primary" onclick="handleAddToCart()">加入購物車</button>
+              <button id="btnBuyNow" class="btn-primary" onclick="handlePurchase()">立即購買</button>
+              <button id="btnTrade" class="btn-primary" onclick="handleTrade()">以物易物 (Trade)</button>
+              <button id="messageButtonMain" class="btn-outline" onclick="handleOpenChat()">Message</button>
+              <p id="tradeHint" class="trade-hint">
+                想換 PS5 / Xbox Series X，也接受其他 Nintendo 主機，詳見「交換規則」。
+              </p>
             </div>
 
             <div class="action-divider"></div>
@@ -978,6 +1065,60 @@
       if (inlineMsgBtn) {
         inlineMsgBtn.addEventListener('click', handleOpenChat);
       }
+    })();
+
+    // Mode handling logic (purchase + trade / trade only / wish only)
+    (function() {
+      // For now use hard-coded mode for the demo.
+      // Later, this should come from backend or templating.
+      const listingMode = 'purchase_and_trade';
+      // options: 'purchase_and_trade', 'trade_only', 'wish_only'
+
+      const headerPriceBlock = document.getElementById('listingHeaderPriceBlock');
+      const actionPriceBlock = document.getElementById('actionPriceBlock');
+      const btnAddToCart = document.getElementById('btnAddToCart');
+      const btnBuyNow = document.getElementById('btnBuyNow');
+      const btnTrade = document.getElementById('btnTrade');
+      const tradeHint = document.getElementById('tradeHint');
+      const actionQuantity = document.querySelector('.action-quantity');
+
+      function applyMode() {
+        if (listingMode === 'purchase_and_trade') {
+          // Show price, show all buttons
+          if (headerPriceBlock) headerPriceBlock.style.display = 'block';
+          if (actionPriceBlock) actionPriceBlock.style.display = 'block';
+          if (btnAddToCart) btnAddToCart.style.display = 'block';
+          if (btnBuyNow) btnBuyNow.style.display = 'block';
+          if (btnTrade) btnTrade.style.display = 'block';
+          if (actionQuantity) actionQuantity.style.display = 'flex';
+          if (tradeHint) tradeHint.style.display = 'block';
+        } else if (listingMode === 'trade_only') {
+          // Hide price, hide purchase buttons, show trade only
+          if (headerPriceBlock) {
+            headerPriceBlock.innerHTML = '<span style="color: #6b7280; font-size: 13px;">僅接受以物易物</span>';
+          }
+          if (actionPriceBlock) actionPriceBlock.style.display = 'none';
+          if (btnAddToCart) btnAddToCart.style.display = 'none';
+          if (btnBuyNow) btnBuyNow.style.display = 'none';
+          if (btnTrade) btnTrade.style.display = 'block';
+          if (actionQuantity) actionQuantity.style.display = 'none';
+          if (tradeHint) tradeHint.style.display = 'block';
+        } else if (listingMode === 'wish_only') {
+          // Hide price, show wish message
+          if (headerPriceBlock) {
+            headerPriceBlock.innerHTML = '<span style="color: #6b7280; font-size: 13px;">開放式許願</span>';
+          }
+          if (actionPriceBlock) actionPriceBlock.style.display = 'none';
+          if (btnAddToCart) btnAddToCart.style.display = 'none';
+          if (btnBuyNow) btnBuyNow.style.display = 'none';
+          if (btnTrade) btnTrade.style.display = 'block';
+          if (actionQuantity) actionQuantity.style.display = 'none';
+          if (tradeHint) tradeHint.style.display = 'block';
+        }
+      }
+
+      // Apply mode on page load
+      applyMode();
     })();
   </script>
 </body>
