@@ -387,25 +387,58 @@
 
     .trade-mode-badges {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;       /* keep them on one line */
+      align-items: center;
       gap: 8px;
       margin-bottom: 8px;
     }
 
-    .trade-mode-badges .badge {
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 600;
-      background: #f3f4f6;
-      color: #6b7280;
-      border: 1px solid #e5e7eb;
+    /* On very small screens, allow wrapping so it doesn't overflow */
+    @media (max-width: 480px) {
+      .trade-mode-badges {
+        flex-wrap: wrap;
+      }
     }
 
-    .trade-mode-badges .badge.active {
-      background: #e0edff;
-      color: #2563eb;
-      border-color: #2563eb;
+    .trade-mode-badges .badge,
+    .mode-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    /* Default pill style (soft blue fill) */
+    .trade-mode-badges .badge,
+    .mode-pill {
+      background: #e5f0ff;        /* light blue fill */
+      border: 1px solid #bfdbfe;  /* soft blue border */
+      color: #1d4ed8;             /* darker blue text */
+    }
+
+    /* Mode-specific colors */
+    .mode-sale,
+    .trade-mode-badges .badge.mode-sale {
+      background: #e0f2fe;
+      border-color: #bae6fd;
+      color: #1d4ed8;
+    }
+
+    .mode-trade,
+    .trade-mode-badges .badge.mode-trade {
+      background: #ecfdf3;
+      border-color: #bbf7d0;
+      color: #15803d;
+    }
+
+    .mode-wish,
+    .trade-mode-badges .badge.mode-wish {
+      background: #fef3c7;
+      border-color: #fde68a;
+      color: #92400e;
     }
 
     .trade-rule-card {
@@ -1192,21 +1225,22 @@
         badgesContainer.innerHTML = '';
         if (currentItem.mode.purchase) {
           const badge = document.createElement('span');
-          badge.className = 'badge active';
+          badge.className = 'badge mode-sale';
           badge.textContent = '販售中';
           badgesContainer.appendChild(badge);
         }
         if (currentItem.mode.trade) {
           const badge = document.createElement('span');
-          badge.className = 'badge active';
+          badge.className = 'badge mode-trade';
           if (currentItem.mode.tradeMode === 'target') {
             badge.textContent = '可交換（指定目標）';
           } else if (currentItem.mode.tradeMode === 'offer') {
+            badge.className = 'badge mode-wish';
             badge.textContent = '開放式許願';
           } else {
             badge.textContent = '可交換（指定目標）';
             const badge2 = document.createElement('span');
-            badge2.className = 'badge active';
+            badge2.className = 'badge mode-wish';
             badge2.textContent = '開放式許願';
             badgesContainer.appendChild(badge2);
           }
@@ -1214,7 +1248,7 @@
         }
         if (currentItem.mode.wish && !currentItem.mode.trade) {
           const badge = document.createElement('span');
-          badge.className = 'badge active';
+          badge.className = 'badge mode-wish';
           badge.textContent = '開放式許願';
           badgesContainer.appendChild(badge);
         }
