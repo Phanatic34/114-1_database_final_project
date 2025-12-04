@@ -305,12 +305,6 @@
       white-space: nowrap;
     }
 
-    .trade-summary-line {
-      font-size: 13px;
-      color: #4b5563;
-      margin-top: 8px;
-      line-height: 1.5;
-    }
 
     /* Center Column - Title, Seller, Trade Modes, Rules, Description */
     .item-title {
@@ -446,6 +440,7 @@
       border-radius: 16px;
       padding: 16px 20px;
       border-left: 4px solid #2563eb;
+      margin-top: 12px;
       margin-bottom: 24px;
     }
 
@@ -783,9 +778,6 @@
                 <!-- Badges will be populated by JS -->
               </div>
 
-              <p class="trade-summary-line" id="tradeSummaryLine">
-                想換 PlayStation 5 或 Xbox Series X，也接受其他 Nintendo 主機相關商品（詳見下方「交換規則」）
-              </p>
             </div>
 
             <div class="listing-header-right">
@@ -1253,13 +1245,7 @@
           badgesContainer.appendChild(badge);
         }
 
-        // Trade summary
-        if (currentItem.mode.tradeSummary) {
-          document.getElementById('tradeSummaryLine').textContent = 
-            currentItem.mode.tradeSummary + '（詳見下方「交換規則」）';
-        } else {
-          document.getElementById('tradeSummaryLine').style.display = 'none';
-        }
+        // Trade summary line removed - only blue trade-rule-card shows trade info now
 
         // Trade rule card
         const tradeRuleBody = document.getElementById('tradeRuleBody');
