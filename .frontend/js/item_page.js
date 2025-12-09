@@ -949,7 +949,7 @@ async function confirmPurchase() {
     console.log('購買請求建立成功:', result);
 
     closePurchaseModal();
-    alert('購買請求已送出！賣家將收到通知。\n賣家接受前，你可以取消這筆交易請求。');
+  alert('購買請求已送出！賣家將收到通知。\n賣家接受前，你可以取消這筆交易請求。');
     
     // 重新載入頁面以更新商品狀態
     window.location.reload();
@@ -992,13 +992,13 @@ async function handleTrade() {
   // 從 API 獲取用戶的商品列表
   const tradeRequirementText = document.getElementById('tradeRequirementText');
   const itemsGrid = document.querySelector('.items-grid');
-  
+
   if (itemsGrid) {
     itemsGrid.innerHTML = '<p style="color: #6b7280; padding: 20px; text-align: center;">載入中...</p>';
-  }
+    }
 
   // 更新賣家需求顯示
-  if (tradeRequirementText) {
+    if (tradeRequirementText) {
     // 優先使用 tradeTargetNote，其次使用 mode.tradeSummary
     const requirementText = currentItem.tradeTargetNote || 
                            (currentItem.mode && currentItem.mode.tradeSummary) || 
@@ -1016,31 +1016,31 @@ async function handleTrade() {
   // 從 API 獲取用戶的商品
   try {
     const userProducts = await api.getProducts({ owner_id: currentUser.id, status: 'available' });
-    
-    if (itemsGrid) {
-      itemsGrid.innerHTML = '';
+
+  if (itemsGrid) {
+    itemsGrid.innerHTML = '';
       if (!userProducts || userProducts.length === 0) {
-        itemsGrid.innerHTML = '<p style="color: #6b7280; padding: 20px; text-align: center;">你目前沒有可交換的商品。請先刊登商品。</p>';
-      } else {
+      itemsGrid.innerHTML = '<p style="color: #6b7280; padding: 20px; text-align: center;">你目前沒有可交換的商品。請先刊登商品。</p>';
+    } else {
         userProducts.forEach(product => {
-          const card = document.createElement('div');
-          card.className = 'trade-item-card item-card';
+        const card = document.createElement('div');
+        card.className = 'trade-item-card item-card';
           card.dataset.itemId = product.product_id;
-          card.onclick = () => selectTradeItem(card);
+        card.onclick = () => selectTradeItem(card);
           
-          const thumbImg = document.createElement('img');
+            const thumbImg = document.createElement('img');
           thumbImg.src = getProductImageUrl(product);
           thumbImg.alt = product.product_name;
-          attachImageFallback(thumbImg);
-          
-          const titleDiv = document.createElement('div');
-          titleDiv.className = 'item-card-title';
+            attachImageFallback(thumbImg);
+            
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'item-card-title';
           titleDiv.textContent = product.product_name;
-          
-          card.appendChild(thumbImg);
-          card.appendChild(titleDiv);
-          itemsGrid.appendChild(card);
-        });
+            
+            card.appendChild(thumbImg);
+            card.appendChild(titleDiv);
+            itemsGrid.appendChild(card);
+      });
       }
     }
   } catch (error) {
@@ -1131,7 +1131,7 @@ async function handleSubmitTrade() {
     const result = await api.createTradeRequest(requestData);
     console.log('交換請求建立成功:', result);
 
-    closeTradeModal();
+  closeTradeModal();
     alert('交換提案已送出！賣家將收到通知。\n賣家接受前，你可以取消這筆交易請求。');
     
     // 重新載入頁面以更新商品狀態

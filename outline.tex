@@ -73,6 +73,9 @@
     captionpos=b
 }
 
+\usepackage{tikz}
+\usetikzlibrary{shapes,positioning,arrows.meta,calc}
+
 % ==== 文件基本資訊 ====
 \title{校園生活用品交換與買賣平台}
 \author{
@@ -81,14 +84,40 @@ B12705001\ 范嘉栩 \quad
 B12705021\ 周建凱 \\
 B12705050\ 宋承陽 \\
 \vspace{1em}
-\normalsize 日期：November 1, 2025
+\normalsize 日期：\today
 }
+\date{}
+
+
+%lst js support, delete if not needed
+
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this},
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
+}
+
 
 \begin{document}
 
 \maketitle
-\tableofcontents
-\newpage
+
+\vspace{1em}
+\noindent
+\textbf{專案連結：} \\
+\url{https://youtu.be/VgkbBeDXqa0} \quad (Demo 影片) \\
+\url{https://github.com/Phanatic34/114-1_database_final_project.git} \quad (GitHub 倉庫)
+
+\vspace{1em}
 
 \section{系統分析（System Analysis）}
 
@@ -178,13 +207,6 @@ B12705050\ 宋承陽 \\
 綜合而言，本系統透過明確的權限分工與資料庫設計，建立一個兼顧使用者體驗與系統安全性的校園二手交易生態環境。
 
 
-
-
-
-
-
-
-
 \section{系統設計（System Design）}
 \subsection{實體關聯圖（ER Diagram）}
 \begin{figure}[H]
@@ -219,8 +241,6 @@ REPORT 為檢舉實體，用於記錄使用者對不當商品或詐騙行為的�
 ADMIN 為平台管理員，屬於特殊使用者。管理員可審核上架商品、刪除違規內容、管理分類、處理檢舉、公告規則與查看平台統計數據，以維護整體系統的安全與秩序。
 
 整體而言，本系統的 ER Diagram 以 USER 為核心，透過多對多與一對多的關係串接其他實體，完整呈現使用者從上架、瀏覽、請求到完成交易的全流程互動。此結構亦為後續關聯式資料庫設計提供明確依據。
-
-
 
 \subsection{關聯式資料庫綱目圖 （Relational Database Schema Diagram）}
 \begin{figure}[H]
@@ -320,7 +340,6 @@ Category\_name & 商品分類名稱 & varchar(30) &     & Not Null & \Enum{Textb
 \end{xltabular}
 \end{footnotesize}
 
-\newpage
 
 % ===================== PRODUCT 表 =====================
 \begin{footnotesize}
@@ -370,11 +389,6 @@ Payment\_status      & 付款狀態           & varchar(10) &     & Default 'Unp
 \caption{資料表 TRANSACTION 的欄位資訊（記錄完成的交易或購買）}
 \end{xltabular}
 \end{footnotesize}
-\newpage
-
-
-
-
 
 
 % ===================== TRADE_WISH 表 =====================
@@ -399,8 +413,6 @@ Updated\_at          & 更新時間              & datetime    &     & Not Null 
 \caption{資料表 TRADE\_WISH 的欄位資訊（使用者開放式徵求交換）}
 \end{xltabular}
 \end{footnotesize}
-
-\newpage
 
 % ===================== TRADE_REQUEST 表 =====================
 \begin{footnotesize}
@@ -443,7 +455,6 @@ Role      & 權限分類     & varchar(20) &     & Not Null & \Enum{PlatformAdmi
 \end{xltabular}
 \end{footnotesize}
 
-\newpage
 
 % ===================== REVIEW 表 =====================
 \begin{footnotesize}
@@ -469,7 +480,6 @@ Created\_at     & 建立時間         & timestamp   &     & Not Null         & 
 \end{xltabular}
 \end{footnotesize}
 
-\newpage
 
 % ===================== MESSAGE 表 =====================
 \begin{footnotesize}
@@ -492,7 +502,6 @@ Sent\_at      & 發送時間         & datetime    &     & Not Null         &  \
 \end{xltabular}
 \end{footnotesize}
 
-\newpage
 
 % ===================== REPORT 表 =====================
 \begin{footnotesize}
@@ -520,7 +529,6 @@ Resolved\_at         & 處理完成時間     & timestamp   &     & Nullable    
 \end{xltabular}
 \end{footnotesize}
 
-\newpage
 
 \subsection{正規化分析（Normalization Analysis）}
 
@@ -568,18 +576,6 @@ Values (1001, 1, '微積分課本', 300, 'sale', 'Good',
 
 Listing 1: 新增商品 SQL 指令
 
-\subsubsection{查詢可交易商品（Query Available Products）}
-
-若要實現此功能，假設情境為「某使用者想查詢狀態為 'available' 且交易方式為 'sale' 或 'both' 的商品。」則對應的 SQL 指令如下，系統會執行該查詢，並回傳符合條件的商品資訊，供使用者選擇。
-
-\begin{lstlisting}[language=SQL]
-Select *
-From PRODUCT
-Where Status = 'available'
-And (Trade_option = 'sale' Or Trade_option = 'both');
-\end{lstlisting}
-
-Listing 2: 查詢可交易商品 SQL 指令
 
 \subsubsection{提出交易請求（Create Trade Request）}
 
@@ -592,7 +588,7 @@ Values (2001, 5001, 'Purchase', 280, '2024-11-02 14:30:00',
         '2024-11-02 14:30:00');
 \end{lstlisting}
 
-Listing 3: 提出交易請求 SQL 指令
+Listing 2: 提出交易請求 SQL 指令
 
 \subsubsection{接受交易請求（Accept Trade Request）}
 
@@ -604,19 +600,8 @@ Set Status = 'Accepted', Updated_at = Now()
 Where Request_id = 3001;
 \end{lstlisting}
 
-Listing 4: 接受交易請求 SQL 指令
+Listing 3: 接受交易請求 SQL 指令
 
-\subsubsection{取消交易請求（Cancel Trade Request）}
-
-若要實現此功能，假設情境為「使用者代號 Requester\_id '2001' 想要取消自己提出的請求代號 Request\_id '3002' 的交易請求。」則對應的 SQL 指令如下，系統會在 TRADE\_REQUEST 資料表中更新該請求狀態為 'Cancelled'。
-
-\begin{lstlisting}[language=SQL]
-Update TRADE_REQUEST
-Set Status = 'Cancelled', Updated_at = Now()
-Where Request_id = 3002 And Requester_id = 2001;
-\end{lstlisting}
-
-Listing 5: 取消交易請求 SQL 指令
 
 \subsubsection{確認已面交（Confirm Handoff）}
 
@@ -668,7 +653,7 @@ Where Product_id = (Select Target_product_id
 Commit;
 \end{lstlisting}
 
-Listing 5a: 確認已面交 SQL 指令
+Listing 4: 確認已面交 SQL 指令
 
 \subsubsection{查詢使用者提出的交易請求（Query User's Trade Requests）}
 
@@ -682,21 +667,7 @@ Join USER As u On p.Owner_id = u.User_id
 Where tr.Requester_id = 2001;
 \end{lstlisting}
 
-Listing 6: 查詢使用者提出的交易請求 SQL 指令
-
-\subsubsection{查詢使用者收到的交易請求（Query Received Trade Requests）}
-
-若要實現此功能，假設情境為「使用者代號 User\_id '1001' 想要查看自己商品收到的所有交易請求。」則對應的 SQL 指令如下，系統會執行該查詢，並回傳包含該使用者商品收到的所有交易請求相關資訊。
-
-\begin{lstlisting}[language=SQL]
-Select tr.*, p.Product_name, u.User_name As Requester_name
-From TRADE_REQUEST As tr
-Join PRODUCT As p On tr.Target_product_id = p.Product_id
-Join USER As u On tr.Requester_id = u.User_id
-Where p.Owner_id = 1001;
-\end{lstlisting}
-
-Listing 7: 查詢使用者收到的交易請求 SQL 指令
+Listing 5: 查詢使用者提出的交易請求 SQL 指令
 
 \subsubsection{完成交易（Complete Transaction）}
 
@@ -757,7 +728,7 @@ Where Product_id = (Select Offered_product_id
 Commit;
 \end{lstlisting}
 
-Listing 8: 完成交易 SQL 指令
+Listing 6: 完成交易 SQL 指令
 
 \subsubsection{查詢交易紀錄（Query Transaction History）}
 
@@ -774,7 +745,7 @@ Left Join PRODUCT As p2 On t.Offered_product_id = p2.Product_id
 Where tr.Requester_id = 2001 Or p1.Owner_id = 2001;
 \end{lstlisting}
 
-Listing 9: 查詢交易紀錄 SQL 指令
+Listing 7: 查詢交易紀錄 SQL 指令
 
 \subsubsection{新增評價（Add Review）}
 
@@ -804,45 +775,8 @@ Values (4001, 2001, 1001, 1, '商品與描述不符',
 -- 不做評價：不執行任何 INSERT 操作
 \end{lstlisting}
 
-Listing 10: 新增評價 SQL 指令
+Listing 8: 新增評價 SQL 指令
 
-\subsubsection{查詢商品評價（Query Product Reviews）}
-
-若要實現此功能，假設情境為「某使用者想查看使用者代號 User\_id '1001' 收到的所有評價。」則對應的 SQL 指令如下，系統會執行該查詢，並回傳包含該使用者收到的所有評價相關資訊。
-
-\begin{lstlisting}[language=SQL]
-Select r.*, u.User_name As Reviewer_name, t.Transaction_id
-From REVIEW As r
-Join USER As u On r.Reviewer_id = u.User_id
-Join TRANSACTION As t On r.Transaction_id = t.Transaction_id
-Where r.Reviewee_id = 1001
-Order By r.Created_at Desc;
-\end{lstlisting}
-
-Listing 11: 查詢商品評價 SQL 指令
-
-\subsubsection{計算好評率（Calculate Positive Rate）}
-
-若要實現此功能，假設情境為「計算使用者代號 User\_id '1001' 的好評率。」則對應的 SQL 指令如下，系統會計算該使用者的好評率（按讚數 / (按讚數 + 倒讚數) * 100\%），不做評價的交易不計入。
-
-\begin{lstlisting}[language=SQL]
-SELECT 
-    COUNT(CASE WHEN rating = 5 THEN 1 END) as positive_reviews,
-    COUNT(CASE WHEN rating = 1 THEN 1 END) as negative_reviews,
-    CASE 
-        WHEN COUNT(CASE WHEN rating IN (1, 5) THEN 1 END) > 0 
-        THEN ROUND(
-            COUNT(CASE WHEN rating = 5 THEN 1 END)::NUMERIC / 
-            COUNT(CASE WHEN rating IN (1, 5) THEN 1 END)::NUMERIC * 100, 
-            1
-        )
-        ELSE 0 
-    END as positive_rate
-FROM review
-WHERE reviewee_id = 1001;
-\end{lstlisting}
-
-Listing 11a: 計算好評率 SQL 指令
 
 \subsubsection{發送訊息（Send Message）}
 
@@ -855,7 +789,7 @@ Values (3001, 2001, 1001, '請問何時方便面交？',
         '2024-11-03 09:15:00');
 \end{lstlisting}
 
-Listing 12: 發送訊息 SQL 指令
+Listing 9: 發送訊息 SQL 指令
 
 \subsubsection{查詢對話紀錄（Query Message History）}
 
@@ -870,7 +804,7 @@ Where m.Request_id = 3001
 Order By m.Sent_at Asc;
 \end{lstlisting}
 
-Listing 13: 查詢對話紀錄 SQL 指令
+Listing 10: 查詢對話紀錄 SQL 指令
 
 \subsubsection{提出檢舉（Create Report）}
 
@@ -883,7 +817,7 @@ Values (2001, 5002, NULL, 'Scam', '商品描述與實際不符',
         '2024-11-04 11:20:00');
 \end{lstlisting}
 
-Listing 14: 提出檢舉 SQL 指令
+Listing 11: 提出檢舉 SQL 指令
 
 \subsubsection{查詢商品（Query Products by Category）}
 
@@ -899,7 +833,7 @@ Where (c.Category_name = 'Textbooks'
   And u.Deleted_at IS NULL;  -- 過濾已刪除用戶的商品
 \end{lstlisting}
 
-Listing 15: 查詢商品 SQL 指令
+Listing 12: 查詢商品 SQL 指令
 
 \textbf{搜尋紀錄：}當使用者執行搜尋時，系統會自動將搜尋行為記錄到 MongoDB 的 search\_logs collection，包括用戶 ID（如果已登入）、搜尋關鍵字、篩選條件、結果數量與時間戳。
 
@@ -916,7 +850,7 @@ Delete From PRODUCT
 Where Product_id = 5003;
 \end{lstlisting}
 
-Listing 16: 刪除商品 SQL 指令
+Listing 13: 刪除商品 SQL 指令
 
 \paragraph{更新商品狀態（Update Product Status）}
 
@@ -928,31 +862,8 @@ Set Status = 'removed'
 Where Product_id = 5004;
 \end{lstlisting}
 
-Listing 17: 更新商品狀態 SQL 指令
+Listing 14: 更新商品狀態 SQL 指令
 
-\paragraph{查詢商品（Query Products）}
-
-若要實現此功能，假設情境為「某管理員想要查詢狀態 Status 為 'available' 的所有商品。」則對應的 SQL 指令如下，系統會執行該查詢，並回傳符合條件的商品資訊。
-
-\begin{lstlisting}[language=SQL]
-Select *
-From PRODUCT
-Where Status = 'available';
-\end{lstlisting}
-
-Listing 18: 查詢商品 SQL 指令
-
-\subsubsection{查詢使用者資訊（Query User Information）}
-
-若要實現此功能，假設情境為「某管理員想要查詢使用者代號 User\_id 為 '1001' 的使用者資訊。」則對應的 SQL 指令如下，系統會執行該查詢，並回傳特定使用者的相關資訊。
-
-\begin{lstlisting}[language=SQL]
-Select *
-From USER
-Where User_id = 1001;
-\end{lstlisting}
-
-Listing 19: 查詢使用者資訊 SQL 指令
 
 \subsubsection{處理檢舉（Handle Report）}
 
@@ -964,7 +875,7 @@ Set Status = 'Resolved', Resolved_at = '2024-11-07 15:30:00'
 Where Report_id = 6001;
 \end{lstlisting}
 
-Listing 20: 處理檢舉 SQL 指令
+Listing 15: 處理檢舉 SQL 指令
 
 \subsubsection{查詢待處理檢舉（Query Pending Reports）}
 
@@ -981,7 +892,7 @@ Where r.Status = 'Pending'
 Order By r.Created_at Desc;
 \end{lstlisting}
 
-Listing 21: 查詢待處理檢舉 SQL 指令
+Listing 16: 查詢待處理檢舉 SQL 指令
 
 \subsection{系統級指令（System-level Commands）}
 
@@ -999,7 +910,7 @@ End
 Where p.Status = 'reserved';
 \end{lstlisting}
 
-Listing 22: 更新商品狀態 SQL 指令
+Listing 17: 更新商品狀態 SQL 指令
 
 \subsubsection{確認商品是否已被預約（Confirm if Product is Reserved）}
 
@@ -1020,7 +931,7 @@ Case
 End As Is_Reserved;
 \end{lstlisting}
 
-Listing 23: 確認商品是否已被預約 SQL 指令
+Listing 18: 確認商品是否已被預約 SQL 指令
 
 \newpage
 
@@ -1037,7 +948,7 @@ Create Index idx_product_status
 On PRODUCT (Status);
 \end{lstlisting}
 
-Listing 24: 建立商品狀態索引
+Listing 19: 建立商品狀態索引
 
 \subsection{在 TRADE\_REQUEST 中加入請求狀態、目標商品的索引}
 
@@ -1050,7 +961,7 @@ Create Index idx_request_status_product
 On TRADE_REQUEST (Status, Target_product_id);
 \end{lstlisting}
 
-Listing 25: 建立交易請求狀態及目標商品索引
+Listing 20: 建立交易請求狀態及目標商品索引
 
 \subsection{在 MESSAGE 中加入請求代號的索引}
 
@@ -1061,7 +972,7 @@ Create Index idx_message_request
 On MESSAGE (Request_id);
 \end{lstlisting}
 
-Listing 26: 建立訊息請求代號索引
+Listing 21: 建立訊息請求代號索引
 
 \subsection{在 REVIEW 中加入被評價者代號的索引}
 
@@ -1072,7 +983,7 @@ Create Index idx_review_reviewee
 On REVIEW (Reviewee_id);
 \end{lstlisting}
 
-Listing 27: 建立評價被評價者索引
+Listing 22: 建立評價被評價者索引
 
 \subsection{其他效能優化索引}
 
@@ -1087,7 +998,7 @@ Create Index idx_product_owner On PRODUCT (Owner_id);
 Create Index idx_product_category On PRODUCT (Category_id);
 \end{lstlisting}
 
-Listing 28: 建立商品擁有者及分類索引
+Listing 23: 建立商品擁有者及分類索引
 
 \paragraph{TRADE\_REQUEST 表額外索引}
 \begin{lstlisting}[language=SQL]
@@ -1098,7 +1009,7 @@ Create Index idx_request_requester On TRADE_REQUEST (Requester_id);
 Create Index idx_request_target_product On TRADE_REQUEST (Target_product_id);
 \end{lstlisting}
 
-Listing 29: 建立交易請求額外索引
+Listing 24: 建立交易請求額外索引
 
 \paragraph{MESSAGE 表額外索引}
 \begin{lstlisting}[language=SQL]
@@ -1109,7 +1020,7 @@ Create Index idx_message_sender On MESSAGE (Sender_id);
 Create Index idx_message_receiver On MESSAGE (Receiver_id);
 \end{lstlisting}
 
-Listing 30: 建立訊息額外索引
+Listing 25: 建立訊息額外索引
 
 \paragraph{REVIEW 表額外索引}
 \begin{lstlisting}[language=SQL]
@@ -1117,7 +1028,7 @@ Listing 30: 建立訊息額外索引
 Create Index idx_review_transaction On REVIEW (Transaction_id);
 \end{lstlisting}
 
-Listing 31: 建立評價交易索引
+Listing 26: 建立評價交易索引
 
 \paragraph{TRANSACTION 表索引}
 \begin{lstlisting}[language=SQL]
@@ -1128,7 +1039,7 @@ Create Index idx_transaction_request On TRANSACTION (Request_id);
 Create Index idx_transaction_target_product On TRANSACTION (Target_product_id);
 \end{lstlisting}
 
-Listing 32: 建立交易紀錄索引
+Listing 27: 建立交易紀錄索引
 
 \paragraph{USER 表索引}
 \begin{lstlisting}[language=SQL]
@@ -1142,7 +1053,7 @@ Create Index idx_user_student_id On "user" (Student_id);
 Create Index idx_user_deleted_at On "user" (Deleted_at);
 \end{lstlisting}
 
-Listing 33: 建立使用者索引
+Listing 28: 建立使用者索引
 
 \subsection{自動更新時間戳記觸發器}
 
@@ -1179,7 +1090,7 @@ Create Trigger update_trade_wish_updated_at
     For Each Row Execute Function update_updated_at_column();
 \end{lstlisting}
 
-Listing 34: 建立自動更新時間戳記觸發器
+Listing 29: 建立自動更新時間戳記觸發器
 
 \subsection{資料完整性約束}
 
@@ -1194,7 +1105,7 @@ Add Constraint unique_review_per_transaction
     Unique (Transaction_id, Reviewer_id, Reviewee_id);
 \end{lstlisting}
 
-Listing 35: 建立評價唯一性約束
+Listing 30: 建立評價唯一性約束
 
 \paragraph{REPORT 表檢查約束}
 為確保檢舉必須針對商品或使用者其中一項，建立檢查約束：
@@ -1205,7 +1116,7 @@ Add Constraint check_report_target
     Check (Reported_product_id Is Not Null Or Reported_user_id Is Not Null);
 \end{lstlisting}
 
-Listing 36: 建立檢舉目標檢查約束
+Listing 31: 建立檢舉目標檢查約束
 
 \subsection{資料類型優化}
 
@@ -1219,7 +1130,7 @@ Alter Table PRODUCT Alter Column Description Type TEXT;
 Alter Table PRODUCT Alter Column Image_url Type TEXT;
 \end{lstlisting}
 
-Listing 37: 優化商品描述與圖片欄位類型
+Listing 32: 優化商品描述與圖片欄位類型
 
 \subsection{軟刪除功能實作}
 
@@ -1238,7 +1149,7 @@ CREATE INDEX IF NOT EXISTS idx_user_deleted_at ON "user"(deleted_at);
 COMMENT ON COLUMN "user".deleted_at IS '帳號刪除時間，NULL 表示未刪除';
 \end{lstlisting}
 
-Listing 38: 添加軟刪除欄位
+Listing 33: 添加軟刪除欄位
 
 \paragraph{軟刪除帳號}
 \begin{lstlisting}[language=SQL]
@@ -1258,7 +1169,7 @@ WHERE owner_id = 1001 AND status IN ('available', 'reserved');
 COMMIT;
 \end{lstlisting}
 
-Listing 39: 軟刪除帳號 SQL 指令
+Listing 34: 軟刪除帳號 SQL 指令
 
 \paragraph{查詢時過濾已刪除帳號}
 \begin{lstlisting}[language=SQL]
@@ -1275,7 +1186,7 @@ FROM "user"
 WHERE email = 'user@example.com' AND deleted_at IS NULL;
 \end{lstlisting}
 
-Listing 40: 過濾已刪除帳號 SQL 指令
+Listing 35: 過濾已刪除帳號 SQL 指令
 
 \subsection{MongoDB 搜尋紀錄功能}
 
@@ -1298,7 +1209,7 @@ db.search_logs.createIndex({ "user_id": 1, "timestamp": -1 });
 db.search_logs.createIndex({ "search_keywords": "text" });  // 全文搜尋索引
 \end{lstlisting}
 
-Listing 41: MongoDB 搜尋紀錄索引
+Listing 36: MongoDB 搜尋紀錄索引
 
 \paragraph{記錄搜尋行為}
 當使用者搜尋商品時，系統會自動記錄到 MongoDB：
@@ -1324,7 +1235,7 @@ SearchLog.log_search(
 )
 \end{lstlisting}
 
-Listing 42: 記錄搜尋行為範例
+Listing 37: 記錄搜尋行為範例
 
 \newpage
 
@@ -1360,19 +1271,9 @@ Listing 42: 記錄搜尋行為範例
 
 \subsection{併行控制解決方案}
 
-本文件建議兩種適合的方法來防止重複請求：
 
-\subsubsection{方法一：在查詢可交易商品前鎖定}
+在使用者點擊「送出交易」按鈕\emph{之後}取得鎖定。此時，系統會執行\emph{第二次檢查}（重新查詢），以確認該商品的目標請求狀態是否仍然可用（即尚未被其他使用者提出請求）。若確認可用，則將新的請求記錄新增至 TRADE\_REQUEST 表，然後釋放鎖定。若發現不可用（已被請求），則不新增記錄，釋放鎖定，並在畫面上顯示錯誤訊息給使用者。此方法也能有效防止重複請求。
 
-在查詢可交易商品\emph{之前}取得鎖定。此鎖定可防止其他交易同時嘗試對相關商品進行請求或修改資訊，在從初始查詢到請求完成為止的整個期間內。只有在請求成功完成或明確取消後，才會釋放鎖定。此方法確保特定商品的請求狀態在該使用者的請求流程結束之前保持鎖定狀態。
-
-\subsubsection{方法二：在「確認請求」後鎖定}
-
-在使用者點擊「確認請求」按鈕\emph{之後}取得鎖定。此時，系統會執行\emph{第二次檢查}（重新查詢），以確認該商品的目標請求狀態是否仍然可用（即尚未被其他使用者提出請求）。若確認可用，則將新的請求記錄新增至 TRADE\_REQUEST 表，然後釋放鎖定。若發現不可用（已被請求），則不新增記錄，釋放鎖定，並在畫面上顯示錯誤訊息給使用者。此方法也能有效防止重複請求。
-
-\subsection{選擇的方法與實作}
-
-本系統選擇\emph{方法二}，原因如下：若在使用者真正確認並發送請求之前就套用鎖定（如方法一），可能會導致過長的等待時間。因此，我們選擇將併行控制集中在\emph{新請求發送之後}的流程，使用方法二來避免不必要的等待，並避免對系統效能造成潛在損害。
 
 \subsubsection{實作細節}
 
@@ -1422,5 +1323,28 @@ WHERE product_id = %s;
 \end{lstlisting}
 
 此實作結合了應用層鎖定（threading.Lock）與資料庫層鎖定（SELECT FOR UPDATE），確保在併發環境下，同一商品不會被多個使用者同時成功提出請求，從而維護了資料的一致性和系統的正確性。
+
+\section{分工資訊}
+范嘉栩：資料庫設計串接後端與資料庫。\\
+周建凱：資料庫設計前端與簡報。\\
+宋承陽：資料庫設計與書面報告
+
+\section{心得}
+\setlength{\parindent}{0pt} % 取消首行縮排
+范嘉栩：
+
+本次專題開發，讓我深刻體會到資料庫設計與系統整合的複雜性。從 ER Diagram 設計、正規化分析到實際實作，每一步都需要仔細思考資料關聯性與完整性。過程中遇到許多挑戰，如併行控制、軟刪除機制、前後端整合等問題，透過不斷除錯與優化，最後終於完成了一個功能完整的交易平台。這次經驗讓我對關聯式資料庫與 NoSQL 資料庫的應用有了更深入的理解。
+\setlength{\parindent}{0pt} % 取消首行縮排
+
+周建凱：
+
+在這次專題中，我主要負責的任務是資料庫設計、前端實作以及簡報製作。因為同時接觸到前後端，讓我更完整地看見一個系統從底層資料結構到實際畫面呈現的整體流程。
+
+在資料庫部分，最大的挑戰在於釐清各個實體與關係，並透過正規化降低重複與異常，否則在實作功能時很容易被不良的 schema 牽制。前端開發則逼迫我把抽象的交易流程轉換成具體又直覺的操作介面，同時必須仔細思考按鈕位置、狀態切換與錯誤訊息要如何設計，才能讓使用者知道「現在發生什麼事」與「下一步可以做什麼」。
+
+最後，我很感謝組員在整個專案實作過程的積極參與、討論及建議，無論是在技術交流還是合作溝通上，我都從這次專題中獲得了很多成長與收穫。\\
+\setlength{\parindent}{0pt} % 取消首行縮排
+
+宋承陽：之前在資訊管理導論的時候，完全不知道自己期末的資料庫到底做了甚麼，這次機會讓我對於整體資料庫架構的設計有更進一步的認識。這次專案主要使用關聯式資料庫，因此如何一開始確保大架構的穩定相當重要。要在實作前仔細推敲使用者行為與預期系統回饋頗有挑戰性。而關於書面報告，還好前面幾次作業已經被 tikz 折磨過了，這次 ER Diagram 畫起來雖然還是花了不少時間，但整體而言順暢許多。
 
 \end{document}

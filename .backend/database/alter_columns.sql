@@ -7,3 +7,4 @@ ALTER TABLE trade_wish ALTER COLUMN image_url TYPE TEXT;
 
 
 
+

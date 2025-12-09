@@ -5,3 +5,4 @@ ADD COLUMN IF NOT EXISTS seller_confirmed_handoff BOOLEAN DEFAULT FALSE;
 
 
 
+

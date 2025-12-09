@@ -7,3 +7,4 @@ __all__ = ['UserActivity', 'ProductView', 'SearchLog', 'Recommendation', 'Notifi
 
 
 
+
