@@ -373,84 +373,8 @@ function getAllItems() {
  */
 function getSeedItems() {
   // Return the demo items that are seeded on first load
+  // 已移除假資料（Nintendo Switch、PlayStation 5、iPhone 13 Pro）
   const demoItems = [
-    {
-      id: 'i1',
-      sellerId: 'u1',
-      title: 'Nintendo Switch OLED 白色主機',
-      category: '遊戲與主機',
-      condition: '九成新',
-      price: 8500,
-      description: 'Nintendo Switch OLED 白色主機，使用約一年，功能完全正常。',
-      tags: ['Nintendo', 'Switch', 'OLED', '遊戲主機', '二手'],
-      location: '台北市信義區',
-      quantity: 1,
-      modes: {
-        sale: true,
-        tradeTarget: true,
-        tradeOpen: false
-      },
-      tradeTargetNote: '想換 PlayStation 5 或 Xbox Series X，也接受其他 Nintendo 主機相關商品',
-      images: [
-        'https://via.placeholder.com/600x600/0064D2/FFFFFF?text=Nintendo+Switch+1',
-        'https://via.placeholder.com/600x600/0052A3/FFFFFF?text=Nintendo+Switch+2'
-      ],
-      views: 342,
-      addedToCartCount: 18,
-      isActive: true,
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'i2',
-      sellerId: 'u2',
-      title: 'PlayStation 5 光碟版 主機',
-      category: '遊戲與主機',
-      condition: '全新',
-      price: 12000,
-      description: 'PlayStation 5 光碟版主機，全新未拆封，原廠保固。',
-      tags: ['PlayStation', 'PS5', '遊戲主機', '全新'],
-      location: '新北市板橋區',
-      quantity: 1,
-      modes: {
-        sale: true,
-        tradeTarget: false,
-        tradeOpen: false
-      },
-      images: [
-        'https://via.placeholder.com/600x600/0064D2/FFFFFF?text=PS5+1',
-        'https://via.placeholder.com/600x600/0052A3/FFFFFF?text=PS5+2'
-      ],
-      views: 521,
-      addedToCartCount: 23,
-      isActive: true,
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'i3',
-      sellerId: 'u3',
-      title: 'iPhone 13 Pro 256GB 深藍色',
-      category: '手機／平板',
-      condition: '九成新',
-      price: 18000,
-      description: 'iPhone 13 Pro 256GB 深藍色，使用約一年半，功能完全正常。',
-      tags: ['Apple', 'iPhone', '13 Pro', '256GB', '二手'],
-      location: '台北市大安區',
-      quantity: 1,
-      modes: {
-        sale: true,
-        tradeTarget: true,
-        tradeOpen: true
-      },
-      tradeTargetNote: '接受各種 3C 產品交換提案',
-      images: [
-        'https://via.placeholder.com/600x600/003D7A/FFFFFF?text=iPhone+1',
-        'https://via.placeholder.com/600x600/002855/FFFFFF?text=iPhone+2'
-      ],
-      views: 678,
-      addedToCartCount: 34,
-      isActive: true,
-      createdAt: new Date().toISOString()
-    }
   ];
   
   return demoItems;
@@ -763,88 +687,9 @@ function seedDemoData() {
   }
   
   if (items.length === 0) {
-    // Create demo items (using existing mockItems structure from itemsData.js)
-    // We'll load these from the existing data file if available
-    const demoItems = [
-      {
-        id: 'i1',
-        sellerId: 'u1',
-        title: 'Nintendo Switch OLED 白色主機',
-        category: '遊戲與主機',
-        condition: '九成新',
-        price: 8500,
-        description: 'Nintendo Switch OLED 白色主機，使用約一年，功能完全正常。',
-        tags: ['Nintendo', 'Switch', 'OLED', '遊戲主機', '二手'],
-        location: '台北市信義區',
-        quantity: 1,
-        modes: {
-          sale: true,
-          tradeTarget: true,
-          tradeOpen: false
-        },
-        tradeTargetNote: '想換 PlayStation 5 或 Xbox Series X，也接受其他 Nintendo 主機相關商品',
-        images: [
-          'https://via.placeholder.com/600x600/0064D2/FFFFFF?text=Nintendo+Switch+1',
-          'https://via.placeholder.com/600x600/0052A3/FFFFFF?text=Nintendo+Switch+2'
-        ],
-        views: 342,
-        addedToCartCount: 18,
-        isActive: true,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'i2',
-        sellerId: 'u2',
-        title: 'PlayStation 5 光碟版 主機',
-        category: '遊戲與主機',
-        condition: '全新',
-        price: 12000,
-        description: 'PlayStation 5 光碟版主機，全新未拆封，原廠保固。',
-        tags: ['PlayStation', 'PS5', '遊戲主機', '全新'],
-        location: '新北市板橋區',
-        quantity: 1,
-        modes: {
-          sale: true,
-          tradeTarget: false,
-          tradeOpen: false
-        },
-        images: [
-          'https://via.placeholder.com/600x600/0064D2/FFFFFF?text=PS5+1',
-          'https://via.placeholder.com/600x600/0052A3/FFFFFF?text=PS5+2'
-        ],
-        views: 521,
-        addedToCartCount: 23,
-        isActive: true,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'i3',
-        sellerId: 'u3',
-        title: 'iPhone 13 Pro 256GB 深藍色',
-        category: '手機／平板',
-        condition: '九成新',
-        price: 18000,
-        description: 'iPhone 13 Pro 256GB 深藍色，使用約一年半，功能完全正常。',
-        tags: ['Apple', 'iPhone', '13 Pro', '256GB', '二手'],
-        location: '台北市大安區',
-        quantity: 1,
-        modes: {
-          sale: true,
-          tradeTarget: true,
-          tradeOpen: true
-        },
-        tradeTargetNote: '接受各種 3C 產品交換提案',
-        images: [
-          'https://via.placeholder.com/600x600/003D7A/FFFFFF?text=iPhone+1',
-          'https://via.placeholder.com/600x600/002855/FFFFFF?text=iPhone+2'
-        ],
-        views: 678,
-        addedToCartCount: 34,
-        isActive: true,
-        createdAt: new Date().toISOString()
-      }
-    ];
-    saveItems(demoItems);
+    // 已移除假資料（Nintendo Switch、PlayStation 5、iPhone 13 Pro）
+    // 現在只使用資料庫中的真實商品資料
+    // 不需要創建假資料
   }
 }
 

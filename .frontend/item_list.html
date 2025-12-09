@@ -645,14 +645,20 @@
             };
             const condition = conditionMap[product.condition] || product.condition || '未指定';
             
+            // 找到對應的前端分類 ID
+            const categoryInfo = categories.find(cat => cat.backendName === product.category_name);
+            const frontendCategoryId = categoryInfo ? categoryInfo.id : 'others';
+            
             return {
               id: String(product.product_id),
               title: product.product_name || '未命名商品',
               price: product.price || 0,
               category: categoryName,
               categoryName: product.category_name, // 保留後端原始名稱用於篩選
+              categoryId: product.category_id, // 後端 category_id
+              frontendCategoryId: frontendCategoryId, // 前端分類 ID（用於篩選）
               condition: condition,
-              location: product.location || '未指定',
+              location: '台北市', // 預設地點（後端目前沒有 location 欄位）
               tags: [],
               images: product.image_url ? [product.image_url] : [],
               description: product.description || '',
@@ -679,6 +685,9 @@
               isActive: true
             };
           });
+          
+          console.log('轉換後的商品數量:', items.length);
+          console.log('轉換後的第一個商品:', items[0]);
         } catch (error) {
           console.error('從 API 載入商品失敗:', error);
           console.error('錯誤詳情:', error.message, error.stack);
@@ -686,6 +695,10 @@
         }
       } else {
         console.log('API 不可用，跳過 API 載入');
+        console.log('api 類型:', typeof api);
+        if (typeof api !== 'undefined') {
+          console.log('api.getProducts 類型:', typeof api.getProducts);
+        }
       }
       
       // 如果 API 沒有資料，使用本地資料
@@ -738,9 +751,6 @@
       return items;
     }
     
-    // 商品列表變數
-    let currentItems = [];
-
     // Category data structure - 對應後端 category_id
     // 後端分類: 1=Textbooks, 2=Electronics, 3=Clothing, 4=Stationery, 5=Daily_Use, 6=Others
     const categories = [
@@ -896,17 +906,36 @@
 
     // Render items
     function renderList(items) {
+      console.log('renderList 被調用，商品數量:', items.length);
       const grid = document.getElementById('itemCardGrid');
+      
+      if (!grid) {
+        console.error('找不到 itemCardGrid 元素！');
+        return;
+      }
+      
       grid.innerHTML = '';
 
       const itemsToShow = items.slice(0, displayedCount);
+      console.log('要顯示的商品數量:', itemsToShow.length);
 
-      itemsToShow.forEach(item => {
-        grid.appendChild(createItemCard(item));
+      itemsToShow.forEach((item, index) => {
+        try {
+          const card = createItemCard(item);
+          grid.appendChild(card);
+          console.log(`已添加商品 ${index + 1}:`, item.title);
+        } catch (e) {
+          console.error(`創建商品卡片失敗 (${index}):`, e, item);
+        }
       });
 
       // Update result count
-      document.getElementById('resultsCount').textContent = `共 ${items.length} 筆結果`;
+      const resultsCountEl = document.getElementById('resultsCount');
+      if (resultsCountEl) {
+        resultsCountEl.textContent = `共 ${items.length} 筆結果`;
+      } else {
+        console.error('找不到 resultsCount 元素！');
+      }
 
       // Show/hide load more button
       const loadMoreBtn = document.getElementById('loadMoreButton');
@@ -919,7 +948,9 @@
 
     // Filter and sort items
     async function filterAndSortItems() {
+      console.log('filterAndSortItems 開始執行');
       let filtered = await loadItems();
+      console.log('loadItems 返回的商品數量:', filtered.length);
 
       // Read URL params first
       const urlParams = new URLSearchParams(window.location.search);
@@ -948,12 +979,27 @@
         // 使用 category_id 或分類名稱進行篩選
         const categoryInfo = categories.find(cat => cat.id === activeCategoryId);
         if (categoryInfo) {
+          console.log('篩選分類:', categoryInfo);
           filtered = filtered.filter(item => {
-            // 比對 category_id 或 category_name
-            return item.categoryId === categoryInfo.categoryId || 
-                   item.categoryName === categoryInfo.backendName ||
-                   item.category === categoryInfo.label;
+            // 比對多種方式：後端 category_id、前端分類 ID、分類名稱
+            const matches = item.categoryId === categoryInfo.categoryId || 
+                           item.frontendCategoryId === categoryInfo.id ||
+                           item.categoryName === categoryInfo.backendName ||
+                           item.category === categoryInfo.label;
+            if (!matches) {
+              console.log('商品被篩選掉:', item.title, {
+                itemCategoryId: item.categoryId,
+                itemFrontendCategoryId: item.frontendCategoryId,
+                itemCategoryName: item.categoryName,
+                itemCategory: item.category,
+                targetCategoryId: categoryInfo.categoryId,
+                targetFrontendId: categoryInfo.id,
+                targetBackendName: categoryInfo.backendName
+              });
+            }
+            return matches;
           });
+          console.log('篩選後商品數量:', filtered.length);
         }
       }
 
@@ -1099,14 +1145,6 @@
           categorySelect.value = newCategoryId;
         }
         const sidebarRadio = document.querySelector(`input[name="sidebarCategory"][value="${newCategoryId}"]`);
-        if (sidebarRadio) sidebarRadio.checked = true;
-      }
-      
-      // Also check old 'cat' param for backward compatibility
-      const cat = params.get('cat');
-      if (cat && !category) {
-        document.getElementById('categoryFilter').value = cat;
-        const sidebarRadio = document.querySelector(`input[name="sidebarCategory"][value="${cat}"]`);
         if (sidebarRadio) sidebarRadio.checked = true;
       }
       

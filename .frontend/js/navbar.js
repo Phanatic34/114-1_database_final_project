@@ -79,6 +79,9 @@ function updateNavbar() {
   profileMenu.setAttribute('hidden', 'hidden');
   
   if (user) {
+    // 檢查是否為管理員
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    
     // User is logged in - show account menu items
     profileMenu.innerHTML = `
       <div class="dropdown-panel-header">
@@ -90,9 +93,15 @@ function updateNavbar() {
         <a href="transactions.html" class="dropdown-item">交易紀錄</a>
         <a href="messages.html" class="dropdown-item">訊息</a>
         <a href="account.html" class="dropdown-item">帳號管理</a>
+        ${isAdmin ? '<a href="admin.html" class="dropdown-item" style="color: #2563eb; font-weight: 600;">管理員後台</a>' : ''}
         <button class="dropdown-item logout-btn" id="logoutBtn">登出</button>
       </div>
     `;
+    
+    // 如果使用者是管理員，在控制台顯示提示
+    if (isAdmin) {
+      console.log('✓ 管理員已登入，角色:', localStorage.getItem('adminRole'));
+    }
     
     // Logout handler
     setTimeout(() => {
@@ -110,6 +119,8 @@ function updateNavbar() {
             localStorage.removeItem('userId');
             localStorage.removeItem('userInfo');
             localStorage.removeItem('currentUserId');
+            localStorage.removeItem('isAdmin');
+            localStorage.removeItem('adminRole');
           }
           // 強制清除快取並重新導向
           window.location.href = 'index.html';

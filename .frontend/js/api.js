@@ -27,9 +27,7 @@ function setToken(token) {
  */
 function removeToken() {
     localStorage.removeItem('jwt_token');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userInfo');
-    localStorage.removeItem('currentUserId');
+    // userId 和 currentUserId 由 removeUserId() 處理
 }
 
 /**
@@ -57,6 +55,14 @@ function getUserId() {
  */
 function setUserId(userId) {
     localStorage.setItem('userId', String(userId));
+}
+
+/**
+ * 移除 user_id（向後兼容）
+ */
+function removeUserId() {
+    localStorage.removeItem('userId');
+    localStorage.removeItem('currentUserId');
 }
 
 /**
@@ -161,6 +167,14 @@ async function loginUser(email, password) {
         localStorage.setItem('userInfo', JSON.stringify(result.user));
         localStorage.setItem('currentUserId', String(result.user_id));
     }
+    // 儲存管理員資訊
+    if (result.is_admin) {
+        localStorage.setItem('isAdmin', 'true');
+        localStorage.setItem('adminRole', result.admin_role || '');
+    } else {
+        localStorage.removeItem('isAdmin');
+        localStorage.removeItem('adminRole');
+    }
     return result;
 }
 
@@ -169,8 +183,13 @@ async function loginUser(email, password) {
  */
 function logoutUser() {
     removeToken();
-    // 清除所有相關資料
-    console.log('已清除登入資訊');
+    removeUserId();
+    localStorage.removeItem('userInfo');
+    localStorage.removeItem('currentUserId');
+    // 清除管理員資訊
+    localStorage.removeItem('isAdmin');
+    localStorage.removeItem('adminRole');
+    console.log('已登出（已清除所有資訊，包括管理員狀態）');
 }
 
 /**
@@ -371,6 +390,144 @@ async function createReport(reportData) {
     return await apiCall('/reports', 'POST', reportData, true);
 }
 
+// ========== 管理員相關 API ==========
+
+/**
+ * 檢查是否為管理員
+ * @returns {boolean}
+ */
+function isAdmin() {
+    return localStorage.getItem('isAdmin') === 'true';
+}
+
+/**
+ * 取得管理員角色
+ * @returns {string|null}
+ */
+function getAdminRole() {
+    return localStorage.getItem('adminRole');
+}
+
+/**
+ * 取得所有使用者（管理員用）
+ * @param {string} status - 可選：'active' 或 'suspended'
+ * @returns {Promise<Array>}
+ */
+async function getAdminUsers(status = null) {
+    const params = status ? `?status=${status}` : '';
+    return await apiCall(`/admin/users${params}`, 'GET', null, true);
+}
+
+/**
+ * 取得單一使用者資訊（管理員用）
+ * @param {number} userId
+ * @returns {Promise<object>}
+ */
+async function getAdminUser(userId) {
+    return await apiCall(`/admin/users/${userId}`, 'GET', null, true);
+}
+
+/**
+ * 停權使用者
+ * @param {number} userId
+ * @returns {Promise<object>}
+ */
+async function suspendUser(userId) {
+    return await apiCall(`/admin/users/${userId}/suspend`, 'POST', null, true);
+}
+
+/**
+ * 恢復使用者帳號
+ * @param {number} userId
+ * @returns {Promise<object>}
+ */
+async function activateUser(userId) {
+    return await apiCall(`/admin/users/${userId}/activate`, 'POST', null, true);
+}
+
+/**
+ * 取得所有商品（管理員用）
+ * @param {string} status - 可選：商品狀態
+ * @returns {Promise<Array>}
+ */
+async function getAdminProducts(status = null) {
+    const params = status ? `?status=${status}` : '';
+    return await apiCall(`/admin/products${params}`, 'GET', null, true);
+}
+
+/**
+ * 取得所有分類（管理員用）
+ * @returns {Promise<Array>}
+ */
+async function getAdminCategories() {
+    return await apiCall('/admin/categories', 'GET', null, true);
+}
+
+/**
+ * 新增分類
+ * @param {object} categoryData - {category_name}
+ * @returns {Promise<object>}
+ */
+async function createCategory(categoryData) {
+    return await apiCall('/admin/categories', 'POST', categoryData, true);
+}
+
+/**
+ * 更新分類
+ * @param {number} categoryId
+ * @param {object} categoryData - {category_name}
+ * @returns {Promise<object>}
+ */
+async function updateCategory(categoryId, categoryData) {
+    return await apiCall(`/admin/categories/${categoryId}`, 'PUT', categoryData, true);
+}
+
+/**
+ * 刪除分類
+ * @param {number} categoryId
+ * @returns {Promise<object>}
+ */
+async function deleteCategory(categoryId) {
+    return await apiCall(`/admin/categories/${categoryId}`, 'DELETE', null, true);
+}
+
+/**
+ * 取得所有交易紀錄（管理員用）
+ * @param {string} status - 可選：'Paid', 'Unpaid', 'NA'
+ * @returns {Promise<Array>}
+ */
+async function getAdminTransactions(status = null) {
+    const params = status ? `?status=${status}` : '';
+    return await apiCall(`/admin/transactions${params}`, 'GET', null, true);
+}
+
+/**
+ * 取得平台統計資料
+ * @returns {Promise<object>}
+ */
+async function getAdminStatistics() {
+    return await apiCall('/admin/statistics', 'GET', null, true);
+}
+
+/**
+ * 取得待處理檢舉（管理員用）
+ * @param {string} status - 可選：'Pending', 'Under_Review', 'Resolved', 'Rejected'
+ * @returns {Promise<Array>}
+ */
+async function getAdminReports(status = 'Pending') {
+    return await apiCall(`/admin/reports?status=${status}`, 'GET', null, true);
+}
+
+/**
+ * 處理檢舉
+ * @param {number} reportId
+ * @param {string} status - 'Resolved' 或 'Rejected'
+ * @returns {Promise<object>}
+ */
+async function resolveReport(reportId, status) {
+    return await apiCall(`/admin/reports/${reportId}/resolve`, 'POST', { status }, true);
+}
+
 // 匯出所有函數
 window.api = {
     // 認證
@@ -380,6 +537,7 @@ window.api = {
     getCurrentUserInfo,
     getUserId,
     setUserId,
+    removeUserId,
     getToken,
     setToken,
     removeToken,
@@ -412,6 +570,23 @@ window.api = {
     
     // 檢舉
     createReport,
+    
+    // 管理員
+    isAdmin,
+    getAdminRole,
+    getAdminUsers,
+    getAdminUser,
+    suspendUser,
+    activateUser,
+    getAdminProducts,
+    getAdminCategories,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+    getAdminTransactions,
+    getAdminStatistics,
+    getAdminReports,
+    resolveReport,
     
     // 通用
     apiCall

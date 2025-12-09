@@ -87,17 +87,27 @@ def login():
         """, (email,))
         
         user = cursor.fetchone()
-        DatabaseConfig.return_postgres_connection(conn)
         
         if not user:
+            DatabaseConfig.return_postgres_connection(conn)
             return jsonify({'error': 'Email 或密碼錯誤'}), 401
         
         if user[4] != 'active':
+            DatabaseConfig.return_postgres_connection(conn)
             return jsonify({'error': '帳號已被停權'}), 403
         
         # 驗證密碼
         if not bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
+            DatabaseConfig.return_postgres_connection(conn)
             return jsonify({'error': 'Email 或密碼錯誤'}), 401
+        
+        # 檢查是否為管理員
+        cursor.execute("SELECT role FROM admin WHERE user_id = %s", (user[0],))
+        admin_result = cursor.fetchone()
+        is_admin = admin_result is not None
+        admin_role = admin_result[0] if admin_result else None
+        
+        DatabaseConfig.return_postgres_connection(conn)
         
         # 生成 JWT token
         token = generate_token(user[0])
@@ -111,7 +121,9 @@ def login():
                 'user_name': user[1],
                 'email': user[2],
                 'student_id': user[5]
-            }
+            },
+            'is_admin': is_admin,
+            'admin_role': admin_role
         }), 200
         
     except Exception as e:

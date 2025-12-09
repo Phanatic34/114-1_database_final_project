@@ -294,10 +294,12 @@ User\_id       & 使用者代號     & bigint      & PK  & Not Null, Unique &  \
 User\_name     & 使用者名稱     & varchar(20) &     & Not Null         &  \\
 Student\_id    & 學號           & varchar(15) &     & Not Null, Unique &  \\
 Email          & 電子郵件       & varchar(50) &     & Not Null, Unique &  \\
-Password       & 密碼           & varchar(15) &     & Not Null         &  \\
+Password       & 密碼           & varchar(255)&     & Not Null         & \Note{使用 bcrypt hash，長度增加} \\
 Phone          & 聯絡電話       & varchar(15) &     & Nullable         &  \\
 Register\_date & 註冊日期       & date        &     & Not Null         &  \\
 Status         & 帳號狀態       & varchar(10) &     & Default 'active' & \Enum{active, suspended} \\
+Created\_at    & 建立時間       & timestamp   &     & Default Current\_Timestamp &  \\
+Updated\_at    & 更新時間       & timestamp   &     & Default Current\_Timestamp & \Note{由觸發器自動更新} \\
 \bottomrule
 \caption{資料表 USER 的欄位資訊（使用者基本資料）}
 \end{xltabular}
@@ -326,11 +328,13 @@ Product\_name     & 商品名稱         & varchar(50)  &     & Not Null        
 Price             & 商品價格         & int          &     & Nullable         & \Note{$\ge 0$；僅販售時使用} \\
 Trade\_option     & 交易方式         & varchar(10)  &     & Default 'sale'   & \Enum{sale, trade, both} \\
 Condition         & 商品狀況         & varchar(20)  &     & Not Null         & \Enum{Brand\_New, Good, Used} \\
-Description       & 商品描述         & varchar(100) &     &                  &  \\
+Description       & 商品描述         & TEXT         &     &                  & \Note{改用 TEXT 支援較長描述} \\
 Trade\_item       & 欲交換之物品     & varchar(100) &     & Nullable         & \Note{當 Trade\_option 為 trade/both 時填寫} \\
 Status            & 銷售狀態         & varchar(20)  &     & Default 'available' & \Enum{available, reserved, sold, exchanged, removed} \\
-Image\_url        & 圖片網址         & varchar(255) &     &                  &  \\
-Post\_date        & 上架日期         & datetime     &     & Not Null         &  \\
+Image\_url        & 圖片網址         & TEXT         &     &                  & \Note{改用 TEXT 支援 base64 圖片} \\
+Post\_date        & 上架日期         & timestamp    &     & Not Null         &  \\
+Created\_at       & 建立時間         & timestamp    &     & Default Current\_Timestamp &  \\
+Updated\_at       & 更新時間         & timestamp    &     & Default Current\_Timestamp & \Note{由觸發器自動更新} \\
 \midrule
 \multicolumn{4}{l}{\textbf{Referential triggers}} & \textbf{On Delete} & \textbf{On Update} \\
 \multicolumn{4}{l}{Owner\_id: USER(User\_id)} & Cascade & Cascade \\
@@ -444,7 +448,10 @@ Reviewer\_id    & 評價者代號       & bigint      & FK  & Not Null         &
 Reviewee\_id    & 被評價者代號     & bigint      & FK  & Not Null         & USER(User\_id) \\
 Rating          & 評分             & int         &     & Not Null         & \Note{1-5 分} \\
 Comment         & 評論內容         & varchar(500)&     & Nullable         &  \\
-Created\_at     & 建立時間         & datetime    &     & Not Null         &  \\
+Created\_at     & 建立時間         & timestamp   &     & Not Null         &  \\
+\midrule
+\multicolumn{4}{l}{\textbf{Unique Constraint}} & \textbf{Constraint Name} & \textbf{Columns} \\
+\multicolumn{4}{l}{unique\_review\_per\_transaction} & Unique & (Transaction\_id, Reviewer\_id, Reviewee\_id) \\
 \midrule
 \multicolumn{4}{l}{\textbf{Referential triggers}} & \textbf{On Delete} & \textbf{On Update} \\
 \multicolumn{4}{l}{Transaction\_id: TRANSACTION(Transaction\_id)} & Cascade & Cascade \\
@@ -491,8 +498,11 @@ Reported\_user\_id    & 被檢舉使用者代號 & bigint      & FK  & Nullable 
 Report\_type         & 檢舉類型         & varchar(20) &     & Not Null         & \Enum{Scam, Inappropriate, Fraud, Other} \\
 Description          & 檢舉描述         & varchar(500)&     & Not Null         &  \\
 Status               & 處理狀態         & varchar(15) &     & Default 'Pending' & \Enum{Pending, Under\_Review, Resolved, Rejected} \\
-Created\_at          & 建立時間         & datetime    &     & Not Null         &  \\
-Resolved\_at         & 處理完成時間     & datetime    &     & Nullable         &  \\
+Created\_at          & 建立時間         & timestamp   &     & Not Null         &  \\
+Resolved\_at         & 處理完成時間     & timestamp   &     & Nullable         &  \\
+\midrule
+\multicolumn{4}{l}{\textbf{Check Constraint}} & \textbf{Constraint Name} & \textbf{Condition} \\
+\multicolumn{4}{l}{check\_report\_target} & Check & Reported\_product\_id Is Not Null Or Reported\_user\_id Is Not Null \\
 \midrule
 \multicolumn{4}{l}{\textbf{Referential triggers}} & \textbf{On Delete} & \textbf{On Update} \\
 \multicolumn{4}{l}{Reporter\_id: USER(User\_id)} & Cascade & Cascade \\
@@ -929,6 +939,150 @@ On REVIEW (Reviewee_id);
 \end{lstlisting}
 
 Listing 27: 建立評價被評價者索引
+
+\subsection{其他效能優化索引}
+
+除了上述核心索引外，本系統還建立了以下索引以進一步優化查詢效能：
+
+\paragraph{PRODUCT 表額外索引}
+\begin{lstlisting}[language=SQL]
+-- 優化查詢特定使用者的商品
+Create Index idx_product_owner On PRODUCT (Owner_id);
+
+-- 優化依分類查詢商品
+Create Index idx_product_category On PRODUCT (Category_id);
+\end{lstlisting}
+
+Listing 28: 建立商品擁有者及分類索引
+
+\paragraph{TRADE\_REQUEST 表額外索引}
+\begin{lstlisting}[language=SQL]
+-- 優化查詢使用者提出的請求
+Create Index idx_request_requester On TRADE_REQUEST (Requester_id);
+
+-- 優化查詢特定商品的請求
+Create Index idx_request_target_product On TRADE_REQUEST (Target_product_id);
+\end{lstlisting}
+
+Listing 29: 建立交易請求額外索引
+
+\paragraph{MESSAGE 表額外索引}
+\begin{lstlisting}[language=SQL]
+-- 優化查詢發送者的訊息
+Create Index idx_message_sender On MESSAGE (Sender_id);
+
+-- 優化查詢接收者的訊息
+Create Index idx_message_receiver On MESSAGE (Receiver_id);
+\end{lstlisting}
+
+Listing 30: 建立訊息額外索引
+
+\paragraph{REVIEW 表額外索引}
+\begin{lstlisting}[language=SQL]
+-- 優化查詢特定交易的評價
+Create Index idx_review_transaction On REVIEW (Transaction_id);
+\end{lstlisting}
+
+Listing 31: 建立評價交易索引
+
+\paragraph{TRANSACTION 表索引}
+\begin{lstlisting}[language=SQL]
+-- 優化查詢特定請求的交易紀錄
+Create Index idx_transaction_request On TRANSACTION (Request_id);
+
+-- 優化查詢特定商品的交易紀錄
+Create Index idx_transaction_target_product On TRANSACTION (Target_product_id);
+\end{lstlisting}
+
+Listing 32: 建立交易紀錄索引
+
+\paragraph{USER 表索引}
+\begin{lstlisting}[language=SQL]
+-- 優化登入查詢（Email 已為 UNIQUE，自動建立索引）
+-- 優化學號查詢（Student_id 已為 UNIQUE，自動建立索引）
+-- 額外建立索引以優化其他查詢場景
+Create Index idx_user_email On "user" (Email);
+Create Index idx_user_student_id On "user" (Student_id);
+\end{lstlisting}
+
+Listing 33: 建立使用者索引
+
+\subsection{自動更新時間戳記觸發器}
+
+為確保資料表更新時間（Updated\_at）欄位能自動維護，本系統建立了觸發器函數與對應觸發器：
+
+\begin{lstlisting}[language=SQL]
+-- 建立觸發器函數
+Create Or Replace Function update_updated_at_column()
+Returns Trigger As $$
+Begin
+    New.updated_at = Current_Timestamp;
+    Return New;
+End;
+$$ Language 'plpgsql';
+
+-- 在 USER 表建立觸發器
+Create Trigger update_user_updated_at 
+    Before Update On "user"
+    For Each Row Execute Function update_updated_at_column();
+
+-- 在 PRODUCT 表建立觸發器
+Create Trigger update_product_updated_at 
+    Before Update On PRODUCT
+    For Each Row Execute Function update_updated_at_column();
+
+-- 在 TRADE_REQUEST 表建立觸發器
+Create Trigger update_trade_request_updated_at 
+    Before Update On TRADE_REQUEST
+    For Each Row Execute Function update_updated_at_column();
+
+-- 在 TRADE_WISH 表建立觸發器
+Create Trigger update_trade_wish_updated_at 
+    Before Update On TRADE_WISH
+    For Each Row Execute Function update_updated_at_column();
+\end{lstlisting}
+
+Listing 34: 建立自動更新時間戳記觸發器
+
+\subsection{資料完整性約束}
+
+為確保資料完整性，本系統建立了以下額外約束：
+
+\paragraph{REVIEW 表唯一性約束}
+為防止同一筆交易中，同一評價者對同一被評價者重複評價，建立唯一性約束：
+
+\begin{lstlisting}[language=SQL]
+Alter Table REVIEW
+Add Constraint unique_review_per_transaction 
+    Unique (Transaction_id, Reviewer_id, Reviewee_id);
+\end{lstlisting}
+
+Listing 35: 建立評價唯一性約束
+
+\paragraph{REPORT 表檢查約束}
+為確保檢舉必須針對商品或使用者其中一項，建立檢查約束：
+
+\begin{lstlisting}[language=SQL]
+Alter Table REPORT
+Add Constraint check_report_target 
+    Check (Reported_product_id Is Not Null Or Reported_user_id Is Not Null);
+\end{lstlisting}
+
+Listing 36: 建立檢舉目標檢查約束
+
+\subsection{資料類型優化}
+
+為支援較長的商品描述與 base64 編碼的圖片網址，本系統將以下欄位從 VARCHAR 改為 TEXT 類型：
+
+\begin{lstlisting}[language=SQL]
+-- 修改 PRODUCT 表的 Description 欄位
+Alter Table PRODUCT Alter Column Description Type TEXT;
+
+-- 修改 PRODUCT 表的 Image_url 欄位
+Alter Table PRODUCT Alter Column Image_url Type TEXT;
+\end{lstlisting}
+
+Listing 37: 優化商品描述與圖片欄位類型
 
 \newpage
 

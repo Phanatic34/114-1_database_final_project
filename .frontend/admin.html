@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理員後台 - 二手交易平台</title>
+  <link rel="stylesheet" href="ItemDetailPage.css?v=v1.0.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background-color: #f5f5f5;
+    }
+
+    .admin-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+
+    .admin-header {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .admin-header h1 {
+      margin: 0 0 8px 0;
+      font-size: 28px;
+      color: #111827;
+    }
+
+    .admin-header p {
+      margin: 0;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .admin-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      background: white;
+      padding: 8px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .admin-tab {
+      padding: 12px 24px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #6b7280;
+      transition: all 0.2s;
+    }
+
+    .admin-tab:hover {
+      background: #f3f4f6;
+    }
+
+    .admin-tab.active {
+      background: #2563eb;
+      color: white;
+    }
+
+    .admin-content {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 20px;
+      border-left: 4px solid #2563eb;
+    }
+
+    .stat-card h3 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .stat-card .value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+      background: #f9fafb;
+      font-weight: 600;
+      color: #374151;
+      font-size: 14px;
+    }
+
+    td {
+      font-size: 14px;
+      color: #111827;
+    }
+
+    .btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-active {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-suspended {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-resolved {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #6b7280;
+    }
+
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-content">
+      <a href="index.html" class="logo site-logo">
+        <img src="logo.png" alt="二手交易平台 Logo" />
+      </a>
+      <nav class="header-nav">
+        <a href="index.html">首頁</a>
+        <a href="item_list.html">分類</a>
+        <a href="sell.html">賣東西</a>
+        <a href="chat.html">聊天</a>
+      </nav>
+      <div class="header-actions">
+        <!-- Cart and profile icons will be populated by navbar.js -->
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-container">
+    <div class="admin-header">
+      <h1>管理員後台</h1>
+      <p>平台管理與監控</p>
+    </div>
+
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-tab="statistics">統計資料</button>
+      <button class="admin-tab" data-tab="users">用戶管理</button>
+      <button class="admin-tab" data-tab="products">商品管理</button>
+      <button class="admin-tab" data-tab="categories">分類管理</button>
+      <button class="admin-tab" data-tab="transactions">交易監控</button>
+      <button class="admin-tab" data-tab="reports">檢舉處理</button>
+    </div>
+
+    <div class="admin-content">
+      <!-- Statistics Tab -->
+      <div id="statistics-tab" class="tab-content">
+        <h2>平台統計</h2>
+        <div id="statistics-content" class="loading">載入中...</div>
+      </div>
+
+      <!-- Users Tab -->
+      <div id="users-tab" class="tab-content" style="display: none;">
+        <h2>用戶管理</h2>
+        <div id="users-content" class="loading">載入中...</div>
+      </div>
+
+      <!-- Products Tab -->
+      <div id="products-tab" class="tab-content" style="display: none;">
+        <h2>商品管理</h2>
+        <div id="products-content" class="loading">載入中...</div>
+      </div>
+
+      <!-- Categories Tab -->
+      <div id="categories-tab" class="tab-content" style="display: none;">
+        <h2>分類管理</h2>
+        <div id="categories-content" class="loading">載入中...</div>
+      </div>
+
+      <!-- Transactions Tab -->
+      <div id="transactions-tab" class="tab-content" style="display: none;">
+        <h2>交易監控</h2>
+        <div id="transactions-content" class="loading">載入中...</div>
+      </div>
+
+      <!-- Reports Tab -->
+      <div id="reports-tab" class="tab-content" style="display: none;">
+        <h2>檢舉處理</h2>
+        <div id="reports-content" class="loading">載入中...</div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js?v=v1.0.0"></script>
+  <script src="js/navbar.js?v=v1.0.0"></script>
+  <script>
+    // 檢查管理員權限
+    function checkAdminAccess() {
+      const isAdmin = localStorage.getItem('isAdmin') === 'true';
+      const adminRole = localStorage.getItem('adminRole');
+      
+      console.log('管理員權限檢查:', { isAdmin, adminRole });
+      
+      if (!isAdmin) {
+        alert('您沒有管理員權限，將跳轉回首頁');
+        window.location.href = 'index.html';
+        return false;
+      }
+      
+      console.log('✓ 管理員權限確認，角色:', adminRole);
+      return true;
+    }
+    
+    // 在頁面載入時檢查
+    if (!checkAdminAccess()) {
+      // 如果沒有權限，停止執行後續腳本
+      throw new Error('Access denied');
+    }
+
+    let currentTab = 'statistics';
+
+    // Tab 切換
+    document.querySelectorAll('.admin-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.dataset.tab;
+        switchTab(tabName);
+      });
+    });
+
+    function switchTab(tabName) {
+      currentTab = tabName;
+      
+      // 更新按鈕狀態
+      document.querySelectorAll('.admin-tab').forEach(t => {
+        t.classList.remove('active');
+      });
+      document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+      
+      // 更新內容顯示
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.style.display = 'none';
+      });
+      document.getElementById(`${tabName}-tab`).style.display = 'block';
+      
+      // 載入對應內容
+      loadTabContent(tabName);
+    }
+
+    async function loadTabContent(tabName) {
+      const contentDiv = document.getElementById(`${tabName}-content`);
+      contentDiv.innerHTML = '<div class="loading">載入中...</div>';
+      
+      try {
+        switch(tabName) {
+          case 'statistics':
+            await loadStatistics();
+            break;
+          case 'users':
+            await loadUsers();
+            break;
+          case 'products':
+            await loadProducts();
+            break;
+          case 'categories':
+            await loadCategories();
+            break;
+          case 'transactions':
+            await loadTransactions();
+            break;
+          case 'reports':
+            await loadReports();
+            break;
+        }
+      } catch (error) {
+        contentDiv.innerHTML = `<div class="error">載入失敗: ${error.message}</div>`;
+        console.error('載入失敗:', error);
+      }
+    }
+
+    async function loadStatistics() {
+      const stats = await api.getAdminStatistics();
+      const contentDiv = document.getElementById('statistics-content');
+      
+      contentDiv.innerHTML = `
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>活躍使用者</h3>
+            <div class="value">${stats.total_users}</div>
+          </div>
+          <div class="stat-card">
+            <h3>可交易商品</h3>
+            <div class="value">${stats.total_products}</div>
+          </div>
+          <div class="stat-card">
+            <h3>總交易數</h3>
+            <div class="value">${stats.total_transactions}</div>
+          </div>
+          <div class="stat-card">
+            <h3>待處理檢舉</h3>
+            <div class="value">${stats.pending_reports}</div>
+          </div>
+          <div class="stat-card">
+            <h3>本週新增商品</h3>
+            <div class="value">${stats.products_last_week}</div>
+          </div>
+          <div class="stat-card">
+            <h3>本週交易數</h3>
+            <div class="value">${stats.transactions_last_week}</div>
+          </div>
+        </div>
+        <h3>分類統計</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>分類</th>
+              <th>商品數量</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${stats.category_statistics.map(cat => `
+              <tr>
+                <td>${cat.category_name}</td>
+                <td>${cat.count}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function loadUsers() {
+      const users = await api.getAdminUsers();
+      const contentDiv = document.getElementById('users-content');
+      
+      if (users.length === 0) {
+        contentDiv.innerHTML = '<p>沒有使用者</p>';
+        return;
+      }
+      
+      contentDiv.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>姓名</th>
+              <th>學號</th>
+              <th>Email</th>
+              <th>狀態</th>
+              <th>註冊日期</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${users.map(user => `
+              <tr>
+                <td>${user.user_id}</td>
+                <td>${user.user_name}</td>
+                <td>${user.student_id || '-'}</td>
+                <td>${user.email}</td>
+                <td>
+                  <span class="status-badge ${user.status === 'active' ? 'status-active' : 'status-suspended'}">
+                    ${user.status === 'active' ? '正常' : '已停權'}
+                  </span>
+                </td>
+                <td>${new Date(user.register_date).toLocaleDateString('zh-TW')}</td>
+                <td>
+                  ${user.status === 'active' 
+                    ? `<button class="btn btn-danger" onclick="handleSuspendUser(${user.user_id})">停權</button>`
+                    : `<button class="btn btn-success" onclick="handleActivateUser(${user.user_id})">恢復</button>`
+                  }
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function loadProducts() {
+      const products = await api.getAdminProducts();
+      const contentDiv = document.getElementById('products-content');
+      
+      if (products.length === 0) {
+        contentDiv.innerHTML = '<p>沒有商品</p>';
+        return;
+      }
+      
+      contentDiv.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>商品名稱</th>
+              <th>賣家</th>
+              <th>分類</th>
+              <th>價格</th>
+              <th>狀態</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${products.map(product => `
+              <tr>
+                <td>${product.product_id}</td>
+                <td>${product.product_name}</td>
+                <td>${product.owner_name}</td>
+                <td>${product.category_name}</td>
+                <td>${product.price ? `NT$ ${product.price.toLocaleString('zh-TW')}` : '-'}</td>
+                <td>
+                  <span class="status-badge ${product.status === 'available' ? 'status-active' : ''}">
+                    ${product.status}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-danger" onclick="handleDeleteProduct(${product.product_id})">刪除</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function loadCategories() {
+      const categories = await api.getAdminCategories();
+      const contentDiv = document.getElementById('categories-content');
+      
+      contentDiv.innerHTML = `
+        <div style="margin-bottom: 16px;">
+          <button class="btn btn-primary" onclick="showAddCategoryModal()">新增分類</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>分類名稱</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${categories.map(cat => `
+              <tr>
+                <td>${cat.category_id}</td>
+                <td>${cat.category_name}</td>
+                <td>
+                  <button class="btn btn-danger" onclick="handleDeleteCategory(${cat.category_id})">刪除</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function loadTransactions() {
+      const transactions = await api.getAdminTransactions();
+      const contentDiv = document.getElementById('transactions-content');
+      
+      if (transactions.length === 0) {
+        contentDiv.innerHTML = '<p>沒有交易紀錄</p>';
+        return;
+      }
+      
+      contentDiv.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>交易ID</th>
+              <th>類型</th>
+              <th>買家</th>
+              <th>賣家</th>
+              <th>商品</th>
+              <th>金額</th>
+              <th>付款狀態</th>
+              <th>完成日期</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${transactions.map(t => `
+              <tr>
+                <td>${t.transaction_id}</td>
+                <td>${t.request_type}</td>
+                <td>${t.buyer_name}</td>
+                <td>${t.seller_name}</td>
+                <td>${t.target_product_name}</td>
+                <td>${t.total_price ? `NT$ ${t.total_price.toLocaleString('zh-TW')}` : '-'}</td>
+                <td>${t.payment_status}</td>
+                <td>${new Date(t.complete_date).toLocaleDateString('zh-TW')}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function loadReports() {
+      const reports = await api.getAdminReports('Pending');
+      const contentDiv = document.getElementById('reports-content');
+      
+      if (reports.length === 0) {
+        contentDiv.innerHTML = '<p>沒有待處理的檢舉</p>';
+        return;
+      }
+      
+      contentDiv.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>檢舉ID</th>
+              <th>檢舉者</th>
+              <th>被檢舉對象</th>
+              <th>類型</th>
+              <th>描述</th>
+              <th>建立時間</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${reports.map(r => `
+              <tr>
+                <td>${r.report_id}</td>
+                <td>${r.reporter_name}</td>
+                <td>${r.reported_user_name || r.reported_product_name || '-'}</td>
+                <td>${r.report_type}</td>
+                <td>${r.description}</td>
+                <td>${new Date(r.created_at).toLocaleDateString('zh-TW')}</td>
+                <td>
+                  <button class="btn btn-success" onclick="handleResolveReport(${r.report_id}, 'Resolved')">處理</button>
+                  <button class="btn btn-danger" onclick="handleResolveReport(${r.report_id}, 'Rejected')">駁回</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    // 操作函數
+    async function handleSuspendUser(userId) {
+      if (!confirm('確定要停權此使用者嗎？')) return;
+      try {
+        await api.suspendUser(userId);
+        alert('使用者已停權');
+        loadUsers();
+      } catch (error) {
+        alert('操作失敗: ' + error.message);
+      }
+    }
+
+    async function handleActivateUser(userId) {
+      if (!confirm('確定要恢復此使用者帳號嗎？')) return;
+      try {
+        await api.activateUser(userId);
+        alert('使用者帳號已恢復');
+        loadUsers();
+      } catch (error) {
+        alert('操作失敗: ' + error.message);
+      }
+    }
+
+    async function handleDeleteProduct(productId) {
+      if (!confirm('確定要刪除此商品嗎？')) return;
+      try {
+        await api.apiCall(`/admin/products/${productId}`, 'DELETE', null, true);
+        alert('商品已刪除');
+        loadProducts();
+      } catch (error) {
+        alert('操作失敗: ' + error.message);
+      }
+    }
+
+    async function handleDeleteCategory(categoryId) {
+      if (!confirm('確定要刪除此分類嗎？')) return;
+      try {
+        await api.deleteCategory(categoryId);
+        alert('分類已刪除');
+        loadCategories();
+      } catch (error) {
+        alert('操作失敗: ' + error.message);
+      }
+    }
+
+    async function handleResolveReport(reportId, status) {
+      const action = status === 'Resolved' ? '處理' : '駁回';
+      if (!confirm(`確定要${action}此檢舉嗎？`)) return;
+      try {
+        await api.resolveReport(reportId, status);
+        alert(`檢舉已${action}`);
+        loadReports();
+      } catch (error) {
+        alert('操作失敗: ' + error.message);
+      }
+    }
+
+    function showAddCategoryModal() {
+      const categoryName = prompt('請輸入分類名稱（Textbooks, Electronics, Clothing, Stationery, Daily_Use, Others）:');
+      if (!categoryName) return;
+      
+      api.createCategory({ category_name: categoryName })
+        .then(() => {
+          alert('分類新增成功');
+          loadCategories();
+        })
+        .catch(error => {
+          alert('新增失敗: ' + error.message);
+        });
+    }
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      loadTabContent('statistics');
+    });
+  </script>
+</body>
+</html>
+
