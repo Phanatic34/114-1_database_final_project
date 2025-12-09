@@ -1,321 +1,271 @@
-# 114-1 Database Final Project - 二手交易平台
+# 校園生活用品交換與買賣平台
 
-A full-featured second-hand marketplace platform built with vanilla HTML, CSS, and JavaScript. This project implements a complete e-commerce system for buying, selling, and trading used items with transaction management, messaging, and review systems.
+Group 22 - Database Final Project (114-1)
 
-## 📋 Table of Contents
+## 🚀 快速啟動
 
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Key Features](#key-features)
-- [Data Model](#data-model)
-- [File Structure](#file-structure)
-- [Usage Guide](#usage-guide)
+**詳細啟動說明請參考：`啟動說明.md`**
 
-## ✨ Features
+### 三步驟啟動
 
-### Core Functionality
-- **User Authentication**: Registration, login, and session management
-- **Item Management**: Create, edit, delete, and manage listings
-- **Search & Filter**: Search by keywords, filter by categories
-- **Transaction System**: Purchase requests, trade proposals, and transaction tracking
-- **Messaging System**: Direct communication between buyers and sellers
-- **Review System**: Post-transaction reviews and ratings (1-5 stars)
-- **Image Gallery**: Product images with lightbox viewer
-- **Responsive Design**: Mobile-friendly interface
+1. **啟動後端**（終端視窗 1）：
+   ```bash
+   cd .backend
+   python app.py
+   ```
 
-### Advanced Features
-- **Reservation System**: Items can be reserved when seller accepts a request
-- **Handoff Confirmation**: Both parties must confirm in-person trade completion
-- **7-Day Time Limit**: Handoff confirmation must occur within 7 days
-- **Sold-Out Styling**: Visual indicators for sold items (grayscale, badge overlay)
-- **Transaction Status Tracking**: Real-time status updates (pending → reserved → completed)
-- **Recently Viewed Items**: Track and display browsing history
+2. **啟動前端**（終端視窗 2）：
+   ```bash
+   cd .frontend
+   python -m http.server 8000
+   ```
 
-## 🛠 Tech Stack
+3. **開啟網站**：
+   在瀏覽器開啟 `http://localhost:8000`
 
-- **Frontend**: HTML5, CSS3, Vanilla JavaScript (ES6+)
-- **Storage**: localStorage for client-side data persistence
-- **Image Generation**: Pollinations.ai API for dynamic product images
-- **No Frameworks**: Pure vanilla JS implementation
+## 專案簡介
 
-## 📁 Project Structure
+本專案是一個整合「購買」與「交換」功能的校園二手交易平台，專為大學生族群設計。使用者可以同時扮演買家與賣家的角色，透過現金交易、物品交換或混合模式完成交易。
+
+## 專案結構
 
 ```
-.
-├── index.html              # Homepage with trending items
-├── item_list.html          # Item listing/search page
-├── item_page.html          # Item detail page
-├── sell.html               # Create new listing
-├── my_items.html           # Seller's item management
-├── requests.html           # Buyer's transaction requests
-├── transactions.html       # Transaction history
-├── messages.html           # Messaging center
-├── login.html              # User login
-├── register.html           # User registration
-├── account.html            # User account settings
-├── cart.html               # Shopping cart (placeholder)
-├── chat.html               # Chat interface
-├── js/
-│   ├── data.js            # Data layer (localStorage management)
-│   ├── item_page.js       # Item detail page logic
-│   ├── images.js          # Image URL generation and fallback
-│   ├── categories.js      # Category management
-│   └── navbar.js          # Navigation bar logic
-├── images/
-│   └── no-image.png       # Fallback placeholder image
-├── data/
-│   └── itemsData.js       # Seed data for demo items
-└── ItemDetailPage.css     # Main stylesheet
+db-final/
+├── .frontend/          # 前端檔案（HTML, CSS, JavaScript）
+│   ├── index.html
+│   ├── item_list.html
+│   ├── item_page.html
+│   ├── js/
+│   ├── images/
+│   └── ...
+├── .backend/           # 後端系統（Flask API）
+│   ├── api/            # API 路由
+│   ├── config/         # 配置檔案
+│   ├── database/       # 資料庫腳本
+│   ├── models/         # 資料模型
+│   ├── utils/          # 工具函數
+│   ├── app.py          # 主應用程式
+│   └── requirements.txt
+├── outline.tex         # 系統設計文件（LaTeX）
+└── README.md           # 本檔案
 ```
 
-## 🚀 Getting Started
+## 技術架構
 
-### Prerequisites
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- No server or build tools required - runs directly in browser
+### 前端
+- HTML5, CSS3, JavaScript (Vanilla JS)
+- 無需框架，可直接在瀏覽器運行
 
-### Installation
+### 後端
+- **Python Flask** - Web API 框架
+- **PostgreSQL** - 關聯式資料庫（主要資料）
+- **MongoDB** - NoSQL 資料庫（活動記錄、推薦系統等）
 
-1. Clone the repository:
+## 快速開始
+
+### 前置需求
+
+1. **Python 3.8+**
+2. **PostgreSQL 12+**
+3. **MongoDB 4.4+**
+4. **Node.js** (可選，用於前端開發工具)
+
+### 1. 設定後端
+
 ```bash
-git clone https://github.com/Phanatic34/114-1_database_final_project.git
-cd 114-1_database_final_project
+# 進入後端目錄
+cd .backend
+
+# 安裝 Python 依賴
+pip install -r requirements.txt
+
+# 複製環境變數檔案
+cp env.example .env
+
+# 編輯 .env 檔案，設定資料庫連線資訊
+# 詳細說明請參考 .backend/DATABASE_SETUP.md
 ```
 
-2. Open in browser:
-   - Simply open `index.html` in your web browser
-   - Or use a local server (optional):
-     ```bash
-     # Using Python
-     python -m http.server 8000
-     
-     # Using Node.js
-     npx http-server
-     ```
+### 2. 初始化資料庫
 
-3. Access the application:
-   - Navigate to `http://localhost:8000` (if using server)
-   - Or open `index.html` directly
+#### PostgreSQL
 
-### First Time Setup
+```bash
+# 建立資料庫
+psql -U postgres
+CREATE DATABASE campus_trading;
+\q
 
-1. **Register an account**: Click "註冊" (Register) to create a new user account
-2. **Login**: Use your credentials to log in
-3. **Browse items**: Explore trending items on the homepage
-4. **Create listing**: Click "賣東西" (Sell Items) to post your first item
-
-## 🎯 Key Features
-
-### Transaction Flow
-
-1. **Purchase Request**
-   - Buyer clicks "立即購買" (Buy Now) on an item
-   - Fills in quantity and optional message
-   - Request is sent to seller
-
-2. **Seller Response**
-   - Seller sees request in "此商品的交易請求" section
-   - Can accept or reject the request
-   - When accepted, item status changes to "預約中" (Reserved)
-
-3. **Handoff Confirmation**
-   - Both buyer and seller see "已面交" (Complete Trade) button
-   - Each party must independently confirm within 7 days
-   - When both confirm, transaction status becomes "已完成" (Completed)
-   - Item status changes to "已成交" (Sold)
-
-4. **Review System**
-   - After completion, both parties can leave reviews
-   - 1-5 star rating with optional text comment
-   - Reviews are stored and displayed
-
-### Item Status System
-
-- **active**: Item is available for purchase/trade
-- **reserved**: Item is reserved for a specific buyer (after seller accepts)
-- **sold**: Item transaction is completed (both parties confirmed handoff)
-
-### Visual Indicators
-
-- **Sold Items**: 
-  - Grayscale images
-  - Reduced opacity (70%)
-  - "已售完" (Sold Out) badge overlay
-  - Applied to all item cards (trending, recently viewed, search results)
-
-## 📊 Data Model
-
-### User
-```javascript
-{
-  id: string,
-  name: string,
-  email: string,
-  password: string,
-  disabled?: boolean
-}
+# 初始化 Schema
+cd .backend
+python database/init_db.py
 ```
 
-### Item
-```javascript
-{
-  id: string,
-  sellerId: string,
-  title: string,
-  category: string,
-  condition: string,
-  price: number,
-  description: string,
-  tags: string[],
-  location: string,
-  quantity: number,
-  modes: {
-    sale: boolean,
-    tradeTarget: boolean,
-    tradeOpen: boolean
-  },
-  status: 'active' | 'reserved' | 'sold',
-  images: string[],
-  views: number,
-  addedToCartCount: number,
-  isActive: boolean,
-  createdAt: string
-}
+#### MongoDB
+
+```bash
+# 確保 MongoDB 服務運行中
+# 初始化 Collections
+cd .backend
+python database/mongodb_schema.py
 ```
 
-### Transaction
-```javascript
-{
-  id: string,
-  itemId: string,
-  sellerId: string,
-  buyerId: string,
-  type: 'purchase' | 'trade-open' | 'trade-target',
-  status: 'pending' | 'declined' | 'reserved' | 'completed' | 'cancelled',
-  quantity: number,
-  createdAt: string,
-  reservedAt?: string,
-  completedAt?: string,
-  sellerConfirmedAt?: string,
-  buyerConfirmedAt?: string
-}
+詳細的資料庫設定步驟請參考 [.backend/DATABASE_SETUP.md](.backend/DATABASE_SETUP.md)
+
+### 3. 啟動後端服務
+
+```bash
+cd .backend
+python app.py
 ```
 
-### Review
-```javascript
-{
-  id: string,
-  itemId: string,
-  transactionId: string,
-  fromUserId: string,
-  toUserId: string,
-  rating: number, // 1-5
-  comment: string,
-  createdAt: string
-}
+後端 API 將在 `http://localhost:5000` 運行。
+
+### 4. 啟動前端
+
+```bash
+# 方式一：直接開啟 HTML 檔案
+# 在瀏覽器中開啟 .frontend/index.html
+
+# 方式二：使用本地伺服器（推薦）
+cd .frontend
+python -m http.server 8000
+# 或
+npx http-server
 ```
 
-## 📝 Usage Guide
+前端將在 `http://localhost:8000` 運行。
 
-### For Buyers
+## 資料庫架構
 
-1. **Browse Items**: 
-   - View trending items on homepage
-   - Search by keyword or filter by category
-   - Click any item card to view details
+### PostgreSQL 關聯式資料庫
 
-2. **Make Purchase Request**:
-   - On item detail page, click "立即購買" (Buy Now)
-   - Select quantity and add optional message
-   - Confirm the request
+主要資料表：
+- `user` - 使用者基本資料
+- `category` - 商品分類
+- `product` - 商品資訊
+- `trade_request` - 交易請求
+- `transaction` - 交易紀錄
+- `trade_wish` - 交換許願
+- `review` - 評價與評論
+- `message` - 訊息對話
+- `report` - 檢舉記錄
+- `admin` - 管理員權限
 
-3. **Track Requests**:
-   - Go to "交易請求" page to see all your requests
-   - Cancel pending requests if needed
-   - View status updates
+詳細的資料庫結構請參考 `outline.tex` 或 `.backend/database/schema.sql`
 
-4. **Complete Transaction**:
-   - When seller accepts, click "已面交" (Complete Trade) after meeting
-   - Wait for seller to also confirm
-   - Leave a review after completion
+### MongoDB NoSQL 資料庫
 
-### For Sellers
+Collections：
+- `user_activities` - 使用者活動記錄
+- `product_views` - 商品瀏覽統計
+- `search_logs` - 搜尋記錄
+- `recommendations` - 商品推薦
+- `cache` - 快取資料
+- `notifications` - 通知訊息
 
-1. **Create Listing**:
-   - Click "賣東西" (Sell Items)
-   - Fill in item details, upload images
-   - Set price and trading modes
-   - Publish the listing
+## API 文檔
 
-2. **Manage Listings**:
-   - Go to "我的商品" (My Items) to see all your listings
-   - Edit or delete items
-   - View transaction requests for each item
+後端 API 文檔請參考 [.backend/README.md](.backend/README.md)
 
-3. **Handle Requests**:
-   - On item detail page, see "此商品的交易請求" section
-   - Accept or reject buyer requests
-   - When accepting, item becomes reserved
+主要 API 端點：
+- `/api/auth/*` - 認證相關
+- `/api/products/*` - 商品相關
+- `/api/trade-requests/*` - 交易請求
+- `/api/transactions/*` - 交易紀錄
+- `/api/reviews/*` - 評價
+- `/api/messages/*` - 訊息
+- `/api/reports/*` - 檢舉
+- `/api/admin/*` - 管理員功能
 
-4. **Complete Transaction**:
-   - Click "已面交" (Complete Trade) after meeting buyer
-   - Wait for buyer to also confirm
-   - Leave a review after completion
+## 功能特色
 
-## 🔧 Technical Details
+### 使用者功能
+- ✅ 註冊與登入（簡化認證，使用 user_id）
+- ✅ 商品上架與管理
+- ✅ 商品瀏覽與搜尋
+- ✅ 提出交易請求（購買/交換）
+- ✅ 管理交易請求（接受/拒絕/取消）
+- ✅ 完成交易與評價
+- ✅ 訊息對話
+- ✅ 檢舉功能
 
-### Data Persistence
-- All data stored in browser's localStorage
-- Data persists across sessions
-- No backend server required
+### 管理員功能
+- ✅ 商品管理
+- ✅ 使用者管理
+- ✅ 檢舉處理
+- ✅ 分類管理
 
-### Image Handling
-- Dynamic image generation using Pollinations.ai API
-- Automatic fallback to local placeholder if API fails
-- Image lightbox viewer for product galleries
+### 系統功能
+- ✅ 併行控制（防止重複請求）
+- ✅ 交易狀態管理
+- ✅ 活動記錄（MongoDB）
+- ✅ 商品推薦系統（MongoDB）
 
-### State Management
-- Centralized data layer in `js/data.js`
-- Helper functions for CRUD operations
-- Status normalization for consistent data structure
+## 開發說明
 
-## 🎨 Design Features
+### 資料庫連接
 
-- **Modern UI**: Clean, card-based design
-- **Responsive Layout**: Works on desktop, tablet, and mobile
-- **Smooth Animations**: Hover effects and transitions
-- **Visual Feedback**: Status indicators, badges, and color coding
-- **Accessibility**: Semantic HTML and ARIA labels
+**重要：** 在開始開發前，請先完成資料庫設定：
 
-## 📌 Notes
+1. 參考 `.backend/DATABASE_SETUP.md` 安裝並設定 PostgreSQL 和 MongoDB
+2. 在 `.backend/.env` 中設定正確的資料庫連線資訊
+3. 執行資料庫初始化腳本
 
-- This is a client-side only application (no backend)
-- Data is stored in browser localStorage (clears if browser data is cleared)
-- Password storage is plain text (for demo purposes only)
-- Image generation requires internet connection for Pollinations.ai API
+### 環境變數
 
-## 🔮 Future Improvements
+後端需要以下環境變數（在 `.backend/.env` 中設定）：
 
-- [ ] Backend API integration
-- [ ] Database persistence
-- [ ] User authentication with JWT
-- [ ] Payment gateway integration
-- [ ] Email notifications
-- [ ] Advanced search filters
-- [ ] Image upload functionality
-- [ ] Real-time messaging
-- [ ] Admin dashboard
+```env
+# PostgreSQL
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=campus_trading
+DB_USER=postgres
+DB_PASSWORD=your_password
 
-## 📄 License
+# MongoDB
+MONGO_HOST=localhost
+MONGO_PORT=27017
+MONGO_DB=campus_trading_nosql
 
-This project is part of a database course final project (114-1).
+# JWT
+JWT_SECRET=your-secret-key
 
-## 👥 Contributors
+# Flask
+FLASK_ENV=development
+PORT=5000
+```
 
-- Group 22 - Database Final Project
+## 專案成員
 
----
+- B12705001 范嘉栩
+- B12705021 周建凱
+- B12705050 宋承陽
 
-**Note**: This is a standalone HTML version for quick preview. For full functionality, refer to the React version (ItemDetailPage.tsx) if available.
+## 相關文件
+
+- **`啟動說明.md`** - 完整啟動指南（**請先看這個！**）
+- [系統設計文件](outline.tex) - 完整的系統分析與設計（LaTeX）
+- [後端 README](.backend/README.md) - 後端 API 文檔
+
+## 授權
+
+本專案為資料庫課程（114-1）期末專案。
+
+## 注意事項
+
+1. **生產環境部署前請務必：**
+   - 修改 `JWT_SECRET` 為強密碼
+   - 設定強資料庫密碼
+   - 關閉 Flask debug 模式
+   - 設定適當的 CORS 政策
+
+2. **資料庫備份：**
+   - 定期備份 PostgreSQL 資料庫
+   - MongoDB 資料可視需要備份
+
+3. **安全性：**
+   - 密碼使用 bcrypt 加密
+   - API 使用 user_id 認證（簡化版，適用於個人使用）
+   - SQL 注入防護（使用參數化查詢）

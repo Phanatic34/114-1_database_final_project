@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>商品詳情 - 二手交易平台</title>
+  <link rel="stylesheet" href="ItemDetailPage.css?v=v1.0.0">
+  <style>
+    /* Additional styles for standalone HTML version */
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    }
+    
+
+    /* Message button styling */
+    .btn-message {
+      padding: 0.875rem 1.5rem;
+      border: 2px solid var(--primary-blue);
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      background: white;
+      color: var(--primary-blue);
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+
+    .btn-message:hover {
+      background: var(--accent-blue);
+    }
+
+    /* Chat modal specific styles */
+    .chat-header-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .chat-header-info .seller-avatar {
+      width: 40px;
+      height: 40px;
+      font-size: 1.2rem;
+    }
+
+    .chat-header-info h2 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    .chat-body {
+      display: flex;
+      flex-direction: column;
+      height: 500px;
+      padding: 0;
+    }
+
+    .messages-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      background: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .message-bubble {
+      max-width: 70%;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      word-wrap: break-word;
+    }
+
+    .message-seller {
+      align-self: flex-start;
+      background: white;
+      border: 1px solid var(--border-color);
+    }
+
+    .message-user {
+      align-self: flex-end;
+      background: var(--primary-blue);
+      color: white;
+    }
+
+    .message-content {
+      margin-bottom: 0.25rem;
+      line-height: 1.4;
+    }
+
+    .message-time {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+
+    .chat-input-area {
+      display: flex;
+      gap: 0.5rem;
+      padding: 1rem;
+      border-top: 1px solid var(--border-color);
+      background: white;
+    }
+
+    .chat-input-area input {
+      flex: 1;
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+
+    .chat-input-area input:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 3px var(--accent-blue);
+    }
+
+    .chat-input-area button {
+      padding: 0.75rem 1.5rem;
+      white-space: nowrap;
+    }
+
+    /* Header search input */
+    .header-search {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-search input {
+      padding: 8px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 14px;
+      width: 200px;
+      transition: all 0.2s;
+    }
+
+    .header-search input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .header-search input:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .header-search button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .header-search button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      .header-search {
+        display: none;
+      }
+    }
+
+    /* Main content and breadcrumb adjustments */
+    .main-content {
+      padding: 0;
+    }
+
+    .breadcrumb {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 16px 0;
+    }
+
+    /* Main layout container */
+    .item-page-main {
+      max-width: 1200px;
+      margin: 24px auto 40px;
+      padding: 0 16px;
+    }
+
+    /* Upper section: image + main info + purchase card */
+    .item-top-grid {
+      display: grid;
+      grid-template-columns: minmax(420px, 480px) minmax(0, 1.3fr) 320px;
+      column-gap: 40px;
+      align-items: flex-start;
+    }
+
+    .item-col-center {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    /* Lower section: 商品資訊 + 商品描述 */
+    .item-detail-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
+      column-gap: 24px;
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    /* Left Column - Image Gallery */
+    .item-col-left {
+      position: sticky;
+      top: 100px;
+      align-self: flex-start;
+    }
+
+    .item-image-main {
+      background: #f3f4f6;
+      border-radius: 16px;
+      padding: 16px;
+      width: 100%;
+      max-width: 480px;
+      aspect-ratio: 4 / 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .item-image-main .main-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
+      display: block;
+      cursor: pointer;
+    }
+
+    .item-image-main .image-badge {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      background: #2563eb;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .item-thumbnails {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .item-thumbnails .thumbnail {
+      width: 90px;
+      height: 90px;
+      min-width: 90px;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      background: #f3f4f6;
+      padding: 0;
+      flex-shrink: 0;
+    }
+
+    .item-thumbnails .thumbnail.active {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+
+    .item-thumbnails .thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .item-info-card {
+      padding: 16px 20px;
+      border-radius: 16px;
+      background: #f5f5f5;
+    }
+
+    /* Remove border/margin/padding from section-divider for these two sections */
+    .item-info-card,
+    .item-description-section {
+      border-top: none;
+      margin-top: 0;
+      padding-top: 0;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #111827;
+    }
+
+    .item-info-list {
+      margin: 0;
+      padding: 0;
+    }
+
+    .item-info-row {
+      display: flex;
+      padding: 4px 0;
+      font-size: 14px;
+    }
+
+    .item-info-row dt {
+      width: 80px;
+      color: #6b7280;
+      flex-shrink: 0;
+    }
+
+    .item-info-row dd {
+      margin: 0;
+      color: #111827;
+      flex: 1;
+    }
+
+    .item-info-tags dd {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #e0edff;
+      color: #2563eb;
+      font-size: 13px;
+    }
+
+    /* Item tags row - positioned under title, above divider */
+    .item-tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;        /* close to the title/badges above */
+      margin-bottom: 12px;    /* small gap before the divider */
+    }
+
+    .item-tag-pill {
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      line-height: 1.4;
+      background-color: #e7f1ff;
+      color: #1554d1;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    /* Tags in description section */
+    .item-description-tags {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* Listing Header - spans center + right visually */
+    .listing-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    /* On larger screens, make header span visually by extending into right column space */
+    @media (min-width: 961px) {
+      .listing-header {
+        margin-right: -320px; /* Negative margin to extend into right column */
+        padding-right: 320px; /* Padding to maintain content spacing */
+      }
+      .listing-header-right {
+        display: none; /* Availability text is now in item-title-row */
+      }
+    }
+
+    .listing-header-left {
+      flex: 2;
+    }
+
+    .listing-header-right {
+      flex: 1;
+      text-align: right;
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .listing-mode-summary {
+      white-space: nowrap;
+    }
+
+
+    /* Center Column - Title, Seller, Trade Modes, Rules, Description */
+    /* Item header container */
+    .item-header {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Title row: title + availability */
+    .item-title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #e5e7eb; /* subtle divider */
+    }
+
+    .item-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0;
+      color: #111827;
+      line-height: 1.3;
+      flex: 1;
+    }
+
+    .item-availability {
+      font-size: 13px;
+      color: #6b7280;
+      white-space: nowrap;
+      margin-top: 4px;
+    }
+
+    /* Seller row */
+    .item-seller-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .seller-inline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 0;
+    }
+
+    .seller-avatar-small {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #e0edff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: #2563eb;
+      flex-shrink: 0;
+    }
+
+    .seller-text-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .seller-main-line {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .seller-sub-line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .seller-rating-text {
+      white-space: nowrap;
+    }
+
+    .seller-dot {
+      color: #9ca3af;
+    }
+
+    .seller-link-button {
+      border: none;
+      background: transparent;
+      padding: 0;
+      font-size: 13px;
+      color: #2563eb;
+      cursor: pointer;
+      text-decoration: underline;
+      white-space: nowrap;
+    }
+
+    .seller-link-button:hover {
+      color: #1d4ed8;
+    }
+
+    .trade-mode-badges {
+      display: flex;
+      flex-wrap: wrap;         /* allow wrapping for better responsiveness */
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;         /* small gap below title */
+      margin-bottom: 0;
+    }
+    
+    .item-header-divider {
+      margin-top: 0;            /* gap handled by item-tags-row margin-bottom */
+      margin-bottom: 16px;     /* gap between divider and seller row */
+      border-top: 1px solid rgba(0, 0, 0, 0.06);  /* subtle divider line */
+    }
+    
+    .item-seller-row {
+      margin-top: 0;           /* spacing handled by divider above */
+    }
+
+    /* On very small screens, allow wrapping so it doesn't overflow */
+    @media (max-width: 480px) {
+      .trade-mode-badges {
+        flex-wrap: wrap;
+      }
+    }
+
+    .trade-mode-badges .badge,
+    .mode-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    /* Default pill style (soft blue fill) */
+    .trade-mode-badges .badge,
+    .mode-pill {
+      background: #e5f0ff;        /* light blue fill */
+      border: 1px solid #bfdbfe;  /* soft blue border */
+      color: #1d4ed8;             /* darker blue text */
+    }
+
+    /* Mode-specific colors */
+    .mode-sale,
+    .trade-mode-badges .badge.mode-sale {
+      background: #e0f2fe;
+      border-color: #bae6fd;
+      color: #1d4ed8;
+    }
+
+    .mode-trade,
+    .trade-mode-badges .badge.mode-trade {
+      background: #ecfdf3;
+      border-color: #bbf7d0;
+      color: #15803d;
+    }
+
+    .mode-wish,
+    .trade-mode-badges .badge.mode-wish {
+      background: #fef3c7;
+      border-color: #fde68a;
+      color: #92400e;
+    }
+
+    .trade-rule-card {
+      background: #e5f0ff;
+      border-radius: 16px;
+      padding: 16px 20px;
+      border-left: 4px solid #2563eb;
+      margin-top: 12px;
+      margin-bottom: 24px;
+    }
+
+    /* Reusable section divider helper class */
+    .section-divider {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid #e5e7eb; /* thin, light grey line */
+    }
+
+
+    .trade-rule-card h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      color: #2563eb;
+    }
+
+    .trade-rule-card p {
+      margin: 4px 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #111827;
+    }
+
+    .item-description-section {
+      margin-bottom: 24px;
+    }
+
+    .item-description-section .section-title {
+      margin-bottom: 12px;
+    }
+
+    .item-description-section p,
+    .item-description-section li {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #374151;
+    }
+
+    .item-description-section ul {
+      margin: 8px 0;
+      padding-left: 24px;
+    }
+
+    .view-stats {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    /* Right Column - Action Card (sticky positioning removed - scrolls normally) */
+
+    .action-card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      padding: 20px 20px 16px;
+      position: relative; /* positioning context for dropdown */
+    }
+
+    /* Header row: label on the left, dots on the right */
+    .purchase-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    /* Three-dot button */
+    .purchase-more-btn {
+      border: none;
+      background: transparent;
+      font-size: 20px;
+      line-height: 1;
+      color: #9ca3af; /* neutral gray */
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 999px;
+      transition: background 0.2s;
+    }
+
+    .purchase-more-btn:hover {
+      background: #e5e7eb;
+    }
+
+    /* Dropdown menu container */
+    .purchase-more-menu {
+      position: absolute;
+      top: 16px;       /* align with top padding inside card */
+      right: 16px;     /* stick to top-right corner of the card */
+      min-width: 140px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+      padding: 6px 0;
+      z-index: 20;
+    }
+
+    /* Menu item: 檢舉商品 */
+    .purchase-more-menu-item {
+      width: 100%;
+      border: none;
+      background: transparent;
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #111827;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .purchase-more-menu-item:hover {
+      background: #f3f4f6;
+    }
+
+    .action-price-block {
+      margin-bottom: 12px;
+    }
+
+    .action-price-label {
+      font-size: 13px;
+      color: #6b7280;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .action-price {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2563eb;
+    }
+
+    .action-quantity {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .action-quantity label {
+      color: #374151;
+    }
+
+    .action-quantity select {
+      padding: 6px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+    }
+
+    .action-buttons-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 16px;
+    }
+
+    .action-buttons-group.hidden {
+      display: none;
+    }
+
+    .action-buttons-group button {
+      width: 100%;
+    }
+
+    /* separators only between primary buttons */
+    .action-buttons-group .item-action-button + .item-action-button {
+      margin-top: 6px;
+      position: relative;
+    }
+
+    .action-buttons-group .item-action-button + .item-action-button::before {
+      content: "";
+      position: absolute;
+      top: -4px;
+      left: 16px;
+      right: 16px;
+      height: 1px;
+      background: #e5e7eb;
+    }
+
+    .cancel-tx-btn {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+
+    .danger-button {
+      background-color: #e53935;
+      color: #ffffff;
+    }
+
+    .danger-button:hover {
+      background-color: #c62828;
+    }
+
+    .remove-helper-text {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #6b7280;
+      text-align: center;
+      padding: 0 16px;
+    }
+
+    .action-buttons .btn-primary + .btn-primary::before {
+      content: "";
+      position: absolute;
+      top: -4px;
+      left: 16px;
+      right: 16px;
+      height: 1px;
+      background: #e5e7eb; /* subtle grey line between primary buttons */
+    }
+
+    /* Base button class with shared sizing */
+    .item-action-button {
+      width: 100%;
+      padding: 14px 24px;
+      border-radius: 999px;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      display: block;
+    }
+
+    /* Primary style (blue filled) */
+    .item-action-button-primary {
+      background-color: #2563eb;
+      color: #ffffff;
+    }
+
+    .item-action-button-primary:hover {
+      background-color: #1d4ed8;
+    }
+
+    /* Outline style (white with blue border) */
+    .item-action-button-outline {
+      background-color: #ffffff;
+      color: #2563eb;
+      border: 2px solid #2563eb;
+    }
+
+    .item-action-button-outline:hover {
+      background-color: #eff6ff;
+    }
+
+    /* Legacy classes for backward compatibility */
+    .btn-primary {
+      padding: 10px 0;
+      border-radius: 999px;
+      border: none;
+      background: #2563eb;
+      color: #ffffff;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-outline {
+      padding: 10px 0;
+      border-radius: 999px;
+      border: 1px solid #2563eb;
+      background: #ffffff;
+      color: #2563eb;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    .btn-outline:hover {
+      background: #eff6ff;
+    }
+
+    /* Purchase Modal Footer Styles */
+    .purchase-modal-footer {
+      margin-top: 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .purchase-modal-footer .btn-primary {
+      min-width: 140px;
+      height: 48px;
+      padding: 0 24px;
+      border-radius: 999px;
+      border: none;
+      background-color: #1554d1;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .purchase-modal-footer .btn-primary:hover {
+      filter: brightness(1.05);
+      background-color: #1d4ed8;
+    }
+
+    .purchase-modal-footer .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      filter: none;
+    }
+
+    .purchase-modal-footer .btn-secondary {
+      min-width: 120px;
+      height: 48px;
+      padding: 0 24px;
+      border-radius: 999px;
+      border: 1px solid #1554d1;
+      background-color: #fff;
+      color: #1554d1;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .purchase-modal-footer .btn-secondary:hover {
+      background-color: #f3f6ff;
+    }
+
+    @media (max-width: 768px) {
+      .purchase-modal-footer {
+        flex-direction: column-reverse;
+        gap: 8px;
+      }
+
+      .purchase-modal-footer .btn-primary,
+      .purchase-modal-footer .btn-secondary {
+        width: 100%;
+      }
+    }
+
+    .pickup-section h4 {
+      font-size: 14px;
+      margin: 0 0 4px 0;
+      color: #111827;
+      font-weight: 600;
+    }
+
+    .pickup-section p {
+      font-size: 14px;
+      color: #374151;
+      margin: 0;
+    }
+
+    /* Handoff Section Styles */
+    .handoff-section {
+      margin-top: 16px;
+      padding-top: 16px;
+    }
+
+    .handoff-status-text {
+      font-size: 14px;
+      color: #111827;
+      margin-bottom: 8px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .handoff-hint {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #6b7280;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    /* Review Modal Styles */
+    .rating-stars {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .star-btn {
+      background: none;
+      border: none;
+      font-size: 32px;
+      color: #d1d5db;
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.2s;
+      line-height: 1;
+    }
+
+    .star-btn:hover,
+    .star-btn.active {
+      color: #fbbf24;
+      transform: scale(1.1);
+    }
+
+    .star-btn.filled {
+      color: #fbbf24;
+    }
+
+    /* Image Lightbox Styles */
+    .image-lightbox {
+      position: fixed;
+      inset: 0;
+      display: none;
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .image-lightbox.is-open {
+      display: flex;
+    }
+
+    .image-lightbox-backdrop {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.75);
+      cursor: pointer;
+    }
+
+    .image-lightbox-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2001;
+      padding: 40px 20px 20px;
+      box-sizing: border-box;
+    }
+
+    .image-lightbox-content img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .image-lightbox-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 40px;
+      height: 40px;
+      border: none;
+      background-color: rgba(255, 255, 255, 0.9);
+      color: #111827;
+      font-size: 28px;
+      font-weight: 300;
+      line-height: 1;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2002;
+      transition: all 0.2s;
+      padding: 0;
+    }
+
+    .image-lightbox-close:hover {
+      background-color: #ffffff;
+      transform: scale(1.1);
+    }
+
+    .image-lightbox-close:active {
+      transform: scale(0.95);
+    }
+
+    /* Prevent body scroll when lightbox is open */
+    body.body--no-scroll {
+      overflow: hidden;
+    }
+
+    @media (max-width: 768px) {
+      .image-lightbox-content {
+        padding: 50px 10px 10px;
+      }
+
+      .image-lightbox-close {
+        width: 36px;
+        height: 36px;
+        font-size: 24px;
+        top: 5px;
+        right: 5px;
+      }
+    }
+
+    /* Responsive behavior */
+    @media (max-width: 960px) {
+      .item-top-grid {
+        grid-template-columns: minmax(280px, 1.4fr) minmax(280px, 1.6fr);
+      }
+      .item-col-left {
+        position: static;
+      }
+      .item-col-right {
+        position: static;
+        grid-column: 1 / -1;
+        margin-top: 24px;
+      }
+      .item-detail-row {
+        grid-template-columns: 1fr;
+      }
+      .listing-header {
+        margin-right: 0;
+        padding-right: 0;
+      }
+      .listing-header-right {
+        display: none; /* Hide header price on tablet, show in action card */
+      }
+    }
+
+    @media (max-width: 768px) {
+      .item-top-grid {
+        grid-template-columns: 1fr;
+      }
+      .item-col-left {
+        position: static;
+        margin-bottom: 24px;
+      }
+      .item-image-main {
+        max-width: 100%;
+        aspect-ratio: 3 / 4;
+      }
+      .item-thumbnails {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+      .item-thumbnails .thumbnail {
+        flex-shrink: 0;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .item-top-grid {
+        grid-template-columns: 1fr;
+      }
+      .item-col-left,
+      .item-col-center,
+      .item-col-right {
+        grid-column: 1 / -1;
+      }
+      .item-detail-row {
+        grid-template-columns: 1fr;
+      }
+      .item-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .item-availability {
+        margin-top: 0;
+      }
+      .seller-inline {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .listing-header {
+        flex-direction: column;
+        gap: 12px;
+      }
+      .listing-header-right {
+        display: none; /* Availability text is now in item-title-row */
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-content">
+      <a href="index.html" class="logo site-logo">
+        <img src="logo.png" alt="二手交易平台 Logo" />
+      </a>
+      <nav class="header-nav">
+        <a href="index.html">首頁</a>
+        <a href="item_list.html">分類</a>
+        <a href="sell.html">賣東西</a>
+        <a href="chat.html">聊天</a>
+      </nav>
+      <div class="header-actions">
+        <div class="header-search">
+          <input type="text" id="headerSearchInput" placeholder="搜尋商品…">
+          <button onclick="handleHeaderSearch()">搜尋</button>
+        </div>
+        <!-- Cart and profile icons will be populated by navbar.js -->
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="breadcrumb">
+      <a href="index.html">首頁</a> / <a href="item_list.html" id="breadcrumbCategory">分類</a> / <span id="breadcrumbSubcategory">商品詳情</span>
+    </div>
+
+    <div class="item-page-main">
+      <!-- UPPER SECTION: image + main info + purchase card -->
+      <div class="item-top-grid">
+        <!-- Left Column - Image Gallery -->
+        <div class="item-col-left">
+          <div class="item-image-main">
+            <img
+              id="main-image"
+              src=""
+              alt=""
+              class="main-image"
+            />
+            <div class="image-badge" id="conditionBadge">九成新</div>
+          </div>
+
+          <div class="item-thumbnails">
+            <!-- Thumbnails will be populated by JavaScript -->
+          </div>
+        </div>
+
+        <!-- Center Column - Listing Header + Trade Rules -->
+        <div class="item-col-center">
+          <a href="item_list.html" class="back-link" style="display: inline-block; margin-bottom: 12px; color: #2563eb; text-decoration: none; font-size: 14px;">← 返回商品列表</a>
+          
+          <!-- Listing Header spans center + right visually -->
+          <div class="listing-header">
+            <div class="listing-header-left">
+              <div class="item-header">
+                <div class="item-title-row">
+              <h1 class="item-title" id="itemTitle">Nintendo Switch OLED 白色主機 九成新</h1>
+                  <div id="listingModeSummary" class="item-availability"></div>
+                </div>
+
+              <div class="trade-mode-badges" id="tradeModeBadges">
+                <!-- Badges will be populated by JS -->
+              </div>
+
+              <div id="item-tags-row" class="item-tags-row">
+                <!-- Tags will be populated by JS -->
+              </div>
+
+              <div class="item-header-divider"></div>
+
+                <div class="item-seller-row">
+              <div class="seller-inline">
+                <div class="seller-avatar-small" id="sellerAvatar">
+                  <span>G</span>
+                </div>
+                <div class="seller-text-block">
+                  <div class="seller-main-line">
+                    <span id="sellerName" class="seller-name">game_lover_2024</span>
+                    <span id="sellerCount" class="seller-count">(127)</span>
+                  </div>
+                  <div class="seller-sub-line">
+                    <span id="sellerRatingText" class="seller-rating-text">99.9% 好評</span>
+                    <span class="seller-dot">·</span>
+                    <button class="seller-link-button" id="sellerViewItemsButton">
+                      查看賣家其他商品
+                    </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="listing-header-right">
+              <!-- Availability text moved to item-title-row above -->
+            </div>
+          </div>
+
+          <section class="trade-rule-card" id="tradeRuleCard">
+            <h2>交換規則</h2>
+            <div id="tradeRuleBody">
+              <!-- Content will be populated by JS -->
+            </div>
+          </section>
+        </div>
+
+        <!-- Right Column - Purchase Card -->
+        <aside class="item-col-right">
+          <div class="action-card">
+            <div class="action-price-block">
+              <div id="actionPriceBlock">
+                <div class="purchase-card-header">
+                  <span class="action-price-label">價格</span>
+                  <!-- three-dot button -->
+                  <button
+                    id="purchaseMoreBtn"
+                    class="purchase-more-btn"
+                    type="button"
+                    aria-label="更多選項"
+                  >
+                    ⋮
+                  </button>
+                  <!-- dropdown menu -->
+                  <div id="purchaseMoreMenu" class="purchase-more-menu" hidden>
+                    <button id="reportItemBtn" type="button" class="purchase-more-menu-item">
+                      檢舉商品
+                    </button>
+                  </div>
+                </div>
+                <div class="action-price" id="actionPrice">NT$ 8,500</div>
+              </div>
+            </div>
+
+            <div class="action-quantity">
+              <label for="qty">數量：</label>
+              <select id="qty" onchange="updateTotal()">
+                <option value="1">1</option>
+              </select>
+            </div>
+
+            <div class="action-buttons-group" id="actionButtonsGroup">
+              <button id="btnBuyNow" class="item-action-button item-action-button-primary" onclick="handlePurchase()">立即購買</button>
+              <button id="btnTrade" class="item-action-button item-action-button-primary" onclick="handleTrade()">以物易物</button>
+            </div>
+            <button id="cancelTxBtn" class="item-action-button item-action-button-primary cancel-tx-btn" style="display: none;" onclick="handleCancelTransaction()">取消交易請求</button>
+            <button id="messageButtonMain" class="item-action-button item-action-button-outline" onclick="handleOpenChat()" style="margin-top: 16px;">聯絡賣家</button>
+
+            <!-- Handoff Section (已面交) -->
+            <div id="handoff-section" class="handoff-section section-divider" style="display: none;">
+              <div class="handoff-status-text" id="handoff-status-text"></div>
+              <button id="btnConfirmHandoff" class="item-action-button item-action-button-primary" style="margin-top: 12px;">
+                已面交
+              </button>
+              <p class="handoff-hint" style="margin-top: 8px; font-size: 12px; color: #6b7280; text-align: center;">
+                雙方都按下「已面交」後，交易才會結束並開放評價（限預約後 7 天內）。
+              </p>
+            </div>
+
+            <div class="pickup-section section-divider">
+              <h4>取貨方式：</h4>
+              <p id="pickupInfo">面交 | 台北市信義區 | 時間可議</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- LOWER SECTION: 商品資訊 + 商品描述 -->
+        <div class="item-detail-row">
+          <section class="item-info-card">
+            <h3 class="section-title">商品資訊</h3>
+            <dl class="item-info-list">
+              <div class="item-info-row">
+                <dt>商品狀況：</dt>
+                <dd id="itemCondition">九成新</dd>
+              </div>
+              <div class="item-info-row">
+                <dt>所在地：</dt>
+                <dd id="itemLocation">台北市信義區</dd>
+              </div>
+              <div class="item-info-row">
+                <dt>庫存數量：</dt>
+                <dd>1 件</dd>
+              </div>
+              <div class="item-info-row item-info-tags">
+                <dt>標籤：</dt>
+                <dd id="itemTags">
+                  <!-- Tags will be populated by JS -->
+                </dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="item-description-section">
+            <h3 class="section-title">商品描述</h3>
+            <div class="description-content" id="itemDescription">
+              <!-- Content will be populated by JS -->
+            </div>
+            <!-- Tags inside description section -->
+            <div id="item-description-tags" class="item-description-tags"></div>
+            <p class="view-stats" id="viewStats">瀏覽次數：342　追蹤人數：8</p>
+          </section>
+      </div>
+    </div>
+  </main>
+
+  <!-- Trade Modal -->
+  <div id="trade-modal" class="modal-overlay" style="display: none;" onclick="closeTradeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2>提出交換提案</h2>
+        <button class="modal-close" onclick="closeTradeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="trade-requirement">
+          <strong>賣家需求：</strong>
+          <p id="tradeRequirementText">想換 PlayStation 5 或 Xbox Series X，也接受其他 Nintendo 主機相關商品</p>
+        </div>
+        <div class="user-items-list">
+          <h3>選擇你的物品（僅可選擇一項）：</h3>
+          <div class="items-grid">
+            <!-- Trade items will be populated by JavaScript -->
+          </div>
+        </div>
+        <div class="trade-message">
+          <label for="trade-message">給賣家的訊息（選填）：</label>
+          <textarea id="trade-message" placeholder="例如：希望可以當面交換，時間地點可議..." rows="4"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeTradeModal()">取消</button>
+        <button id="submitTradeBtn" class="btn-primary" onclick="handleSubmitTrade()" disabled>送出交換提案</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Modal -->
+  <div id="chat-modal" class="modal-overlay" style="display: none;" onclick="closeChatModal()">
+    <div class="modal-content chat-modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="chat-header-info">
+          <div class="seller-avatar" id="chatSellerAvatar">G</div>
+          <h2 id="chatSellerName">game_lover_2024</h2>
+        </div>
+        <button class="modal-close" onclick="closeChatModal()">×</button>
+      </div>
+      <div class="modal-body chat-body">
+        <div class="messages-area" id="messages-area">
+          <div class="message-bubble message-seller">
+            <div class="message-content">你好！對這個商品有興趣嗎？</div>
+            <div class="message-time">昨天 14:30</div>
+          </div>
+          <div class="message-bubble message-user">
+            <div class="message-content">你好，我想了解一下商品狀況</div>
+            <div class="message-time">昨天 15:20</div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input type="text" id="chat-message" placeholder="輸入訊息..." />
+          <button class="btn-primary" onclick="handleSendMessage()">送出訊息</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Lightbox -->
+  <div id="image-lightbox" class="image-lightbox" aria-hidden="true">
+    <div class="image-lightbox-backdrop"></div>
+    <div class="image-lightbox-content">
+      <button class="image-lightbox-close" aria-label="關閉圖片">×</button>
+      <img id="image-lightbox-img" src="" alt="商品圖片放大檢視" />
+    </div>
+  </div>
+
+  <!-- Review Modal -->
+  <div id="review-modal" class="modal-overlay" style="display: none;" onclick="closeReviewModal()">
+          <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+        <h2>為這次交易評價</h2>
+        <button class="modal-close" onclick="closeReviewModal()">×</button>
+            </div>
+            <div class="modal-body">
+        <div class="rating-stars" id="review-stars">
+          <button class="star-btn" data-value="1" aria-label="1 星">☆</button>
+          <button class="star-btn" data-value="2" aria-label="2 星">☆</button>
+          <button class="star-btn" data-value="3" aria-label="3 星">☆</button>
+          <button class="star-btn" data-value="4" aria-label="4 星">☆</button>
+          <button class="star-btn" data-value="5" aria-label="5 星">☆</button>
+              </div>
+        <textarea id="review-comment" placeholder="可以分享此次面交或交易的感受…" rows="4" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit; margin-top: 12px; resize: vertical;"></textarea>
+            </div>
+            <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeReviewModal()">取消</button>
+        <button id="btnSubmitReview" class="btn-primary" onclick="handleSubmitReview()">送出評價</button>
+            </div>
+          </div>
+        </div>
+
+  <script>
+    // Mode handling logic - this will be overridden by item_page.js but kept for initial render
+    (function() {
+      const listingMode = 'purchase_and_trade';
+      const listingModeSummary = document.getElementById('listingModeSummary');
+          if (listingModeSummary) listingModeSummary.textContent = '可購買・可交換';
+    })();
+  </script>
+
+  <script src="js/api.js?v=v1.0.0"></script>
+  <script src="js/data.js?v=v1.0.0"></script>
+  <script src="js/images.js?v=v1.0.0"></script>
+  <script src="js/categories.js?v=v1.0.0"></script>
+  <script src="js/navbar.js?v=v1.0.0"></script>
+  <script src="js/item_page.js?v=v1.0.0"></script>
+</body>
+</html>

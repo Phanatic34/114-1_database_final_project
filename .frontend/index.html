@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>首頁 - 二手交易平台</title>
+  <link rel="stylesheet" href="ItemDetailPage.css?v=v1.0.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background-color: #f5f5f5;
+    }
+
+    /* Header search input */
+    .header-search {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-search input {
+      padding: 8px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 14px;
+      width: 200px;
+      transition: all 0.2s;
+    }
+
+    .header-search input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .header-search input:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .header-search button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .header-search button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Main content */
+    .home-main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
+
+    /* Hero search section */
+    .hero-search {
+      background: white;
+      border-radius: 16px;
+      padding: 32px 40px;
+      margin-bottom: 32px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .hero-search-form {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .hero-search-input {
+      flex: 3;
+      padding: 14px 20px;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+
+    .hero-search-input:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .hero-search-category {
+      flex: 1;
+      padding: 14px 20px;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      font-size: 16px;
+      background: white;
+      cursor: pointer;
+      min-width: 180px;
+    }
+
+    .hero-search-category:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .hero-search-button {
+      flex: 1;
+      padding: 14px 32px;
+      border: none;
+      border-radius: 12px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .hero-search-button:hover {
+      background: #1d4ed8;
+    }
+
+    @media (max-width: 768px) {
+      .hero-search-form {
+        flex-direction: column;
+      }
+      .hero-search-category {
+        min-width: auto;
+      }
+    }
+
+    /* Section styling */
+    .home-section {
+      margin-top: 32px;
+    }
+
+    .section-header {
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 4px 0;
+    }
+
+    .section-subtitle {
+      font-size: 14px;
+      color: #6b7280;
+      margin: 0;
+    }
+
+    /* Trending items grid */
+    .trending-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .item-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .item-card:hover {
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .item-card-image-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #f3f4f6;
+      overflow: hidden;
+    }
+
+    .item-card-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .item-card-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #2563eb;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .item-card-body {
+      padding: 12px;
+    }
+
+    .item-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      color: #111827;
+    }
+
+    .item-card-price {
+      font-size: 16px;
+      font-weight: 700;
+      color: #2563eb;
+      margin-bottom: 6px;
+    }
+
+    .item-card-meta {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    .item-card-trade-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #ecfdf3;
+      color: #15803d;
+      font-size: 11px;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    /* Sold item styling */
+    .item-card--sold {
+      opacity: 0.7;
+    }
+
+    .item-card--sold .item-card-image,
+    .item-card--sold .recent-item-image {
+      filter: grayscale(100%);
+    }
+
+    .item-card-sold-badge {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      z-index: 10;
+    }
+
+    /* Ensure image wrappers can hold absolute children */
+    .item-card-image-wrapper,
+    .recent-item-image-container {
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Category shortcuts */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+
+    .category-tile {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .category-tile:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .category-tile-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .category-tile-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 6px;
+    }
+
+    .category-tile-desc {
+      font-size: 12px;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+
+    /* Recently viewed */
+    .recently-viewed-container {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .recently-viewed-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .recently-viewed-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+    }
+
+    .recent-item-card {
+      background: #f9fafb;
+      border-radius: 12px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .recent-item-card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .recent-item-image-container {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #f5f7fb;
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .recent-item-image {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      width: 100%;
+      height: 100%;
+    }
+
+    .recent-item-body {
+      padding: 10px;
+    }
+
+    .recent-item-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      color: #111827;
+    }
+
+    .recent-item-price {
+      font-size: 14px;
+      font-weight: 700;
+      color: #2563eb;
+    }
+
+    .recent-item-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #e0edff;
+      color: #2563eb;
+      font-size: 10px;
+      margin-top: 4px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header-search {
+        display: none;
+      }
+
+      .trending-grid,
+      .category-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+      }
+
+      .recently-viewed-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-content">
+      <a href="index.html" class="logo site-logo">
+        <img src="logo.png" alt="二手交易平台 Logo" />
+      </a>
+      <nav class="header-nav">
+        <a href="index.html" class="active">首頁</a>
+        <a href="item_list.html">分類</a>
+        <a href="sell.html">賣東西</a>
+        <a href="chat.html">聊天</a>
+      </nav>
+      <div class="header-actions">
+        <div class="header-search">
+          <input type="text" id="headerSearchInput" placeholder="搜尋商品…">
+          <button onclick="handleHeaderSearch()">搜尋</button>
+        </div>
+        <!-- Cart and profile icons will be populated by navbar.js -->
+      </div>
+    </div>
+  </header>
+
+  <main class="home-main">
+    <!-- Hero Search Section -->
+    <section class="hero-search">
+      <form class="hero-search-form" onsubmit="handleHeroSearch(event)">
+        <input
+          type="text"
+          id="heroSearchInput"
+          class="hero-search-input"
+          placeholder="搜尋商品名稱、關鍵字…"
+        />
+        <select id="heroCategorySelect" class="hero-search-category">
+          <option value="all">所有分類</option>
+          <!-- Options will be populated by JavaScript -->
+        </select>
+        <button type="submit" class="hero-search-button">搜尋</button>
+      </form>
+    </section>
+
+    <!-- Trending Items Section -->
+    <section class="home-section">
+      <div class="section-header">
+        <h2 class="section-title">熱門商品</h2>
+        <p class="section-subtitle">根據瀏覽次數與加入購物車次數排序</p>
+      </div>
+      <div class="trending-grid" id="trendingGrid">
+        <!-- Items will be rendered by JavaScript -->
+      </div>
+    </section>
+
+    <!-- Category Shortcuts Section -->
+    <section class="home-section">
+      <div class="section-header">
+        <h2 class="section-title">分類快速瀏覽</h2>
+      </div>
+      <div class="category-grid" id="categoryGrid">
+        <!-- Categories will be rendered by JavaScript -->
+      </div>
+    </section>
+
+    <!-- Recently Viewed Section -->
+    <section class="home-section">
+      <div class="section-header">
+        <h2 class="section-title">你最近瀏覽過</h2>
+      </div>
+      <div class="recently-viewed-container">
+        <div id="recentlyViewedContent">
+          <!-- Content will be rendered by JavaScript -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/api.js?v=v1.0.0"></script>
+  <script src="js/data.js?v=v1.0.0"></script>
+  <script src="js/images.js?v=v1.0.0"></script>
+  <script src="js/categories.js?v=v1.0.0"></script>
+  <script src="js/navbar.js?v=v1.0.0"></script>
+  <script>
+    // Category data structure
+    const categories = [
+      {
+        id: 'textbooks',
+        label: '課本／學習用品',
+        icon: '📚',
+        description: '教科書、參考書、文具用品'
+      },
+      {
+        id: 'laptop_3c',
+        label: '筆電／3C',
+        icon: '💻',
+        description: '筆記型電腦、3C 產品'
+      },
+      {
+        id: 'phone_tablet',
+        label: '手機／平板',
+        icon: '📱',
+        description: '智慧型手機、平板電腦'
+      },
+      {
+        id: 'game_console',
+        label: '遊戲與主機',
+        icon: '🎮',
+        description: '遊戲主機、遊戲片'
+      },
+      {
+        id: 'dorm_furniture',
+        label: '宿舍家電與家具',
+        icon: '🏠',
+        description: '宿舍用品、家電、家具'
+      },
+      {
+        id: 'clothing_life',
+        label: '服飾／生活用品',
+        icon: '👕',
+        description: '衣物、生活用品'
+      },
+      {
+        id: 'sports_hobby',
+        label: '運動／興趣嗜好',
+        icon: '⚽',
+        description: '運動用品、興趣相關'
+      },
+      {
+        id: 'others',
+        label: '其他',
+        icon: '📦',
+        description: '其他商品分類'
+      }
+    ];
+
+    // Render category tiles
+    function renderCategories() {
+      const categoryGrid = document.getElementById('categoryGrid');
+      if (!categoryGrid) return;
+
+      categoryGrid.innerHTML = '';
+      
+      categories.forEach(category => {
+        const tile = document.createElement('a');
+        tile.href = `item_list.html?category=${category.id}`;
+        tile.className = 'category-tile';
+        
+        tile.innerHTML = `
+          <div class="category-tile-icon">${category.icon}</div>
+          <div class="category-tile-title">${category.label}</div>
+          <div class="category-tile-desc">${category.description}</div>
+        `;
+        
+        categoryGrid.appendChild(tile);
+      });
+    }
+
+    // Populate category select dropdown
+    function populateCategorySelect() {
+      const select = document.getElementById('heroCategorySelect');
+      if (!select) return;
+
+      // Keep "所有分類" option, then add new categories
+      const allOption = select.querySelector('option[value="all"]');
+      select.innerHTML = '';
+      if (allOption) {
+        select.appendChild(allOption);
+      } else {
+        const defaultOption = document.createElement('option');
+        defaultOption.value = 'all';
+        defaultOption.textContent = '所有分類';
+        select.appendChild(defaultOption);
+      }
+
+      categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.id;
+        option.textContent = category.label;
+        select.appendChild(option);
+      });
+    }
+
+    // Initialize categories on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCategories();
+      populateCategorySelect();
+    });
+
+    // Handle hero search
+    function handleHeroSearch(event) {
+      event.preventDefault();
+      const keyword = document.getElementById('heroSearchInput').value.trim();
+      const category = document.getElementById('heroCategorySelect').value;
+      
+      const params = new URLSearchParams();
+      if (keyword) params.set('q', keyword);
+      if (category && category !== 'all') params.set('category', category);
+      
+      window.location.href = 'item_list.html?' + params.toString();
+    }
+
+    // Handle header search
+    function handleHeaderSearch() {
+      const keyword = document.getElementById('headerSearchInput').value.trim();
+      const params = new URLSearchParams();
+      if (keyword) params.set('q', keyword);
+      window.location.href = 'item_list.html?' + params.toString();
+    }
+
+    // Allow Enter key in header search
+    document.getElementById('headerSearchInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        handleHeaderSearch();
+      }
+    });
+
+    // Calculate trending score
+    function calculateScore(item) {
+      const views = item.stats?.views || 0;
+      const addedToCart = item.stats?.addedToCart || 0;
+      return views + addedToCart * 2;
+    }
+
+    // Apply sold styling to item cards
+    function applySoldStyling(cardElement, item) {
+      if (!item || item.status !== 'sold') return;
+
+      // Add CSS class on the card
+      cardElement.classList.add('item-card--sold');
+
+      // Add sold badge overlay inside the thumbnail / image wrapper
+      const thumbnail = cardElement.querySelector('.item-card-image-wrapper, .recent-item-image-container');
+      if (thumbnail && !thumbnail.querySelector('.item-card-sold-badge')) {
+        const badge = document.createElement('div');
+        badge.className = 'item-card-sold-badge';
+        badge.textContent = '已售完';
+        thumbnail.appendChild(badge);
+      }
+    }
+
+    // Render trending items
+    function renderTrendingItems() {
+      // Get all items (seed + user items) from data layer
+      let items = [];
+      if (typeof getAllItems === 'function') {
+        items = getAllItems().filter(i => i.isActive);
+      } else {
+        // 優先使用 API 資料，否則使用本地資料
+        const allItems = window._apiItems || getItems();
+        items = allItems.filter(i => i.isActive !== false && (i.status === 'available' || !i.status));
+      }
+      
+      // Ensure all items have status field (default to 'active' if missing)
+      items = items.map(item => ({
+        ...item,
+        status: item.status || 'active'
+      }));
+      
+      // Fallback to mockItems if available (backward compatibility)
+      if (items.length === 0 && typeof mockItems !== 'undefined') {
+        items = mockItems.map(item => ({
+          id: String(item.id),
+          title: item.title,
+          price: item.price,
+          condition: item.condition,
+          images: item.images || [],
+          views: item.stats?.views || 0,
+          addedToCartCount: Math.floor((item.stats?.views || 0) * 0.1),
+          modes: {
+            sale: item.mode?.purchase || false,
+            tradeTarget: item.mode?.trade || false,
+            tradeOpen: false
+          }
+        }));
+      }
+      
+      // Add score calculation
+      const itemsWithScore = items.map(item => ({
+        ...item,
+        addedToCart: item.addedToCartCount || Math.floor((item.views || 0) * 0.1)
+      }));
+
+      // Sort by score
+      itemsWithScore.sort((a, b) => calculateScore(b) - calculateScore(a));
+
+      // Get top 6
+      const top6 = itemsWithScore.slice(0, 6);
+
+      const grid = document.getElementById('trendingGrid');
+      grid.innerHTML = '';
+
+      top6.forEach(item => {
+        const card = document.createElement('a');
+        card.href = `item_page.html?id=${item.id}`;
+        card.className = 'item-card';
+
+        const priceText = (item.modes?.sale && item.price > 0)
+          ? `NT$ ${item.price.toLocaleString('zh-TW')}`
+          : ((item.modes?.tradeTarget || item.modes?.tradeOpen) ? '僅接受以物易物' : '許願中');
+
+        const views = item.views || 0;
+        const addedToCart = item.addedToCart || 0;
+
+        card.innerHTML = `
+          <div class="item-card-image-wrapper">
+            <img src="${getProductImageUrl(item)}" alt="${item.title}" class="item-card-image">
+            <span class="item-card-badge">${item.condition}</span>
+          </div>
+          <div class="item-card-body">
+            <h3 class="item-card-title">${item.title}</h3>
+            <div class="item-card-price">${priceText}</div>
+            ${(item.modes?.tradeTarget || item.modes?.tradeOpen) ? '<span class="item-card-trade-badge">接受以物易物</span>' : ''}
+            <div class="item-card-meta">瀏覽 ${views}｜加入購物車 ${addedToCart}</div>
+          </div>
+        `;
+
+        // Apply sold styling if item is sold
+        applySoldStyling(card, item);
+        
+        grid.appendChild(card);
+        
+        // Attach fallback to the image
+        const img = card.querySelector('.item-card-image');
+        if (img) attachImageFallback(img);
+      });
+    }
+
+    // Render recently viewed items
+    function renderRecentlyViewed() {
+      const container = document.getElementById('recentlyViewedContent');
+      const recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewedItems') || '[]');
+
+      if (recentlyViewed.length === 0) {
+        container.innerHTML = '<div class="recently-viewed-empty">你最近還沒有瀏覽任何商品。</div>';
+        return;
+      }
+
+      const grid = document.createElement('div');
+      grid.className = 'recently-viewed-grid';
+
+      recentlyViewed.forEach(item => {
+        // Ensure ID is a string for consistent URL generation
+        const itemId = String(item.id);
+        const card = document.createElement('a');
+        card.href = `item_page.html?id=${itemId}`;
+        card.className = 'recent-item-card';
+
+        const priceText = item.price 
+          ? `NT$ ${item.price.toLocaleString('zh-TW')}`
+          : (item.mode?.trade ? '僅接受以物易物' : '許願中');
+
+        card.innerHTML = `
+          <div class="recent-item-image-container">
+            <img src="${getProductImageUrl(item)}" alt="${item.title}" class="recent-item-image">
+          </div>
+          <div class="recent-item-body">
+            <div class="recent-item-title">${item.title}</div>
+            <div class="recent-item-price">${priceText}</div>
+            ${item.condition ? `<span class="recent-item-badge">${item.condition}</span>` : ''}
+          </div>
+        `;
+
+        // Apply sold styling if item is sold
+        applySoldStyling(card, item);
+        
+        // Apply sold styling if item is sold
+        applySoldStyling(card, item);
+        
+        grid.appendChild(card);
+        
+        // Attach fallback to the image
+        const img = card.querySelector('.recent-item-image');
+        if (img) attachImageFallback(img);
+      });
+
+      container.innerHTML = '';
+      container.appendChild(grid);
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 先嘗試從 API 載入商品
+      try {
+        const products = await api.getProducts({ status: 'available' });
+        if (products && products.length > 0) {
+          // 轉換 API 格式為前端格式
+          const convertedItems = products.map(p => ({
+            id: String(p.product_id),
+            sellerId: String(p.owner_id),
+            title: p.product_name,
+            category: p.category_name?.toLowerCase() || 'others',
+            condition: p.condition || 'Good',
+            price: p.price || 0,
+            description: p.description || '',
+            tags: [],
+            location: '',
+            quantity: 1,
+            modes: {
+              sale: p.trade_option === 'sale' || p.trade_option === 'both',
+              tradeTarget: p.trade_option === 'trade' || p.trade_option === 'both',
+              tradeOpen: false
+            },
+            images: p.image_url ? [p.image_url] : [],
+            views: 0,
+            addedToCartCount: 0,
+            isActive: p.status === 'available',
+            status: p.status
+          }));
+          
+          // 更新 getItems 函數以返回 API 資料（臨時方案）
+          window._apiItems = convertedItems;
+        }
+      } catch (error) {
+        console.warn('無法從 API 載入商品，使用本地資料:', error);
+      }
+      
+      renderTrendingItems();
+      renderRecentlyViewed();
+    });
+    
+    // 修改 getItems 以優先使用 API 資料
+    const originalGetItems = window.getItems;
+    window.getItems = function() {
+      if (window._apiItems) {
+        return window._apiItems;
+      }
+      return originalGetItems ? originalGetItems() : [];
+    };
+  </script>
+</body>
+</html>
+

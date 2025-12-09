@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>刊登商品 - 二手交易平台</title>
+  <link rel="stylesheet" href="ItemDetailPage.css?v=v1.0.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background-color: #f5f5f5;
+    }
+
+    .sell-page {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 16px 40px;
+    }
+
+    .sell-header {
+      margin-bottom: 24px;
+    }
+
+    .sell-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 8px 0;
+    }
+
+    .sell-header p {
+      font-size: 14px;
+      color: #6b7280;
+      margin: 0;
+    }
+
+    .sell-layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 32px;
+      align-items: flex-start;
+    }
+
+    .sell-form {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .form-section {
+      margin-bottom: 32px;
+    }
+
+    .form-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .form-group textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .form-group small {
+      display: block;
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .checkbox-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .checkbox-item label {
+      font-weight: 500;
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .tags-input {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px;
+      border: 2px solid #d1d5db;
+      border-radius: 8px;
+      min-height: 48px;
+    }
+
+    .tag-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: #e0edff;
+      color: #2563eb;
+      border-radius: 999px;
+      font-size: 13px;
+    }
+
+    .tag-chip .remove {
+      cursor: pointer;
+      font-weight: bold;
+      color: #1d4ed8;
+    }
+
+    .tags-input input {
+      flex: 1;
+      min-width: 120px;
+      border: none;
+      padding: 4px 8px;
+      font-size: 14px;
+    }
+
+    .tags-input input:focus {
+      outline: none;
+      box-shadow: none;
+    }
+
+    .image-urls {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .image-url-input {
+      display: flex;
+      gap: 8px;
+    }
+
+    .image-url-input input {
+      flex: 1;
+    }
+
+    .image-url-input button {
+      padding: 10px 16px;
+      border: 1px solid #d1d5db;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .image-url-input button:hover {
+      background: #f3f4f6;
+    }
+
+    .image-preview-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .image-preview-list:empty {
+      display: none;
+    }
+
+    .image-preview-item {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid #d1d5db;
+    }
+
+    .image-preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .image-preview-item .remove {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 20px;
+      height: 20px;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .btn-primary {
+      flex: 1;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-secondary {
+      padding: 12px 24px;
+      border: 2px solid #d1d5db;
+      border-radius: 8px;
+      background: white;
+      color: #374151;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: #f3f4f6;
+      border-color: #9ca3af;
+    }
+
+    /* Preview Card */
+    .preview-card {
+      position: sticky;
+      top: 100px;
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .preview-card h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #111827;
+      margin: 0 0 20px 0;
+    }
+
+    .preview-item-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .preview-item-image {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #f3f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+
+    .preview-item-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .preview-item-body {
+      padding: 16px;
+    }
+
+    .preview-item-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 8px;
+      min-height: 24px;
+    }
+
+    .preview-item-price {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2563eb;
+      margin-bottom: 8px;
+    }
+
+    .preview-item-modes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .preview-mode-badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .preview-mode-sale {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .preview-mode-trade {
+      background: #ecfdf3;
+      color: #15803d;
+    }
+
+    .preview-mode-wish {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .preview-item-location {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    @media (max-width: 960px) {
+      .sell-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-card {
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-content">
+      <a href="index.html" class="logo site-logo">
+        <img src="logo.png" alt="二手交易平台 Logo" />
+      </a>
+      <nav class="header-nav">
+        <a href="index.html">首頁</a>
+        <a href="item_list.html">分類</a>
+        <a href="sell.html" class="active">賣東西</a>
+        <a href="chat.html">聊天</a>
+      </nav>
+      <div class="header-actions">
+        <!-- Will be populated by navbar.js -->
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="sell-page">
+      <div class="sell-header">
+        <h1 id="pageTitle">刊登商品</h1>
+        <p>填寫商品資訊，讓其他使用者看到你的商品</p>
+      </div>
+
+      <div class="sell-layout">
+        <!-- Left: Form -->
+        <form class="sell-form" id="sellForm">
+          <div class="form-section">
+            <h2 class="form-section-title">基本資訊</h2>
+
+            <div class="form-group">
+              <label for="title">商品名稱 *</label>
+              <input type="text" id="title" name="title" required>
+            </div>
+
+            <div class="form-group">
+              <label for="category">分類 *</label>
+              <select id="category" name="category" required>
+                <option value="">請選擇分類</option>
+                <option value="課本／學習用品">課本／學習用品</option>
+                <option value="筆電／3C">筆電／3C</option>
+                <option value="手機／平板">手機／平板</option>
+                <option value="遊戲與主機">遊戲與主機</option>
+                <option value="宿舍家電與家具">宿舍家電與家具</option>
+                <option value="服飾／生活用品">服飾／生活用品</option>
+                <option value="運動／興趣嗜好">運動／興趣嗜好</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="condition">商品狀況 *</label>
+              <select id="condition" name="condition" required>
+                <option value="">請選擇狀況</option>
+                <option value="全新">全新</option>
+                <option value="九成新">九成新</option>
+                <option value="可接受使用痕跡">可接受使用痕跡</option>
+                <option value="二手">二手</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="price">價格 (NT$) *</label>
+              <input type="number" id="price" name="price" min="0" step="1" required>
+              <small>若僅接受以物易物，可填 0</small>
+            </div>
+
+            <div class="form-group">
+              <label for="quantity">庫存數量 *</label>
+              <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+            </div>
+
+            <div class="form-group">
+              <label for="location">所在地 *</label>
+              <input type="text" id="location" name="location" placeholder="例如：台北市大安區" required>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 class="form-section-title">交易方式</h2>
+
+            <div class="checkbox-group">
+              <div class="checkbox-item">
+                <input type="checkbox" id="modeSale" name="modeSale">
+                <label for="modeSale">販售中</label>
+              </div>
+
+              <div class="checkbox-item">
+                <input type="checkbox" id="modeTradeTarget" name="modeTradeTarget">
+                <label for="modeTradeTarget">可交換（指定目標）</label>
+              </div>
+
+              <div class="checkbox-item">
+                <input type="checkbox" id="modeTradeOpen" name="modeTradeOpen">
+                <label for="modeTradeOpen">開放式許願</label>
+              </div>
+            </div>
+
+            <div class="form-group" id="tradeTargetNoteGroup" style="display: none; margin-top: 16px;">
+              <label for="tradeTargetNote">想換的商品描述</label>
+              <textarea id="tradeTargetNote" name="tradeTargetNote" placeholder="例如：想換 PlayStation 5 或 Xbox Series X"></textarea>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 class="form-section-title">商品描述</h2>
+
+            <div class="form-group">
+              <label for="description">詳細描述 *</label>
+              <textarea id="description" name="description" required placeholder="請描述商品的詳細資訊、使用狀況、包含的配件等..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="tags">標籤</label>
+              <div class="tags-input" id="tagsContainer">
+                <input type="text" id="tagsInput" placeholder="輸入標籤後按 Enter">
+              </div>
+              <small>輸入標籤後按 Enter 鍵加入，點擊標籤可移除</small>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 class="form-section-title">商品圖片</h2>
+
+            <div class="form-group">
+              <label for="imageUrl">圖片網址</label>
+              <div class="image-url-input">
+                <input type="url" id="imageUrl" placeholder="https://example.com/image.jpg">
+                <button type="button" id="addImageBtn">加入</button>
+              </div>
+              
+              <label for="imageFileInput" style="margin-top: 16px; display: block;">從電腦上傳</label>
+              <input 
+                type="file" 
+                id="imageFileInput" 
+                accept="image/*" 
+                multiple
+                style="width: 100%; padding: 10px 14px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 14px; font-family: inherit; box-sizing: border-box; cursor: pointer;"
+              >
+              
+              <div class="image-preview-list" id="imagePreviewList"></div>
+              <small>可加入多張圖片，建議至少一張</small>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" id="submitBtn">刊登商品</button>
+            <button type="button" class="btn-secondary" onclick="window.location.href='index.html'">取消</button>
+          </div>
+        </form>
+
+        <!-- Right: Preview -->
+        <aside class="preview-card">
+          <h3>預覽</h3>
+          <div class="preview-item-card">
+            <div class="preview-item-image" id="previewImage">
+              <span>尚未加入圖片</span>
+            </div>
+            <div class="preview-item-body">
+              <div class="preview-item-title" id="previewTitle">商品名稱</div>
+              <div class="preview-item-price" id="previewPrice">NT$ 0</div>
+              <div class="preview-item-modes" id="previewModes"></div>
+              <div class="preview-item-location" id="previewLocation">所在地</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js?v=v1.0.0"></script>
+  <script src="js/data.js?v=v1.0.0"></script>
+  <script src="js/auth_check.js?v=v1.0.0"></script>
+  <script src="js/categories.js?v=v1.0.0"></script>
+  <script src="js/navbar.js?v=v1.0.0"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+    // Check if editing
+    const urlParams = new URLSearchParams(window.location.search);
+    const itemId = urlParams.get('id');
+    let editingItem = null;
+
+    if (itemId) {
+      editingItem = getItemById(itemId);
+      const currentUser = getCurrentUser();
+      
+      if (!editingItem) {
+        alert('商品不存在');
+        window.location.href = 'my_items.html';
+      } else if (editingItem.sellerId !== currentUser.id) {
+        alert('你沒有權限編輯此商品');
+        window.location.href = 'my_items.html';
+      } else {
+        // Load item data into form
+        document.getElementById('pageTitle').textContent = '編輯商品';
+        document.getElementById('title').value = editingItem.title;
+        // Normalize category to official category name
+        document.getElementById('category').value = normalizeCategory(editingItem.category);
+        document.getElementById('condition').value = editingItem.condition;
+        document.getElementById('price').value = editingItem.price;
+        document.getElementById('quantity').value = editingItem.quantity;
+        document.getElementById('location').value = editingItem.location;
+        document.getElementById('description').value = editingItem.description;
+        document.getElementById('modeSale').checked = editingItem.modes.sale;
+        document.getElementById('modeTradeTarget').checked = editingItem.modes.tradeTarget;
+        document.getElementById('modeTradeOpen').checked = editingItem.modes.tradeOpen;
+        if (editingItem.tradeTargetNote) {
+          document.getElementById('tradeTargetNote').value = editingItem.tradeTargetNote;
+        }
+        
+        // Load tags
+        editingItem.tags.forEach(tag => addTag(tag));
+        
+        // Load images (handle both old format: string URLs, and new format: objects)
+        if (editingItem.images && editingItem.images.length > 0) {
+          editingItem.images.forEach(img => {
+            if (typeof img === 'string') {
+              // Old format: just URL string
+              images.push({ type: 'url', src: img });
+            } else if (img && img.src) {
+              // New format: object with type and src
+              images.push(img);
+            }
+          });
+          renderImagePreviews();
+        }
+        
+        updatePreview();
+      }
+    }
+
+    // Tags handling
+    const tags = [];
+    const tagsInput = document.getElementById('tagsInput');
+    const tagsContainer = document.getElementById('tagsContainer');
+
+    function addTag(tagText) {
+      const tag = tagText.trim();
+      if (tag && !tags.includes(tag)) {
+        tags.push(tag);
+        renderTags();
+      }
+    }
+
+    function removeTag(tag) {
+      const index = tags.indexOf(tag);
+      if (index > -1) {
+        tags.splice(index, 1);
+        renderTags();
+      }
+    }
+
+    function renderTags() {
+      const existingChips = tagsContainer.querySelectorAll('.tag-chip');
+      existingChips.forEach(chip => chip.remove());
+      
+      tags.forEach(tag => {
+        const chip = document.createElement('span');
+        chip.className = 'tag-chip';
+        chip.innerHTML = `${tag} <span class="remove" data-tag="${tag}">×</span>`;
+        tagsContainer.insertBefore(chip, tagsInput);
+      });
+      
+      updatePreview();
+    }
+
+    tagsInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addTag(tagsInput.value);
+        tagsInput.value = '';
+      }
+    });
+
+    tagsContainer.addEventListener('click', (e) => {
+      if (e.target.classList.contains('remove')) {
+        const tag = e.target.dataset.tag;
+        removeTag(tag);
+      }
+    });
+
+    // Images handling
+    const images = []; // Array of { type: 'url'|'local', src: string, name?: string }
+    const imageUrlInput = document.getElementById('imageUrl');
+    const addImageBtn = document.getElementById('addImageBtn');
+    const imageFileInput = document.getElementById('imageFileInput');
+    const imagePreviewList = document.getElementById('imagePreviewList');
+
+    // Add image by URL
+    function addImagePreview(url) {
+      const trimmedUrl = url.trim();
+      if (!trimmedUrl) return;
+      
+      // Check if URL already exists
+      const exists = images.some(img => img.type === 'url' && img.src === trimmedUrl);
+      if (exists) {
+        alert('此圖片網址已加入');
+        return;
+      }
+      
+      images.push({
+        type: 'url',
+        src: trimmedUrl
+      });
+      renderImagePreviews();
+    }
+
+    // Handle local file upload
+    function handleLocalImageUpload(event) {
+      const files = Array.from(event.target.files || []);
+      
+      files.forEach(file => {
+        if (!file.type.startsWith('image/')) {
+          console.warn(`Skipping non-image file: ${file.name}`);
+          return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const dataUrl = e.target.result; // base64 data URL
+          
+          images.push({
+            type: 'local',
+            name: file.name,
+            src: dataUrl
+          });
+          
+          renderImagePreviews();
+        };
+        
+        reader.onerror = () => {
+          console.error(`Error reading file: ${file.name}`);
+        };
+        
+        reader.readAsDataURL(file);
+      });
+      
+      // Reset input so user can select the same file again if needed
+      event.target.value = '';
+    }
+
+    function removeImagePreview(index) {
+      if (index >= 0 && index < images.length) {
+        images.splice(index, 1);
+        renderImagePreviews();
+      }
+    }
+
+    function renderImagePreviews() {
+      imagePreviewList.innerHTML = '';
+      
+      if (images.length === 0) {
+        imagePreviewList.style.display = 'none';
+      } else {
+        imagePreviewList.style.display = 'flex';
+      }
+      
+      images.forEach((img, index) => {
+        const item = document.createElement('div');
+        item.className = 'image-preview-item';
+        item.innerHTML = `
+          <img src="${img.src}" alt="${img.name || `Image ${index + 1}`}" onerror="this.parentElement.remove()">
+          <button type="button" class="remove" data-index="${index}">×</button>
+        `;
+        imagePreviewList.appendChild(item);
+      });
+      updatePreview();
+    }
+
+    // URL input handlers
+    addImageBtn.addEventListener('click', () => {
+      addImagePreview(imageUrlInput.value);
+      imageUrlInput.value = '';
+    });
+
+    imageUrlInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addImagePreview(imageUrlInput.value);
+        imageUrlInput.value = '';
+      }
+    });
+
+    // File input handler
+    imageFileInput.addEventListener('change', handleLocalImageUpload);
+
+    // Remove button handler
+    imagePreviewList.addEventListener('click', (e) => {
+      if (e.target.classList.contains('remove')) {
+        const index = parseInt(e.target.dataset.index);
+        removeImagePreview(index);
+      }
+    });
+
+    // Trade target note toggle
+    document.getElementById('modeTradeTarget').addEventListener('change', (e) => {
+      document.getElementById('tradeTargetNoteGroup').style.display = e.target.checked ? 'block' : 'none';
+      updatePreview();
+    });
+
+    // Live preview update
+    function updatePreview() {
+      const title = document.getElementById('title').value || '商品名稱';
+      const price = document.getElementById('price').value || 0;
+      const location = document.getElementById('location').value || '所在地';
+      
+      document.getElementById('previewTitle').textContent = title;
+      document.getElementById('previewPrice').textContent = `NT$ ${parseInt(price).toLocaleString('zh-TW')}`;
+      document.getElementById('previewLocation').textContent = location;
+      
+      // Update image
+      const previewImage = document.getElementById('previewImage');
+      if (images.length > 0) {
+        const firstImage = images[0];
+        previewImage.innerHTML = `<img src="${firstImage.src}" alt="${title}">`;
+      } else {
+        previewImage.innerHTML = '<span>尚未加入圖片</span>';
+      }
+      
+      // Update modes
+      const previewModes = document.getElementById('previewModes');
+      previewModes.innerHTML = '';
+      
+      if (document.getElementById('modeSale').checked) {
+        const badge = document.createElement('span');
+        badge.className = 'preview-mode-badge preview-mode-sale';
+        badge.textContent = '販售中';
+        previewModes.appendChild(badge);
+      }
+      
+      if (document.getElementById('modeTradeTarget').checked) {
+        const badge = document.createElement('span');
+        badge.className = 'preview-mode-badge preview-mode-trade';
+        badge.textContent = '可交換（指定目標）';
+        previewModes.appendChild(badge);
+      }
+      
+      if (document.getElementById('modeTradeOpen').checked) {
+        const badge = document.createElement('span');
+        badge.className = 'preview-mode-badge preview-mode-wish';
+        badge.textContent = '開放式許願';
+        previewModes.appendChild(badge);
+      }
+    }
+
+    // Add event listeners for live preview
+    ['title', 'price', 'location', 'modeSale', 'modeTradeTarget', 'modeTradeOpen'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updatePreview);
+      document.getElementById(id).addEventListener('change', updatePreview);
+    });
+
+    // Helper function to get category ID
+    function getCategoryId(categoryName) {
+      const categoryMap = {
+        'textbooks': 1,
+        'electronics': 2,
+        'clothing': 3,
+        'stationery': 4,
+        'daily_use': 5,
+        'others': 6,
+        '課本／學習用品': 1,
+        '筆電／3C': 2,
+        '手機／平板': 2,
+        '遊戲與主機': 2,
+        '宿舍家電與家具': 5,
+        '服飾／生活用品': 3,
+        '運動／興趣嗜好': 6,
+        '其他': 6
+      };
+      return categoryMap[categoryName] || 6;
+    }
+    
+    // Form submission
+    document.getElementById('sellForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      console.log('表單提交開始');
+      
+      // 檢查是否登入
+      const userId = api ? api.getUserId() : (getCurrentUserId ? getCurrentUserId() : null);
+      if (!userId) {
+        alert('請先登入');
+        window.location.href = 'login.html?redirect=' + encodeURIComponent('sell.html');
+        return;
+      }
+      
+      const currentUser = getCurrentUser ? getCurrentUser() : null;
+      
+      const title = document.getElementById('title').value.trim();
+      const category = document.getElementById('category').value;
+      const condition = document.getElementById('condition').value;
+      const price = parseInt(document.getElementById('price').value) || 0;
+      const quantity = parseInt(document.getElementById('quantity').value) || 1;
+      const location = document.getElementById('location').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const modeSale = document.getElementById('modeSale').checked;
+      const modeTradeTarget = document.getElementById('modeTradeTarget').checked;
+      const modeTradeOpen = document.getElementById('modeTradeOpen').checked;
+      const tradeTargetNote = document.getElementById('tradeTargetNote').value.trim();
+      
+      // Validation
+      if (!title || !category || !condition || !location || !description) {
+        alert('請填寫所有必填欄位');
+        return;
+      }
+      
+      if (!modeSale && !modeTradeTarget && !modeTradeOpen) {
+        alert('請至少選擇一種交易方式');
+        return;
+      }
+      
+      if (modeTradeTarget && !tradeTargetNote) {
+        alert('請填寫想換的商品描述');
+        return;
+      }
+      
+      if (images.length === 0) {
+        alert('請至少上傳或加入一張商品圖片。');
+        return;
+      }
+      
+      // Extract image sources for storage (keep full objects for preview, but store src for compatibility)
+      const imageSources = images.map(img => img.src);
+      
+      // Generate unique ID for new items
+      function generateItemId() {
+        if (window.crypto && crypto.randomUUID) {
+          return crypto.randomUUID();
+        } else {
+          return `item-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        }
+      }
+      
+      const itemData = {
+        sellerId: currentUser.id,
+        title,
+        category,
+        condition,
+        price,
+        description,
+        tags: tags.length > 0 ? tags : [],  // Ensure tags are stored as array of strings
+        location,
+        quantity,
+        modes: {
+          sale: modeSale,
+          tradeTarget: modeTradeTarget,
+          tradeOpen: modeTradeOpen
+        },
+        images: imageSources.length > 0 ? imageSources : [],
+        views: editingItem ? editingItem.views : 0,
+        addedToCartCount: editingItem ? editingItem.addedToCartCount : 0,
+        isActive: true
+      };
+      
+      if (tradeTargetNote) {
+        itemData.tradeTargetNote = tradeTargetNote;
+      }
+      
+      // userId 已在上方宣告，這裡直接使用
+      
+      if (editingItem) {
+        // 更新現有商品 - 使用 API
+        try {
+          // 映射條件到後端格式
+          const conditionMap = {
+            '全新': 'Brand_New',
+            '九成新': 'Good',
+            '可接受使用痕跡': 'Good',
+            '二手': 'Used'
+          };
+          const backendCondition = conditionMap[itemData.condition] || 'Used';
+          
+          // 轉換資料格式
+          const updateData = {
+            product_name: itemData.title,
+            category_id: getCategoryId(itemData.category),
+            price: itemData.price || null,
+            condition: backendCondition,
+            description: itemData.description,
+            trade_option: itemData.modes.sale && (itemData.modes.tradeTarget || itemData.modes.tradeOpen) ? 'both' : 
+                         itemData.modes.sale ? 'sale' : 'trade',
+            trade_item: itemData.tradeTargetNote || null,
+            image_url: itemData.images.length > 0 ? itemData.images[0] : null
+          };
+          
+          console.log('準備更新商品資料:', updateData);
+          
+          if (api && api.updateProduct) {
+            const result = await api.updateProduct(parseInt(itemId), updateData);
+            console.log('商品更新成功:', result);
+            alert('商品已更新！');
+            window.location.href = `item_page.html?id=${itemId}`;
+          } else {
+            console.error('API 不可用，回退到本地儲存');
+            // 回退到舊方式
+            updateItem(itemId, itemData);
+            alert('商品已更新！');
+            window.location.href = `item_page.html?id=${itemId}`;
+          }
+        } catch (error) {
+          console.error('更新失敗:', error);
+          alert('更新失敗: ' + (error.message || '未知錯誤，請查看控制台'));
+        }
+      } else {
+        // 建立新商品 - 使用 API
+        try {
+          // 映射條件到後端格式
+          const conditionMap = {
+            '全新': 'Brand_New',
+            '九成新': 'Good',
+            '可接受使用痕跡': 'Good',
+            '二手': 'Used'
+          };
+          const backendCondition = conditionMap[itemData.condition] || 'Used';
+          
+          // 轉換資料格式
+          const createData = {
+            category_id: getCategoryId(itemData.category),
+            product_name: itemData.title,
+            price: itemData.price || null,
+            trade_option: itemData.modes.sale && (itemData.modes.tradeTarget || itemData.modes.tradeOpen) ? 'both' : 
+                         itemData.modes.sale ? 'sale' : 'trade',
+            condition: backendCondition,
+            description: itemData.description,
+            trade_item: itemData.tradeTargetNote || null,
+            image_url: itemData.images.length > 0 ? itemData.images[0] : null
+          };
+          
+          console.log('準備發送商品資料:', createData);
+          
+          if (api && api.createProduct) {
+            const result = await api.createProduct(createData);
+            console.log('商品建立成功:', result);
+            alert('商品已成功刊登！');
+            window.location.href = `item_page.html?id=${result.product_id}`;
+          } else {
+            console.error('API 不可用，回退到本地儲存');
+            // 回退到舊方式
+            itemData.id = generateItemId();
+            const newItem = createItem(itemData);
+            alert('商品已成功刊登！');
+            window.location.href = `item_page.html?id=${newItem.id}`;
+          }
+        } catch (error) {
+          console.error('刊登失敗:', error);
+          alert('刊登失敗: ' + (error.message || '未知錯誤，請查看控制台'));
+        }
+      }
+    });
+
+      // Initial preview update
+      updatePreview();
+    });
+  </script>
+</body>
+</html>
+
