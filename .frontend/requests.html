@@ -320,70 +320,82 @@
       });
     });
 
-    // Render request card
-    function renderRequestCard(request, isOutgoing) {
-      const item = getItemById(request.itemId);
-      const otherUser = isOutgoing 
-        ? getUsers().find(u => u.id === request.sellerId)
-        : getUsers().find(u => u.id === request.buyerId);
+    // Render request card from API data
+    async function renderRequestCardFromAPI(request, isOutgoing) {
+      // 從 API 獲取商品資訊
+      let product = null;
+      try {
+        product = await api.getProduct(request.target_product_id);
+      } catch (error) {
+        console.error('獲取商品失敗:', error);
+        return null;
+      }
       
-      if (!item || !otherUser) return null;
+      if (!product) return null;
+      
+      // 確定對方資訊
+      const otherUserName = isOutgoing 
+        ? (request.owner_name || '未知使用者')
+        : (request.requester_name || '未知使用者');
+      
+      const otherUserId = isOutgoing 
+        ? (request.owner_id || product.owner_id)
+        : request.requester_id;
+      
+      console.log('請求資訊:', { request, isOutgoing, otherUserName, otherUserId, product });
 
       const card = document.createElement('div');
       card.className = 'request-card';
       
       // Request type label
       const typeLabels = {
-        'purchase': '購買',
-        'trade-target': '交換（指定目標）',
-        'trade-open': '交換（開放式）',
-        'trade-wish': '許願單'
+        'Purchase': '購買',
+        'Trade': '交換'
       };
       
-      const typeLabel = typeLabels[request.type] || request.type;
-      const typeClass = request.type === 'purchase' ? 'type-purchase' :
-                       request.type === 'trade-target' ? 'type-trade-target' :
-                       'type-trade-open';
+      const typeLabel = typeLabels[request.request_type] || request.request_type;
+      const typeClass = request.request_type === 'Purchase' ? 'type-purchase' : 'type-trade-target';
       
       // Status label
       const statusLabels = {
-        'pending': '待回應',
-        'accepted': '已接受',
-        'rejected': '已拒絕',
-        'cancelled': '已取消'
+        'Pending': '待回應',
+        'Accepted': '已接受',
+        'Rejected': '已拒絕',
+        'Cancelled': '已取消',
+        'Completed': '已完成'
       };
       
       const statusLabel = statusLabels[request.status] || request.status;
-      const statusClass = `status-${request.status}`;
+      const statusClass = `status-${request.status.toLowerCase()}`;
       
       // Actions
       let actionsHTML = '';
       if (isOutgoing) {
-        if (request.status === 'pending') {
+        if (request.status === 'Pending') {
           actionsHTML = `
-            <button class="btn-small btn-cancel" onclick="handleCancelRequest('${request.id}')">取消請求</button>
-            <button class="btn-small btn-chat" onclick="openChat('${request.itemId}', '${otherUser.id}')">查看對話</button>
+            <button class="btn-small btn-cancel" onclick="handleCancelRequest(${request.request_id})">取消請求</button>
+            <button class="btn-small btn-chat" onclick="openChatByRequestId(${request.request_id})">查看對話</button>
           `;
         } else {
           actionsHTML = `
-            <button class="btn-small btn-chat" onclick="openChat('${request.itemId}', '${otherUser.id}')">查看對話</button>
+            <button class="btn-small btn-chat" onclick="openChatByRequestId(${request.request_id})">查看對話</button>
           `;
         }
       } else {
-        if (request.status === 'pending') {
+        if (request.status === 'Pending') {
           actionsHTML = `
-            <button class="btn-small btn-accept" onclick="acceptRequest('${request.id}')">接受</button>
-            <button class="btn-small btn-reject" onclick="rejectRequest('${request.id}')">拒絕</button>
-            <button class="btn-small btn-chat" onclick="openChat('${request.itemId}', '${otherUser.id}')">查看對話</button>
+            <button class="btn-small btn-accept" onclick="acceptRequest(${request.request_id})">接受</button>
+            <button class="btn-small btn-reject" onclick="rejectRequest(${request.request_id})">拒絕</button>
+            <button class="btn-small btn-chat" onclick="openChatByRequestId(${request.request_id})">查看對話</button>
           `;
         } else {
           actionsHTML = `
-            <button class="btn-small btn-chat" onclick="openChat('${request.itemId}', '${otherUser.id}')">查看對話</button>
+            <button class="btn-small btn-chat" onclick="openChatByRequestId(${request.request_id})">查看對話</button>
           `;
         }
       }
       
-      const createdAt = new Date(request.createdAt);
+      const createdAt = new Date(request.created_at);
       const dateStr = createdAt.toLocaleString('zh-TW', {
         year: 'numeric',
         month: 'short',
@@ -393,16 +405,16 @@
       });
       
       card.innerHTML = `
-        <img src="${getProductImageUrl(item)}" 
-             alt="${item.title}" 
+        <img src="${getProductImageUrl(product)}" 
+             alt="${product.product_name}" 
              class="request-image">
         <div class="request-info">
           <h3 class="request-item-title">
-            <a href="item_page.html?id=${item.id}">${item.title}</a>
+            <a href="item_page.html?id=${product.product_id}">${product.product_name}</a>
           </h3>
           <div class="request-meta">
             <div class="request-meta-item">
-              <strong>對方：</strong>${otherUser.name}
+              <strong>對方：</strong>${otherUserName}
             </div>
             <div class="request-meta-item">
               <span class="request-type-badge ${typeClass}">${typeLabel}</span>
@@ -413,8 +425,8 @@
             <div class="request-meta-item">
               <strong>建立時間：</strong>${dateStr}
             </div>
-            ${request.quantity ? `<div class="request-meta-item"><strong>數量：</strong>${request.quantity}</div>` : ''}
-            ${request.note ? `<div class="request-meta-item" style="width: 100%; margin-top: 8px;"><strong>備註：</strong>${request.note}</div>` : ''}
+            ${request.offer_price ? `<div class="request-meta-item"><strong>出價：</strong>NT$ ${request.offer_price.toLocaleString('zh-TW')}</div>` : ''}
+            ${request.message ? `<div class="request-meta-item" style="width: 100%; margin-top: 8px;"><strong>備註：</strong>${request.message}</div>` : ''}
           </div>
         </div>
         <div class="request-actions">
@@ -430,133 +442,139 @@
     }
 
     // Render requests
-    function renderRequests() {
-      const { outgoing, incoming } = getRequestsByUser(currentUser.id);
+    async function renderRequests() {
       const outgoingContainer = document.getElementById('outgoingRequests');
       const incomingContainer = document.getElementById('incomingRequests');
       
       // Clear containers
-      outgoingContainer.innerHTML = '';
-      incomingContainer.innerHTML = '';
+      outgoingContainer.innerHTML = '<div style="text-align: center; padding: 40px;">載入中...</div>';
+      incomingContainer.innerHTML = '<div style="text-align: center; padding: 40px;">載入中...</div>';
       
-      // Render outgoing
-      if (outgoing.length === 0) {
-        outgoingContainer.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state-icon">📭</div>
-            <div class="empty-state-text">你還沒有提出任何請求</div>
-          </div>
-        `;
-      } else {
-        outgoing.forEach(request => {
-          const card = renderRequestCard(request, true);
-          if (card) outgoingContainer.appendChild(card);
-        });
-      }
-      
-      // Render incoming
-      if (incoming.length === 0) {
-        incomingContainer.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state-icon">📭</div>
-            <div class="empty-state-text">你還沒有收到任何請求</div>
-          </div>
-        `;
-      } else {
-        incoming.forEach(request => {
-          const card = renderRequestCard(request, false);
-          if (card) incomingContainer.appendChild(card);
-        });
+      try {
+        // 獲取我提出的請求
+        const outgoingRequests = await api.getTradeRequests({ type: 'sent' });
+        console.log('我提出的請求:', outgoingRequests);
+        
+        // 獲取我收到的請求
+        const incomingRequests = await api.getTradeRequests({ type: 'received' });
+        console.log('我收到的請求:', incomingRequests);
+        
+        // 清空容器
+        outgoingContainer.innerHTML = '';
+        incomingContainer.innerHTML = '';
+        
+        // Render outgoing
+        if (!outgoingRequests || outgoingRequests.length === 0) {
+          outgoingContainer.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <div class="empty-state-text">你還沒有提出任何請求</div>
+            </div>
+          `;
+        } else {
+          for (const request of outgoingRequests) {
+            const card = await renderRequestCardFromAPI(request, true);
+            if (card) outgoingContainer.appendChild(card);
+          }
+        }
+        
+        // Render incoming
+        if (!incomingRequests || incomingRequests.length === 0) {
+          incomingContainer.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <div class="empty-state-text">你還沒有收到任何請求</div>
+            </div>
+          `;
+        } else {
+          for (const request of incomingRequests) {
+            const card = await renderRequestCardFromAPI(request, false);
+            if (card) incomingContainer.appendChild(card);
+          }
+        }
+      } catch (error) {
+        console.error('載入請求失敗:', error);
+        outgoingContainer.innerHTML = `<div class="empty-state"><div class="empty-state-text">載入失敗: ${error.message}</div></div>`;
+        incomingContainer.innerHTML = `<div class="empty-state"><div class="empty-state-text">載入失敗: ${error.message}</div></div>`;
       }
     }
 
     // Accept request
-    function acceptRequest(requestId) {
+    async function acceptRequest(requestId) {
       if (!confirm('確定要接受此請求嗎？')) return;
       
-      const request = getRequestById(requestId);
-      if (!request) return;
-      
-      const item = getItemById(request.itemId);
-      if (!item) return;
-      
-      // Check quantity
-      if (item.quantity < request.quantity) {
-        alert('庫存不足，無法接受此請求。');
-        return;
+      try {
+        await api.acceptTradeRequest(requestId);
+        alert('已接受此請求，請透過訊息與買家確認細節。');
+        renderRequests();
+      } catch (error) {
+        console.error('接受請求失敗:', error);
+        alert('接受請求失敗: ' + (error.message || '未知錯誤'));
       }
-      
-      // Update request status
-      updateRequest(requestId, { status: 'accepted' });
-      
-      // Reduce item quantity
-      updateItem(request.itemId, { 
-        quantity: item.quantity - request.quantity 
-      });
-      
-      alert('已接受此請求，請透過訊息與買家確認細節。');
-      renderRequests();
     }
 
     // Reject request
-    function rejectRequest(requestId) {
+    async function rejectRequest(requestId) {
       if (!confirm('確定要拒絕此請求嗎？')) return;
       
-      updateRequest(requestId, { status: 'rejected' });
-      alert('已拒絕此請求。');
-      renderRequests();
+      try {
+        await api.rejectTradeRequest(requestId);
+        alert('已拒絕此請求。');
+        renderRequests();
+      } catch (error) {
+        console.error('拒絕請求失敗:', error);
+        alert('拒絕請求失敗: ' + (error.message || '未知錯誤'));
+      }
     }
 
     // Cancel request
-    function handleCancelRequest(requestId) {
+    async function handleCancelRequest(requestId) {
       if (!confirm('確定要取消此請求嗎？')) return;
       
-      const currentUser = getCurrentUser();
-      if (!currentUser) {
-        alert('請先登入');
-        return;
+      try {
+        await api.cancelTradeRequest(requestId);
+        alert('已取消此請求。');
+        renderRequests();
+      } catch (error) {
+        console.error('取消請求失敗:', error);
+        alert('取消請求失敗: ' + (error.message || '未知錯誤'));
       }
-      
-      // Call the data layer cancelRequest function (from data.js)
-      // Check if request exists and user is the buyer
-      const request = getRequestById(requestId);
-      if (!request) {
-        alert('找不到此請求。');
-        return;
-      }
-      
-      if (String(request.buyerId) !== String(currentUser.id)) {
-        alert('只能取消自己的請求。');
-        return;
-      }
-      
-      // Use updateRequest to set status to cancelled (cancelRequest from data.js should be available)
-      // If cancelRequest function exists in global scope, use it; otherwise use updateRequest
-      if (typeof cancelRequest === 'function') {
-        const cancelled = cancelRequest(requestId, currentUser.id);
-        if (!cancelled) {
-          alert('無法取消此請求。');
-          return;
-        }
-      } else {
-        // Fallback to updateRequest
-        updateRequest(requestId, { status: 'cancelled', cancelledAt: new Date().toISOString() });
-      }
-      
-      alert('已取消此請求。');
-      renderRequests();
     }
 
-    // Open chat (redirect to messages page or item page)
-    function openChat(itemId, otherUserId) {
-      window.location.href = `messages.html?itemId=${itemId}&userId=${otherUserId}`;
+    // Open chat by request ID
+    async function openChatByRequestId(requestId) {
+      try {
+        // 獲取所有請求（sent 和 received）
+        const sentRequests = await api.getTradeRequests({ type: 'sent' });
+        const receivedRequests = await api.getTradeRequests({ type: 'received' });
+        const allRequests = [...sentRequests, ...receivedRequests];
+        const request = allRequests.find(r => r.request_id === requestId);
+        
+        if (!request) {
+          alert('找不到此請求');
+          return;
+        }
+        
+        const currentUserId = api.getUserId();
+        // 確定對方 ID：如果我是請求者，對方是擁有者；如果我是擁有者，對方是請求者
+        const otherUserId = String(request.requester_id) === String(currentUserId)
+          ? request.owner_id
+          : request.requester_id;
+        
+        console.log('開啟對話:', { requestId, currentUserId, otherUserId, request });
+        
+        window.location.href = `messages.html?requestId=${requestId}&userId=${otherUserId}`;
+      } catch (error) {
+        console.error('開啟對話失敗:', error);
+        alert('開啟對話失敗: ' + (error.message || '未知錯誤'));
+      }
     }
 
     // Make functions global
     window.acceptRequest = acceptRequest;
     window.rejectRequest = rejectRequest;
     window.handleCancelRequest = handleCancelRequest;
-    window.openChat = openChat;
+    window.openChatByRequestId = openChatByRequestId;
 
       // Initial render
       renderRequests();

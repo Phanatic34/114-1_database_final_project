@@ -1390,7 +1390,7 @@
       <div class="modal-body">
         <div class="trade-requirement">
           <strong>賣家需求：</strong>
-          <p id="tradeRequirementText">想換 PlayStation 5 或 Xbox Series X，也接受其他 Nintendo 主機相關商品</p>
+          <p id="tradeRequirementText">載入中...</p>
         </div>
         <div class="user-items-list">
           <h3>選擇你的物品（僅可選擇一項）：</h3>
@@ -1471,6 +1471,45 @@
             </div>
           </div>
         </div>
+
+  <!-- Report Modal -->
+  <div id="report-modal" class="modal-overlay" style="display: none;" onclick="closeReportModal()">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2>檢舉商品</h2>
+        <button class="modal-close" onclick="closeReportModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 16px; color: #6b7280; font-size: 14px;">
+          請選擇檢舉類型並詳細說明原因，我們會儘快處理您的檢舉。
+        </p>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="report-type" style="display: block; margin-bottom: 8px; font-weight: 600;">檢舉類型 *</label>
+          <select id="report-type" style="width: 100%; padding: 10px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+            <option value="">請選擇檢舉類型</option>
+            <option value="Scam">詐騙 (Scam)</option>
+            <option value="Inappropriate">不當內容 (Inappropriate)</option>
+            <option value="Fraud">詐欺 (Fraud)</option>
+            <option value="Other">其他 (Other)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="report-description" style="display: block; margin-bottom: 8px; font-weight: 600;">檢舉原因 *</label>
+          <textarea 
+            id="report-description" 
+            rows="5" 
+            placeholder="請詳細說明檢舉原因，例如：商品描述與實際不符、價格異常、疑似詐騙等..."
+            style="width: 100%; padding: 10px; border: 2px solid #d1d5db; border-radius: 8px; font-family: inherit; font-size: 14px; resize: vertical;"
+            required
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeReportModal()">取消</button>
+        <button id="btnSubmitReport" class="btn-primary" onclick="handleSubmitReport()">提交檢舉</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     // Mode handling logic - this will be overridden by item_page.js but kept for initial render

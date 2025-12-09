@@ -59,7 +59,7 @@ def get_users(user_id):
         if status:
             cursor.execute("""
                 SELECT user_id, user_name, student_id, email, phone, 
-                       register_date, status, created_at
+                       register_date, status, created_at, deleted_at
                 FROM "user"
                 WHERE status = %s
                 ORDER BY register_date DESC
@@ -67,7 +67,7 @@ def get_users(user_id):
         else:
             cursor.execute("""
                 SELECT user_id, user_name, student_id, email, phone, 
-                       register_date, status, created_at
+                       register_date, status, created_at, deleted_at
                 FROM "user"
                 ORDER BY register_date DESC
             """)
@@ -77,15 +77,18 @@ def get_users(user_id):
         
         result = []
         for u in users:
+            is_deleted = u[8] is not None if len(u) > 8 else False
             result.append({
                 'user_id': u[0],
-                'user_name': u[1],
+                'user_name': u[1] + (' (已刪除)' if is_deleted else ''),
                 'student_id': u[2],
                 'email': u[3],
                 'phone': u[4],
                 'register_date': u[5].isoformat() if u[5] else None,
                 'status': u[6],
-                'created_at': u[7].isoformat() if u[7] else None
+                'created_at': u[7].isoformat() if u[7] else None,
+                'deleted_at': u[8].isoformat() if len(u) > 8 and u[8] else None,
+                'is_deleted': is_deleted
             })
         
         return jsonify(result), 200
@@ -103,7 +106,7 @@ def get_user(user_id, target_user_id):
         
         cursor.execute("""
             SELECT user_id, user_name, student_id, email, phone, 
-                   register_date, status, created_at
+                   register_date, status, created_at, deleted_at
             FROM "user"
             WHERE user_id = %s
         """, (target_user_id,))
@@ -114,15 +117,18 @@ def get_user(user_id, target_user_id):
         if not u:
             return jsonify({'error': '使用者不存在'}), 404
         
+        is_deleted = u[8] is not None if len(u) > 8 else False
         return jsonify({
             'user_id': u[0],
-            'user_name': u[1],
+            'user_name': u[1] + (' (已刪除)' if is_deleted else ''),
             'student_id': u[2],
             'email': u[3],
             'phone': u[4],
             'register_date': u[5].isoformat() if u[5] else None,
             'status': u[6],
-            'created_at': u[7].isoformat() if u[7] else None
+            'created_at': u[7].isoformat() if u[7] else None,
+            'deleted_at': u[8].isoformat() if len(u) > 8 and u[8] else None,
+            'is_deleted': is_deleted
         }), 200
         
     except Exception as e:
@@ -175,6 +181,110 @@ def activate_user(user_id, target_user_id):
     except Exception as e:
         if conn:
             conn.rollback()
+            DatabaseConfig.return_postgres_connection(conn)
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/users/<int:target_user_id>', methods=['DELETE'])
+@admin_required
+def delete_user(user_id, target_user_id):
+    """管理員刪除使用者帳號（完全刪除，會連帶刪除相關資料）"""
+    conn = None
+    try:
+        conn = DatabaseConfig.get_postgres_connection()
+        # 確保連線不在事務中
+        conn.rollback()  # 清除任何未完成的事務
+        cursor = conn.cursor()
+        
+        # 不能刪除自己
+        if target_user_id == user_id:
+            DatabaseConfig.return_postgres_connection(conn)
+            return jsonify({'error': '不能刪除自己的帳號'}), 400
+        
+        # 檢查使用者是否存在
+        cursor.execute("SELECT user_id, user_name FROM \"user\" WHERE user_id = %s", (target_user_id,))
+        user = cursor.fetchone()
+        
+        if not user:
+            DatabaseConfig.return_postgres_connection(conn)
+            return jsonify({'error': '使用者不存在'}), 404
+        
+        # 檢查是否有進行中的交易請求（作為請求者或商品擁有者）
+        cursor.execute("""
+            SELECT COUNT(*) 
+            FROM trade_request tr
+            LEFT JOIN product p ON tr.target_product_id = p.product_id
+            WHERE (tr.requester_id = %s OR p.owner_id = %s)
+            AND tr.status IN ('Pending', 'Accepted')
+        """, (target_user_id, target_user_id))
+        
+        active_requests = cursor.fetchone()[0]
+        
+        if active_requests > 0:
+            DatabaseConfig.return_postgres_connection(conn)
+            return jsonify({
+                'error': '無法刪除帳號：該使用者有進行中的交易請求，請先處理完所有交易請求後再刪除'
+            }), 400
+        
+        # 檢查是否有已完成的交易
+        cursor.execute("""
+            SELECT COUNT(*) 
+            FROM transaction t
+            JOIN trade_request tr ON t.request_id = tr.request_id
+            LEFT JOIN product p ON t.target_product_id = p.product_id
+            WHERE tr.requester_id = %s OR p.owner_id = %s
+        """, (target_user_id, target_user_id))
+        
+        completed_transactions = cursor.fetchone()[0]
+        
+        # 關閉 cursor 並開始新的事務
+        cursor.close()
+        
+        # 開始事務
+        conn.autocommit = False
+        cursor = conn.cursor()
+        
+        # 根據 CASCADE 設定，刪除使用者會自動：
+        # 1. 刪除 product（owner_id = 此使用者）
+        # 2. 刪除 trade_request（requester_id = 此使用者）
+        # 3. 刪除 trade_wish（user_id = 此使用者）
+        # 4. 刪除 review（reviewer_id 或 reviewee_id = 此使用者）
+        # 5. 刪除 message（sender_id 或 receiver_id = 此使用者）
+        # 6. 刪除 report（reporter_id = 此使用者）
+        # 7. 刪除 admin（user_id = 此使用者）
+        # 8. report.reported_user_id 會設為 NULL（SET NULL）
+        
+        # 刪除使用者（CASCADE 會自動處理相關資料）
+        cursor.execute("DELETE FROM \"user\" WHERE user_id = %s", (target_user_id,))
+        
+        deleted_count = cursor.rowcount
+        
+        if deleted_count == 0:
+            conn.rollback()
+            cursor.close()
+            DatabaseConfig.return_postgres_connection(conn)
+            return jsonify({'error': '刪除失敗'}), 500
+        
+        conn.commit()
+        cursor.close()
+        DatabaseConfig.return_postgres_connection(conn)
+        
+        return jsonify({
+            'message': f'使用者 {user[1]} 已完全刪除',
+            'note': '相關的商品、交易請求、訊息、評價等資料已一併刪除',
+            'completed_transactions_deleted': completed_transactions > 0
+        }), 200
+        
+    except Exception as e:
+        if conn:
+            try:
+                conn.rollback()
+            except:
+                pass
+            try:
+                if 'cursor' in locals():
+                    cursor.close()
+            except:
+                pass
             DatabaseConfig.return_postgres_connection(conn)
         return jsonify({'error': str(e)}), 500
 
@@ -242,22 +352,76 @@ def get_all_products(user_id):
 @bp.route('/products/<int:product_id>', methods=['DELETE'])
 @admin_required
 def delete_product(user_id, product_id):
-    """管理員刪除商品"""
-    
+    """管理員刪除商品（完全刪除，會連帶刪除相關資料）"""
+    conn = None
     try:
         conn = DatabaseConfig.get_postgres_connection()
+        # 確保連線不在事務中
+        conn.rollback()  # 清除任何未完成的事務
         cursor = conn.cursor()
         
-        cursor.execute("DELETE FROM product WHERE product_id = %s", (product_id,))
-        conn.commit()
+        # 檢查商品是否存在
+        cursor.execute("SELECT product_id FROM product WHERE product_id = %s", (product_id,))
+        product = cursor.fetchone()
         
+        if not product:
+            DatabaseConfig.return_postgres_connection(conn)
+            return jsonify({'error': '商品不存在'}), 404
+        
+        # 檢查是否有進行中的交易請求
+        cursor.execute("""
+            SELECT COUNT(*) 
+            FROM trade_request 
+            WHERE (target_product_id = %s OR offered_product_id = %s)
+            AND status IN ('Pending', 'Accepted')
+        """, (product_id, product_id))
+        
+        active_requests = cursor.fetchone()[0]
+        
+        if active_requests > 0:
+            DatabaseConfig.return_postgres_connection(conn)
+            return jsonify({
+                'error': '無法刪除商品：該商品有進行中的交易請求'
+            }), 400
+        
+        # 關閉 cursor 並開始新的事務
+        cursor.close()
+        
+        # 開始事務
+        conn.autocommit = False
+        cursor = conn.cursor()
+        
+        # 刪除商品（CASCADE 會自動處理相關資料）
+        cursor.execute("DELETE FROM product WHERE product_id = %s", (product_id,))
+        
+        deleted_count = cursor.rowcount
+        
+        if deleted_count == 0:
+            conn.rollback()
+            cursor.close()
+            DatabaseConfig.return_postgres_connection(conn)
+            return jsonify({'error': '刪除失敗'}), 500
+        
+        conn.commit()
+        cursor.close()
         DatabaseConfig.return_postgres_connection(conn)
         
-        return jsonify({'message': '商品已刪除'}), 200
+        return jsonify({
+            'message': '商品已完全刪除',
+            'note': '相關的交易請求、訊息等資料已一併刪除'
+        }), 200
         
     except Exception as e:
         if conn:
-            conn.rollback()
+            try:
+                conn.rollback()
+            except:
+                pass
+            try:
+                if 'cursor' in locals():
+                    cursor.close()
+            except:
+                pass
             DatabaseConfig.return_postgres_connection(conn)
         return jsonify({'error': str(e)}), 500
 
@@ -597,8 +761,11 @@ def get_pending_reports(user_id):
         cursor = conn.cursor()
         
         cursor.execute("""
-            SELECT r.*, u1.user_name as reporter_name,
-                   u2.user_name as reported_user_name, p.product_name
+            SELECT r.report_id, r.reporter_id, r.reported_product_id, r.reported_user_id,
+                   r.report_type, r.description, r.status, r.created_at, r.resolved_at,
+                   u1.user_name as reporter_name,
+                   u2.user_name as reported_user_name, 
+                   p.product_name as reported_product_name
             FROM report r
             JOIN "user" u1 ON r.reporter_id = u1.user_id
             LEFT JOIN "user" u2 ON r.reported_user_id = u2.user_id

@@ -33,8 +33,8 @@ const mockItems = [
       watchers: 12
     },
     images: [
-      'https://via.placeholder.com/600x600/002855/FFFFFF?text=MacBook+1',
-      'https://via.placeholder.com/600x600/0064D2/FFFFFF?text=MacBook+2'
+      'images/no-image.png',
+      'images/no-image.png'
     ],
     description: {
       main: 'MacBook Pro 14吋 M1 晶片，使用約兩年，功能正常，想換其他高階設備。',
@@ -85,7 +85,7 @@ const mockItems = [
       watchers: 3
     },
     images: [
-      'https://via.placeholder.com/600x600/0064D2/FFFFFF?text=Book+1'
+      'images/no-image.png'
     ],
     description: {
       main: '資料庫系統概論第五版，使用過一學期，書內有部分筆記。',
@@ -134,8 +134,8 @@ const mockItems = [
       watchers: 19
     },
     images: [
-      'https://via.placeholder.com/600x600/0052A3/FFFFFF?text=Xbox+1',
-      'https://via.placeholder.com/600x600/003D7A/FFFFFF?text=Xbox+2'
+      'images/no-image.png',
+      'images/no-image.png'
     ],
     description: {
       main: 'Xbox Series X 主機，使用約一年，功能正常，含兩片遊戲。',
@@ -188,8 +188,8 @@ const mockItems = [
       watchers: 15
     },
     images: [
-      'https://via.placeholder.com/600x600/003D7A/FFFFFF?text=AirPods+1',
-      'https://via.placeholder.com/600x600/002855/FFFFFF?text=AirPods+2'
+      'images/no-image.png',
+      'images/no-image.png'
     ],
     description: {
       main: 'AirPods Pro 第二代，全新未拆封，原廠保固。',
@@ -241,7 +241,7 @@ const mockItems = [
       watchers: 2
     },
     images: [
-      'https://via.placeholder.com/600x600/002855/FFFFFF?text=Math+1'
+      'images/no-image.png'
     ],
     description: {
       main: '線性代數課本，使用過一學期，書內有部分筆記和劃記。',

@@ -19,13 +19,19 @@ def get_transactions(user_id):
         cursor = conn.cursor()
         
         cursor.execute("""
-            SELECT t.*, p1.product_name as target_product_name,
+            SELECT t.transaction_id, t.request_id, t.target_product_id, t.offered_product_id,
+                   t.total_price, t.complete_date, t.payment_status,
+                   p1.product_name as target_product_name, p1.image_url as target_product_image,
                    p2.product_name as offered_product_name,
-                   tr.request_type, tr.requester_id, p1.owner_id
+                   tr.request_type, tr.requester_id, p1.owner_id,
+                   u1.user_name as buyer_name, u1.user_id as buyer_id,
+                   u2.user_name as seller_name, u2.user_id as seller_id
             FROM transaction t
             JOIN trade_request tr ON t.request_id = tr.request_id
             JOIN product p1 ON t.target_product_id = p1.product_id
             LEFT JOIN product p2 ON t.offered_product_id = p2.product_id
+            JOIN "user" u1 ON tr.requester_id = u1.user_id
+            JOIN "user" u2 ON p1.owner_id = u2.user_id
             WHERE tr.requester_id = %s OR p1.owner_id = %s
             ORDER BY t.complete_date DESC
         """, (user_id, user_id))
@@ -35,19 +41,27 @@ def get_transactions(user_id):
         
         result = []
         for t in transactions:
+            is_buyer = t[11] == user_id  # requester_id
+            is_seller = t[12] == user_id  # owner_id
+            other_user_id = t[14] if is_buyer else t[13]  # seller_id if buyer, buyer_id if seller
+            other_user_name = t[16] if is_buyer else t[15]  # seller_name if buyer, buyer_name if seller
+            
             result.append({
                 'transaction_id': t[0],
                 'request_id': t[1],
                 'target_product_id': t[2],
-                'target_product_name': t[6],
+                'target_product_name': t[7],
+                'target_product_image': t[8],
                 'offered_product_id': t[3],
-                'offered_product_name': t[7],
+                'offered_product_name': t[9],
                 'total_price': t[4],
                 'complete_date': t[5].isoformat() if t[5] else None,
                 'payment_status': t[6],
-                'request_type': t[8],
-                'is_buyer': t[9] == user_id,
-                'is_seller': t[10] == user_id
+                'request_type': t[10],
+                'is_buyer': is_buyer,
+                'is_seller': is_seller,
+                'other_user_id': other_user_id,
+                'other_user_name': other_user_name
             })
         
         return jsonify(result), 200

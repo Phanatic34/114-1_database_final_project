@@ -15,22 +15,51 @@ const DEFAULT_IMAGE_URL = "images/no-image.png";
 function getProductImageUrl(itemOrName) {
   const name = typeof itemOrName === "string" 
     ? itemOrName 
-    : (itemOrName?.title || itemOrName?.name || "商品");
+    : (itemOrName?.title || itemOrName?.product_name || itemOrName?.name || "商品");
 
   // 1) If item has an explicit image URL or array, use that first
   if (typeof itemOrName === "object" && itemOrName) {
+    // 檢查 imageUrl 屬性
     if (itemOrName.imageUrl) {
+      // 檢查是否為 placeholder URL 或空字串
+      if (itemOrName.imageUrl.includes('via.placeholder.com') || 
+          itemOrName.imageUrl.includes('FFFFFF') ||
+          itemOrName.imageUrl.includes('9c3aaf7') ||
+          itemOrName.imageUrl.trim() === '') {
+        // 如果是 placeholder 或空字串，使用 AI 生成圖片
+        const encodedName = encodeURIComponent(name);
+        return `https://image.pollinations.ai/prompt/${encodedName}?width=400&height=400&nologo=true`;
+      }
       return itemOrName.imageUrl;
     }
+    
+    // 檢查 image_url 屬性（後端 API 返回的格式）
+    if (itemOrName.image_url) {
+      if (itemOrName.image_url.includes('via.placeholder.com') || 
+          itemOrName.image_url.includes('FFFFFF') ||
+          itemOrName.image_url.includes('9c3aaf7') ||
+          itemOrName.image_url.trim() === '') {
+        const encodedName = encodeURIComponent(name);
+        return `https://image.pollinations.ai/prompt/${encodedName}?width=400&height=400&nologo=true`;
+      }
+      return itemOrName.image_url;
+    }
+    
+    // 檢查 images 數組
     if (Array.isArray(itemOrName.images) && itemOrName.images.length > 0) {
       // Find first non-placeholder image, or use first image if none found
       const validImage = itemOrName.images.find(img => 
-        img && !img.includes('via.placeholder.com') && !img.includes('9c3aaf7')
+        img && 
+        img.trim() !== '' &&
+        !img.includes('via.placeholder.com') && 
+        !img.includes('FFFFFF') &&
+        !img.includes('9c3aaf7') &&
+        !img.startsWith('FFFFFF')
       );
       if (validImage) {
         return validImage;
       }
-      // If all images are placeholders, fall through to generate AI image
+      // If all images are placeholders or empty, fall through to generate AI image
     }
   }
 
@@ -53,16 +82,34 @@ function attachImageFallback(imgElement) {
   }
   
   imgElement.onerror = function() {
-    // Avoid infinite loop if DEFAULT_IMAGE_URL also fails
+    // Avoid infinite loop if fallback also fails
     if (imgElement.dataset.fallbackApplied === "true") {
-      // If default image also fails, stop trying
+      // 如果已經嘗試過 fallback，嘗試使用 AI 生成圖片
+      if (imgElement.dataset.aiImageTried !== "true") {
+        imgElement.dataset.aiImageTried = "true";
+        const altText = imgElement.alt || '商品';
+        const encodedName = encodeURIComponent(altText);
+        imgElement.src = `https://image.pollinations.ai/prompt/${encodedName}?width=400&height=400&nologo=true`;
+        return;
+      }
+      // 如果 AI 圖片也失敗，隱藏圖片
       imgElement.onerror = null;
       imgElement.style.display = 'none';
       return;
     }
     
+    // 第一次失敗，嘗試使用預設圖片或 AI 生成圖片
     imgElement.dataset.fallbackApplied = "true";
-    imgElement.src = DEFAULT_IMAGE_URL;
+    
+    // 如果原始圖片是空的或無效的，直接使用 AI 生成圖片
+    const originalSrc = imgElement.dataset.originalSrc || '';
+    if (!originalSrc || originalSrc.trim() === '' || originalSrc.includes('no-image.png')) {
+      const altText = imgElement.alt || '商品';
+      const encodedName = encodeURIComponent(altText);
+      imgElement.src = `https://image.pollinations.ai/prompt/${encodedName}?width=400&height=400&nologo=true`;
+    } else {
+      imgElement.src = DEFAULT_IMAGE_URL;
+    }
   };
 }
 

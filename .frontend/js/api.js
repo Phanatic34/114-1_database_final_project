@@ -223,6 +223,7 @@ async function getProducts(filters = {}) {
     if (filters.category_id) params.append('category_id', filters.category_id);
     if (filters.search) params.append('search', filters.search);
     if (filters.trade_option) params.append('trade_option', filters.trade_option);
+    if (filters.owner_id) params.append('owner_id', filters.owner_id);
     
     if (params.toString()) {
         endpoint += '?' + params.toString();
@@ -266,6 +267,15 @@ async function updateProduct(productId, productData) {
  */
 async function deleteProduct(productId) {
     return await apiCall(`/products/${productId}`, 'DELETE', null, true);
+}
+
+/**
+ * 刪除帳號（需要提供密碼確認）
+ * @param {string} password - 使用者密碼（用於確認）
+ * @returns {Promise<object>}
+ */
+async function deleteAccount(password) {
+    return await apiCall('/auth/delete-account', 'DELETE', { password }, true);
 }
 
 // ========== 交易請求相關 API ==========
@@ -316,6 +326,15 @@ async function cancelTradeRequest(requestId) {
     return await apiCall(`/trade-requests/${requestId}/cancel`, 'POST', null, true);
 }
 
+/**
+ * 確認已面交
+ * @param {number} requestId - 交易請求 ID
+ * @returns {Promise<object>}
+ */
+async function confirmHandoff(requestId) {
+    return await apiCall(`/trade-requests/${requestId}/confirm-handoff`, 'POST', null, true);
+}
+
 // ========== 交易紀錄相關 API ==========
 
 /**
@@ -350,6 +369,15 @@ async function createReview(reviewData) {
 }
 
 /**
+ * 查詢交易的評價狀態
+ * @param {number} transactionId - 交易 ID
+ * @returns {Promise<object>}
+ */
+async function getReviewStatus(transactionId) {
+    return await apiCall(`/reviews/transaction/${transactionId}/status`, 'GET', null, true);
+}
+
+/**
  * 取得使用者評價
  * @param {string} userId
  * @returns {Promise<object[]>}
@@ -361,29 +389,28 @@ async function getUserReviews(userId) {
 // ========== 訊息相關 API ==========
 
 /**
- * 傳送訊息
- * @param {object} messageData - {itemId, senderId, receiverId, text}
+ * 取得訊息（根據 request_id）
+ * @param {number} requestId - 交易請求 ID
+ * @returns {Promise<object[]>}
+ */
+async function getMessages(requestId) {
+    return await apiCall(`/messages/request/${requestId}`, 'GET', null, true);
+}
+
+/**
+ * 發送訊息
+ * @param {object} messageData - {request_id, receiver_id, content}
  * @returns {Promise<object>}
  */
 async function sendMessage(messageData) {
     return await apiCall('/messages', 'POST', messageData, true);
 }
 
-/**
- * 取得訊息
- * @param {object} params - { itemId, user1Id, user2Id }
- * @returns {Promise<object[]>}
- */
-async function getMessages(params = {}) {
-    const queryString = new URLSearchParams(params).toString();
-    return await apiCall(`/messages${queryString ? `?${queryString}` : ''}`, 'GET', null, true);
-}
-
 // ========== 檢舉相關 API ==========
 
 /**
  * 建立檢舉
- * @param {object} reportData - {reporterId, reportedItemId, reportedUserId, reason, description}
+ * @param {object} reportData - {reported_product_id, reported_user_id, report_type, description}
  * @returns {Promise<object>}
  */
 async function createReport(reportData) {
@@ -534,6 +561,7 @@ window.api = {
     registerUser,
     loginUser,
     logoutUser,
+    deleteAccount,
     getCurrentUserInfo,
     getUserId,
     setUserId,
@@ -555,6 +583,7 @@ window.api = {
     acceptTradeRequest,
     rejectTradeRequest,
     cancelTradeRequest,
+    confirmHandoff,
     
     // 交易紀錄
     getTransactions,
@@ -562,10 +591,12 @@ window.api = {
     
     // 評價
     createReview,
+    getReviewStatus,
     getUserReviews,
     
     // 訊息
     sendMessage,
+    getMessages,
     getMessages,
     
     // 檢舉

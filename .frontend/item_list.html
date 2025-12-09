@@ -652,7 +652,7 @@
             return {
               id: String(product.product_id),
               title: product.product_name || '未命名商品',
-              price: product.price || 0,
+              price: (product.price !== null && product.price !== undefined) ? Number(product.price) : 0,
               category: categoryName,
               categoryName: product.category_name, // 保留後端原始名稱用於篩選
               categoryId: product.category_id, // 後端 category_id
@@ -660,7 +660,7 @@
               condition: condition,
               location: '台北市', // 預設地點（後端目前沒有 location 欄位）
               tags: [],
-              images: product.image_url ? [product.image_url] : [],
+              images: (product.image_url && product.image_url.trim() !== '') ? [product.image_url] : [],
               description: product.description || '',
               sellerId: String(product.owner_id),
               ownerId: String(product.owner_id),

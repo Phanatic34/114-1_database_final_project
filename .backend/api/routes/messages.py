@@ -49,6 +49,13 @@ def send_message(user_id):
             DatabaseConfig.return_postgres_connection(conn)
             return jsonify({'error': '無效的接收者'}), 400
         
+        # 檢查接收者帳號是否已刪除
+        cursor.execute("SELECT deleted_at FROM \"user\" WHERE user_id = %s", (receiver_id,))
+        receiver = cursor.fetchone()
+        if receiver and receiver[0] is not None:
+            DatabaseConfig.return_postgres_connection(conn)
+            return jsonify({'error': '無法發送訊息：對方帳號已刪除'}), 403
+        
         # 新增訊息
         cursor.execute("""
             INSERT INTO message (request_id, sender_id, receiver_id, content)
@@ -97,9 +104,11 @@ def get_messages(user_id, request_id):
             DatabaseConfig.return_postgres_connection(conn)
             return jsonify({'error': '無權限查看此對話'}), 403
         
-        # 查詢訊息
+        # 查詢訊息（包含用戶刪除狀態）
         cursor.execute("""
-            SELECT m.*, u1.user_name as sender_name, u2.user_name as receiver_name
+            SELECT m.*, 
+                   u1.user_name as sender_name, u1.deleted_at as sender_deleted_at,
+                   u2.user_name as receiver_name, u2.deleted_at as receiver_deleted_at
             FROM message m
             JOIN "user" u1 ON m.sender_id = u1.user_id
             JOIN "user" u2 ON m.receiver_id = u2.user_id
@@ -121,13 +130,18 @@ def get_messages(user_id, request_id):
         
         result = []
         for m in messages:
+            # 欄位順序：0-6 是 message 欄位，7-8 是 sender 資訊，9-10 是 receiver 資訊
+            sender_name = m[7] + (' (已刪除)' if m[8] is not None else '')
+            receiver_name = m[9] + (' (已刪除)' if m[10] is not None else '')
             result.append({
                 'message_id': m[0],
                 'request_id': m[1],
                 'sender_id': m[2],
-                'sender_name': m[7],
+                'sender_name': sender_name,
+                'sender_deleted': m[8] is not None,
                 'receiver_id': m[3],
-                'receiver_name': m[8],
+                'receiver_name': receiver_name,
+                'receiver_deleted': m[10] is not None,
                 'content': m[4],
                 'is_read': m[5],
                 'sent_at': m[6].isoformat() if m[6] else None

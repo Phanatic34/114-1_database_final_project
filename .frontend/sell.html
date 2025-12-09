@@ -578,52 +578,131 @@
     let editingItem = null;
 
     if (itemId) {
-      editingItem = getItemById(itemId);
-      const currentUser = getCurrentUser();
-      
-      if (!editingItem) {
-        alert('商品不存在');
-        window.location.href = 'my_items.html';
-      } else if (editingItem.sellerId !== currentUser.id) {
-        alert('你沒有權限編輯此商品');
-        window.location.href = 'my_items.html';
-      } else {
-        // Load item data into form
-        document.getElementById('pageTitle').textContent = '編輯商品';
-        document.getElementById('title').value = editingItem.title;
-        // Normalize category to official category name
-        document.getElementById('category').value = normalizeCategory(editingItem.category);
-        document.getElementById('condition').value = editingItem.condition;
-        document.getElementById('price').value = editingItem.price;
-        document.getElementById('quantity').value = editingItem.quantity;
-        document.getElementById('location').value = editingItem.location;
-        document.getElementById('description').value = editingItem.description;
-        document.getElementById('modeSale').checked = editingItem.modes.sale;
-        document.getElementById('modeTradeTarget').checked = editingItem.modes.tradeTarget;
-        document.getElementById('modeTradeOpen').checked = editingItem.modes.tradeOpen;
-        if (editingItem.tradeTargetNote) {
-          document.getElementById('tradeTargetNote').value = editingItem.tradeTargetNote;
+      // 從 API 獲取商品資料
+      async function loadItemForEdit() {
+        const currentUser = getCurrentUser();
+        
+        if (!currentUser) {
+          alert('請先登入');
+          window.location.href = 'login.html';
+          return;
         }
-        
-        // Load tags
-        editingItem.tags.forEach(tag => addTag(tag));
-        
-        // Load images (handle both old format: string URLs, and new format: objects)
-        if (editingItem.images && editingItem.images.length > 0) {
-          editingItem.images.forEach(img => {
-            if (typeof img === 'string') {
-              // Old format: just URL string
-              images.push({ type: 'url', src: img });
-            } else if (img && img.src) {
-              // New format: object with type and src
-              images.push(img);
+
+        try {
+          // 從 API 獲取商品
+          if (typeof api !== 'undefined' && api.getProduct) {
+            const productData = await api.getProduct(itemId);
+            console.log('從 API 獲取商品:', productData);
+            
+            // 檢查商品是否屬於當前用戶
+            if (String(productData.owner_id) !== String(currentUser.id)) {
+              alert('你沒有權限編輯此商品');
+              window.location.href = 'my_items.html';
+              return;
             }
-          });
-          renderImagePreviews();
+            
+            // 轉換後端分類名稱到前端分類名稱
+            const backendToFrontendCategory = {
+              'Textbooks': '課本／學習用品',
+              'Electronics': '筆電／3C',
+              'Clothing': '服飾／生活用品',
+              'Stationery': '課本／學習用品',
+              'Daily_Use': '宿舍家電與家具',
+              'Others': '其他'
+            };
+            
+            // 轉換條件名稱
+            const backendToFrontendCondition = {
+              'Brand_New': '全新',
+              'Good': '九成新',
+              'Used': '二手'
+            };
+            
+            // 轉換格式
+            editingItem = {
+              id: String(productData.product_id),
+              title: productData.product_name,
+              category: backendToFrontendCategory[productData.category_name] || '其他',
+              condition: backendToFrontendCondition[productData.condition] || '二手',
+              price: productData.price || 0,
+              description: productData.description || '',
+              images: productData.image_url ? [productData.image_url] : [],
+              modes: {
+                sale: productData.trade_option === 'sale' || productData.trade_option === 'both',
+                tradeTarget: productData.trade_option === 'trade' || productData.trade_option === 'both',
+                tradeOpen: false
+              },
+              tradeTargetNote: productData.trade_item || '',
+              status: productData.status,
+              sellerId: String(productData.owner_id),
+              tags: [],
+              quantity: 1,
+              location: '台北市' // 預設值，後端目前沒有 location 欄位
+            };
+          } else {
+            // 如果 API 不可用，嘗試從 localStorage 獲取
+            editingItem = getItemById(itemId);
+          }
+          
+          if (!editingItem) {
+            alert('商品不存在');
+            window.location.href = 'my_items.html';
+            return;
+          }
+          
+          // Load item data into form
+          document.getElementById('pageTitle').textContent = '編輯商品';
+          document.getElementById('title').value = editingItem.title;
+          // Normalize category to official category name
+          document.getElementById('category').value = normalizeCategory(editingItem.category);
+          document.getElementById('condition').value = editingItem.condition;
+          document.getElementById('price').value = editingItem.price;
+          document.getElementById('quantity').value = editingItem.quantity || 1;
+          document.getElementById('location').value = editingItem.location || '台北市';
+          document.getElementById('description').value = editingItem.description;
+          document.getElementById('modeSale').checked = editingItem.modes.sale;
+          document.getElementById('modeTradeTarget').checked = editingItem.modes.tradeTarget;
+          document.getElementById('modeTradeOpen').checked = editingItem.modes.tradeOpen;
+          
+          // 顯示/隱藏 tradeTargetNote 輸入框
+          const tradeTargetNoteGroup = document.getElementById('tradeTargetNoteGroup');
+          if (tradeTargetNoteGroup) {
+            tradeTargetNoteGroup.style.display = editingItem.modes.tradeTarget ? 'block' : 'none';
+          }
+          
+          if (editingItem.tradeTargetNote) {
+            document.getElementById('tradeTargetNote').value = editingItem.tradeTargetNote;
+          }
+          
+          // Load tags
+          if (editingItem.tags && Array.isArray(editingItem.tags)) {
+            editingItem.tags.forEach(tag => addTag(tag));
+          }
+          
+          // Load images (handle both old format: string URLs, and new format: objects)
+          if (editingItem.images && editingItem.images.length > 0) {
+            editingItem.images.forEach(img => {
+              if (typeof img === 'string') {
+                // Old format: just URL string
+                images.push({ type: 'url', src: img });
+              } else if (img && img.src) {
+                // New format: object with type and src
+                images.push(img);
+              }
+            });
+            renderImagePreviews();
+          }
+          
+          updatePreview();
+        } catch (error) {
+          console.error('載入商品失敗:', error);
+          alert('載入商品失敗: ' + (error.message || '未知錯誤'));
+          window.location.href = 'my_items.html';
         }
-        
-        updatePreview();
       }
+      
+      // 執行載入
+      loadItemForEdit();
     }
 
     // Tags handling
@@ -1010,12 +1089,36 @@
           const backendCondition = conditionMap[itemData.condition] || 'Used';
           
           // 轉換資料格式
+          const price = itemData.price || null;
+          const hasSale = itemData.modes.sale;
+          const hasTrade = itemData.modes.tradeTarget || itemData.modes.tradeOpen;
+          
+          // 如果價格為 0 或 null，不能設定為僅販售
+          let tradeOption = 'trade';
+          if (price && price > 0) {
+            if (hasSale && hasTrade) {
+              tradeOption = 'both';
+            } else if (hasSale) {
+              tradeOption = 'sale';
+            } else if (hasTrade) {
+              tradeOption = 'trade';
+            }
+          } else {
+            // 價格為 0 或 null，只能以物易物
+            if (hasTrade) {
+              tradeOption = 'trade';
+            } else {
+              // 如果沒有選擇以物易物，強制設為 trade
+              tradeOption = 'trade';
+              alert('價格為 0 的商品只能設定為以物易物');
+            }
+          }
+          
           const createData = {
             category_id: getCategoryId(itemData.category),
             product_name: itemData.title,
-            price: itemData.price || null,
-            trade_option: itemData.modes.sale && (itemData.modes.tradeTarget || itemData.modes.tradeOpen) ? 'both' : 
-                         itemData.modes.sale ? 'sale' : 'trade',
+            price: price,
+            trade_option: tradeOption,
             condition: backendCondition,
             description: itemData.description,
             trade_item: itemData.tradeTargetNote || null,

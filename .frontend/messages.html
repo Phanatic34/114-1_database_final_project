@@ -292,6 +292,21 @@
     </div>
   </main>
 
+  <!-- Review Modal -->
+  <div id="reviewModal" class="modal-overlay" style="display: none;" onclick="closeReviewModal()">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2>評價交易</h2>
+        <button class="modal-close" onclick="closeReviewModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="reviewContent">
+          <p style="text-align: center; color: #6b7280; padding: 20px;">載入中...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="js/api.js?v=v1.0.0"></script>
   <script src="js/data.js?v=v1.0.0"></script>
   <script src="js/auth_check.js?v=v1.0.0"></script>
@@ -303,178 +318,519 @@
 
     // Get params for direct chat
     const urlParams = new URLSearchParams(window.location.search);
-    const itemId = urlParams.get('itemId');
+    const requestId = urlParams.get('requestId');
     const userId = urlParams.get('userId');
 
-    // Render conversations
-    function renderConversations() {
-      const conversations = getConversationsForUser(currentUser.id);
+    // Render conversations (based on trade requests)
+    async function renderConversations() {
       const container = document.getElementById('conversationsContainer');
+      container.innerHTML = '<div style="text-align: center; padding: 20px;">載入中...</div>';
       
-      container.innerHTML = '';
-      
-      if (conversations.length === 0) {
-        container.innerHTML = '<div class="empty-conversations">還沒有任何對話</div>';
-      } else {
-        conversations.forEach(conv => {
-          const item = document.createElement('div');
-          item.className = 'conversation-item';
-          item.dataset.itemId = conv.itemId;
-          item.dataset.userId = conv.otherUserId;
-          
-          const time = new Date(conv.lastMessage.createdAt);
-          const timeStr = time.toLocaleString('zh-TW', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          });
-          
-          item.innerHTML = `
-            <div class="conversation-header">
-              <img src="${conv.item ? getProductImageUrl(conv.item) : 'images/no-image.png'}" 
-                   alt="${conv.item?.title || '商品'}" 
-                   class="conversation-image">
-              <div class="conversation-info">
-                <div class="conversation-title">${conv.item?.title || '商品已下架'}</div>
-                <div class="conversation-user">${conv.otherUserName}</div>
-                <div class="conversation-preview">${conv.lastMessage.text}</div>
-                <div class="conversation-time">${timeStr}</div>
-              </div>
-            </div>
-          `;
-          
-          // Attach fallback to the image
-          const img = item.querySelector('.conversation-image');
-          if (img) attachImageFallback(img);
-          
-          item.addEventListener('click', () => {
-            openChat(conv.itemId, conv.otherUserId);
-          });
-          
-          container.appendChild(item);
+      try {
+        // 獲取所有交易請求（我提出的和收到的）
+        const sentRequests = await api.getTradeRequests({ type: 'sent' });
+        const receivedRequests = await api.getTradeRequests({ type: 'received' });
+        const allRequests = [...sentRequests, ...receivedRequests];
+        
+        // 使用 Map 去重，以 request_id 為 key
+        const uniqueRequestsMap = new Map();
+        allRequests.forEach(request => {
+          if (!uniqueRequestsMap.has(request.request_id)) {
+            uniqueRequestsMap.set(request.request_id, request);
+          }
         });
-      }
-      
-      // Auto-open chat if params provided
-      if (itemId && userId) {
-        openChat(itemId, userId);
+        const uniqueRequests = Array.from(uniqueRequestsMap.values());
+        
+        container.innerHTML = '';
+        
+        if (uniqueRequests.length === 0) {
+          container.innerHTML = '<div class="empty-conversations">還沒有任何對話</div>';
+        } else {
+          // 為每個請求創建對話項目
+          for (const request of uniqueRequests) {
+            try {
+              const product = await api.getProduct(request.target_product_id);
+              const currentUserId = api.getUserId();
+              // 確定對方 ID：如果我是請求者，對方是擁有者；如果我是擁有者，對方是請求者
+              const isRequester = String(request.requester_id) === String(currentUserId);
+              const otherUserId = isRequester
+                ? (request.owner_id || null)
+                : request.requester_id;
+              
+              // 獲取最後一條訊息
+              let lastMessage = { content: '還沒有訊息', sent_at: request.created_at };
+              try {
+                const messages = await api.getMessages(request.request_id);
+                if (messages && messages.length > 0) {
+                  lastMessage = messages[messages.length - 1];
+                }
+              } catch (e) {
+                console.log('獲取訊息失敗:', e);
+              }
+              
+              const item = document.createElement('div');
+              item.className = 'conversation-item';
+              item.dataset.requestId = request.request_id;
+              item.dataset.userId = otherUserId;
+              
+              const time = new Date(lastMessage.sent_at || request.created_at);
+              const timeStr = time.toLocaleString('zh-TW', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              });
+              
+              // 確定對方名稱：如果我是請求者，對方是擁有者；如果我是擁有者，對方是請求者
+              const otherUserName = String(request.requester_id) === String(currentUserId)
+                ? (request.owner_name || '未知使用者')
+                : (request.requester_name || '未知使用者');
+              
+              console.log('對話項目:', { request, currentUserId, otherUserId, otherUserName });
+              
+              item.innerHTML = `
+                <div class="conversation-header">
+                  <img src="${getProductImageUrl(product)}" 
+                       alt="${product.product_name || '商品'}" 
+                       class="conversation-image">
+                  <div class="conversation-info">
+                    <div class="conversation-title">${product.product_name || '商品已下架'}</div>
+                    <div class="conversation-user">${otherUserName}</div>
+                    <div class="conversation-preview">${lastMessage.content || '還沒有訊息'}</div>
+                    <div class="conversation-time">${timeStr}</div>
+                  </div>
+                </div>
+              `;
+              
+              // Attach fallback to the image
+              const img = item.querySelector('.conversation-image');
+              if (img) attachImageFallback(img);
+              
+              item.addEventListener('click', () => {
+                openChatByRequestId(request.request_id, otherUserId, product);
+              });
+              
+              container.appendChild(item);
+            } catch (error) {
+              console.error('載入對話項目失敗:', error);
+            }
+          }
+        }
+        
+        // Auto-open chat if params provided
+        if (requestId && userId) {
+          openChatByRequestId(parseInt(requestId), parseInt(userId));
+        }
+      } catch (error) {
+        console.error('載入對話列表失敗:', error);
+        container.innerHTML = `<div class="empty-conversations">載入失敗: ${error.message}</div>`;
       }
     }
 
-    // Open chat
-    function openChat(itemId, otherUserId) {
-      const item = getItemById(itemId);
-      const otherUser = getUsers().find(u => u.id === otherUserId);
-      
-      if (!item || !otherUser) {
-        alert('無法載入對話');
-        return;
-      }
-      
-      // Update active conversation
-      document.querySelectorAll('.conversation-item').forEach(el => {
-        el.classList.remove('active');
-        if (el.dataset.itemId === itemId && el.dataset.userId === otherUserId) {
-          el.classList.add('active');
+    // Open chat by request ID
+    async function openChatByRequestId(requestId, otherUserId = null, product = null) {
+      try {
+        const currentUserId = api.getUserId();
+        
+        // 獲取請求資訊
+        const sentRequests = await api.getTradeRequests({ type: 'sent' });
+        const receivedRequests = await api.getTradeRequests({ type: 'received' });
+        const allRequests = [...sentRequests, ...receivedRequests];
+        const request = allRequests.find(r => r.request_id === requestId);
+        
+        if (!request) {
+          alert('找不到此請求');
+          return;
         }
-      });
-      
-      // Render chat panel
-      const chatPanel = document.getElementById('chatPanel');
-      chatPanel.innerHTML = `
-        <div class="chat-header">
-          <img src="${getProductImageUrl(item)}" 
-               alt="${item.title}" 
-               class="chat-header-image">
-          <div class="chat-header-info">
-            <h3 class="chat-header-title">與 ${otherUser.name} 聊天</h3>
-            <p class="chat-header-subtitle">${item.title}</p>
+        
+        // 確定對方資訊
+        const isRequester = String(request.requester_id) === String(currentUserId);
+        const actualOtherUserId = isRequester
+          ? request.owner_id
+          : request.requester_id;
+        const otherUserName = isRequester
+          ? (request.owner_name || '未知使用者')
+          : (request.requester_name || '未知使用者');
+        
+        // 使用實際的 otherUserId（如果提供了參數但不符合，使用實際的）
+        const finalOtherUserId = otherUserId && String(otherUserId) === String(actualOtherUserId)
+          ? otherUserId
+          : actualOtherUserId;
+        
+        // 如果沒有提供 product，從 API 獲取
+        if (!product) {
+          product = await api.getProduct(request.target_product_id);
+        }
+        
+        if (!product) {
+          alert('無法載入商品資訊');
+          return;
+        }
+        
+        console.log('開啟對話:', { requestId, currentUserId, finalOtherUserId, otherUserName, request, product });
+        
+        // Update active conversation
+        document.querySelectorAll('.conversation-item').forEach(el => {
+          el.classList.remove('active');
+          if (el.dataset.requestId === String(requestId)) {
+            el.classList.add('active');
+          }
+        });
+        
+        // Render chat panel
+        const chatPanel = document.getElementById('chatPanel');
+        
+        // 判斷是否顯示「已面交」按鈕（只有當請求狀態為 Accepted 時）
+        const canConfirmHandoff = request.status === 'Accepted';
+        const isBuyer = isRequester;
+        const buyerConfirmed = Boolean(request.buyer_confirmed_handoff);
+        const sellerConfirmed = Boolean(request.seller_confirmed_handoff);
+        const userConfirmed = isBuyer ? buyerConfirmed : sellerConfirmed;
+        const bothConfirmed = buyerConfirmed && sellerConfirmed;
+        const isCompleted = request.status === 'Completed' || bothConfirmed;
+        
+        console.log('已面交按鈕判斷:', {
+          requestId,
+          status: request.status,
+          canConfirmHandoff,
+          isBuyer,
+          buyerConfirmed,
+          sellerConfirmed,
+          userConfirmed,
+          bothConfirmed,
+          isCompleted
+        });
+        
+        let handoffButtonHTML = '';
+        if (canConfirmHandoff && !isCompleted) {
+          const confirmStatus = [];
+          if (buyerConfirmed) confirmStatus.push('買家已確認');
+          if (sellerConfirmed) confirmStatus.push('賣家已確認');
+          
+          handoffButtonHTML = `
+            <div class="handoff-confirmation-section" style="padding: 16px; background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-size: 14px; color: #6b7280;">
+                  ${confirmStatus.length > 0 ? confirmStatus.join('、') : '等待確認面交'}
+                </span>
+                <button 
+                  id="confirmHandoffBtn" 
+                  onclick="handleConfirmHandoff(${requestId})"
+                  ${userConfirmed ? 'disabled' : ''}
+                  style="padding: 8px 16px; background: ${userConfirmed ? '#9ca3af' : '#3b82f6'}; color: white; border: none; border-radius: 8px; cursor: ${userConfirmed ? 'not-allowed' : 'pointer'}; font-size: 14px; font-weight: 500;"
+                >
+                  ${userConfirmed ? '✓ 已確認面交' : '確認已面交'}
+                </button>
+              </div>
+            </div>
+          `;
+        } else if (isCompleted) {
+          handoffButtonHTML = `
+            <div class="handoff-confirmation-section" style="padding: 16px; background: #d1fae5; border-bottom: 1px solid #10b981;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 16px;">✓</span>
+                <span style="font-size: 14px; color: #065f46; font-weight: 500;">交易已完成</span>
+              </div>
+            </div>
+          `;
+        }
+        
+        chatPanel.innerHTML = `
+          <div class="chat-header">
+            <img src="${getProductImageUrl(product)}" 
+                 alt="${product.product_name}" 
+                 class="chat-header-image">
+            <div class="chat-header-info">
+            <h3 class="chat-header-title">與 ${otherUserName} 聊天</h3>
+            <p class="chat-header-subtitle">${product.product_name}</p>
           </div>
         </div>
+        ${handoffButtonHTML}
         <div class="chat-messages" id="chatMessages"></div>
         <div class="chat-input-area">
           <input type="text" id="messageInput" placeholder="輸入訊息...">
-          <button onclick="sendMessage('${itemId}', '${otherUserId}')">送出</button>
+          <button onclick="sendMessageByRequestId(${requestId}, ${finalOtherUserId})">送出</button>
         </div>
       `;
       
       // Load messages
-      loadMessages(itemId, otherUserId);
+      await loadMessagesByRequestId(requestId);
       
       // Focus input
       setTimeout(() => {
-        document.getElementById('messageInput').focus();
-      }, 100);
-      
-      // Enter key to send
-      document.getElementById('messageInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-          sendMessage(itemId, otherUserId);
-        }
-      });
-    }
-
-    // Load messages
-    function loadMessages(itemId, otherUserId) {
-      const messages = getMessagesForConversation(itemId, currentUser.id, otherUserId);
-      const container = document.getElementById('chatMessages');
-      
-      container.innerHTML = '';
-      
-      if (messages.length === 0) {
-        container.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">與此商品相關的留言將會顯示在這裡。</div>';
-      } else {
-        messages.forEach(msg => {
-          const isSender = msg.senderId === currentUser.id;
-          const bubble = document.createElement('div');
-          bubble.className = `message-bubble ${isSender ? 'message-user' : 'message-seller'}`;
-          
-          const time = new Date(msg.createdAt);
-          const timeStr = time.toLocaleString('zh-TW', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+        const input = document.getElementById('messageInput');
+        if (input) {
+          input.focus();
+          input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+              sendMessageByRequestId(requestId, finalOtherUserId);
+            }
           });
-          
-          bubble.innerHTML = `
-            <div class="message-content">${msg.text}</div>
-            <div class="message-time">${timeStr}</div>
-          `;
-          container.appendChild(bubble);
-        });
+        }
+      }, 100);
+      } catch (error) {
+        console.error('開啟對話失敗:', error);
+        alert('開啟對話失敗: ' + (error.message || '未知錯誤'));
       }
-      
-      // Scroll to bottom
-      container.scrollTop = container.scrollHeight;
     }
 
-    // Send message
-    function sendMessage(itemId, otherUserId) {
+    // Load messages by request ID
+    async function loadMessagesByRequestId(requestId) {
+      try {
+        const messages = await api.getMessages(requestId);
+        const container = document.getElementById('chatMessages');
+        const currentUserId = api.getUserId();
+        
+        container.innerHTML = '';
+        
+        if (!messages || messages.length === 0) {
+          container.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">還沒有任何訊息，開始對話吧！</div>';
+        } else {
+          messages.forEach(msg => {
+            const isSender = String(msg.sender_id) === String(currentUserId);
+            const bubble = document.createElement('div');
+            bubble.className = `message-bubble ${isSender ? 'message-user' : 'message-seller'}`;
+            
+            const time = new Date(msg.sent_at);
+            const timeStr = time.toLocaleString('zh-TW', {
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+            
+            bubble.innerHTML = `
+              <div class="message-content">${msg.content}</div>
+              <div class="message-time">${timeStr}</div>
+            `;
+            container.appendChild(bubble);
+          });
+        }
+        
+        // Scroll to bottom
+        container.scrollTop = container.scrollHeight;
+      } catch (error) {
+        console.error('載入訊息失敗:', error);
+        const container = document.getElementById('chatMessages');
+        container.innerHTML = `<div style="text-align: center; color: #dc2626; padding: 20px;">載入訊息失敗: ${error.message}</div>`;
+      }
+    }
+
+    // Send message by request ID
+    async function sendMessageByRequestId(requestId, receiverId) {
       const input = document.getElementById('messageInput');
       const text = input.value.trim();
       
       if (!text) return;
       
-      createMessage({
-        itemId,
-        senderId: currentUser.id,
-        receiverId: otherUserId,
-        text
-      });
+      try {
+        await api.sendMessage({
+          request_id: requestId,
+          receiver_id: receiverId,
+          content: text
+        });
+        
+        // Reload messages and conversations
+        await loadMessagesByRequestId(requestId);
+        await renderConversations();
+        
+        // Clear input
+        input.value = '';
+      } catch (error) {
+        console.error('發送訊息失敗:', error);
+        alert('發送訊息失敗: ' + (error.message || '未知錯誤'));
+      }
+    }
+
+    // Handle confirm handoff
+    async function handleConfirmHandoff(requestId) {
+      try {
+        const result = await api.confirmHandoff(requestId);
+        
+        if (result.completed && result.both_confirmed) {
+          // 交易完成，顯示評價頁面
+          if (result.transaction_id && result.needs_review) {
+            await showReviewModal(result.transaction_id, result.buyer_id, result.seller_id);
+          } else {
+            alert('交易已完成！已記錄到交易紀錄');
+          }
+          // 重新載入對話以更新狀態
+          const urlParams = new URLSearchParams(window.location.search);
+          const userId = urlParams.get('userId');
+          await openChatByRequestId(requestId, userId ? parseInt(userId) : null);
+          await renderConversations();
+        } else {
+          alert(result.message || '已確認面交，等待對方確認');
+          // 重新載入對話以更新按鈕狀態
+          const urlParams = new URLSearchParams(window.location.search);
+          const userId = urlParams.get('userId');
+          await openChatByRequestId(requestId, userId ? parseInt(userId) : null);
+        }
+      } catch (error) {
+        console.error('確認面交失敗:', error);
+        alert('確認面交失敗: ' + (error.message || '未知錯誤'));
+      }
+    }
+
+    // Show review modal
+    let currentReviewTransactionId = null;
+    let currentReviewOtherUserId = null;
+    
+    async function showReviewModal(transactionId, buyerId, sellerId) {
+      try {
+        const currentUserId = api.getUserId();
+        const isBuyer = String(currentUserId) === String(buyerId);
+        const otherUserId = isBuyer ? sellerId : buyerId;
+        
+        currentReviewTransactionId = transactionId;
+        currentReviewOtherUserId = otherUserId;
+        
+        // 獲取評價狀態
+        const reviewStatus = await api.getReviewStatus(transactionId);
+        
+        // 獲取對方資訊
+        let otherUserName = '對方';
+        try {
+          const otherUser = await api.getUserById ? await api.getUserById(otherUserId) : null;
+          if (otherUser && otherUser.user_name) {
+            otherUserName = otherUser.user_name;
+          }
+        } catch (e) {
+          console.warn('無法獲取對方資訊:', e);
+        }
+        
+        const reviewContent = document.getElementById('reviewContent');
+        if (reviewStatus.user_reviewed) {
+          // 已評價，等待對方評價
+          reviewContent.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+              <p style="color: #10b981; font-size: 18px; margin-bottom: 16px;">✓ 您已評價</p>
+              <p style="color: #6b7280;">等待 ${otherUserName} 評價後即可完成</p>
+              <button onclick="closeReviewModal()" style="margin-top: 20px; padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer;">關閉</button>
+            </div>
+          `;
+        } else {
+          // 顯示評價表單
+          reviewContent.innerHTML = `
+            <p style="text-align: center; margin-bottom: 20px; color: #111827; font-weight: 500;">請為 ${otherUserName} 評價（可選）</p>
+            <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px;">
+              <button id="reviewLikeBtn" onclick="selectReviewRating(5)" style="padding: 16px 32px; background: #f3f4f6; border: 2px solid #e5e7eb; border-radius: 12px; cursor: pointer; font-size: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                <span style="font-size: 32px;">👍</span>
+                <span>點讚</span>
+              </button>
+              <button id="reviewDislikeBtn" onclick="selectReviewRating(1)" style="padding: 16px 32px; background: #f3f4f6; border: 2px solid #e5e7eb; border-radius: 12px; cursor: pointer; font-size: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                <span style="font-size: 32px;">👎</span>
+                <span>倒讚</span>
+              </button>
+            </div>
+            <div class="form-group" style="margin-top: 20px;">
+              <label for="reviewComment">評價內容（選填）：</label>
+              <textarea id="reviewComment" rows="4" placeholder="分享您的交易體驗..." style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
+            </div>
+            <div style="display: flex; gap: 12px; margin-top: 20px;">
+              <button onclick="submitReview()" id="submitReviewBtn" style="flex: 1; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">${selectedReviewRating ? '提交評價' : '不做評價'}</button>
+              <button onclick="skipReview()" style="padding: 12px 24px; background: #f3f4f6; color: #6b7280; border: none; border-radius: 8px; cursor: pointer;">稍後評價</button>
+            </div>
+          `;
+        }
+        
+        document.getElementById('reviewModal').style.display = 'flex';
+      } catch (error) {
+        console.error('顯示評價頁面失敗:', error);
+        alert('顯示評價頁面失敗: ' + (error.message || '未知錯誤'));
+      }
+    }
+    
+    let selectedReviewRating = null;
+    
+    function selectReviewRating(rating) {
+      selectedReviewRating = rating;
+      const likeBtn = document.getElementById('reviewLikeBtn');
+      const dislikeBtn = document.getElementById('reviewDislikeBtn');
+      const submitBtn = document.getElementById('submitReviewBtn');
       
-      // Reload messages and conversations
-      loadMessages(itemId, otherUserId);
-      renderConversations();
+      if (rating === 5) {
+        likeBtn.style.background = '#d1fae5';
+        likeBtn.style.borderColor = '#10b981';
+        dislikeBtn.style.background = '#f3f4f6';
+        dislikeBtn.style.borderColor = '#e5e7eb';
+      } else {
+        dislikeBtn.style.background = '#fee2e2';
+        dislikeBtn.style.borderColor = '#dc2626';
+        likeBtn.style.background = '#f3f4f6';
+        likeBtn.style.borderColor = '#e5e7eb';
+      }
       
-      // Clear input
-      input.value = '';
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+      }
+    }
+    
+    async function submitReview() {
+      if (!currentReviewTransactionId || !currentReviewOtherUserId) {
+        alert('缺少必要資訊');
+        return;
+      }
+      
+      try {
+        const comment = document.getElementById('reviewComment')?.value.trim() || null;
+        
+        const reviewData = {
+          transaction_id: currentReviewTransactionId,
+          reviewee_id: currentReviewOtherUserId,
+          rating: selectedReviewRating || null,  // 如果沒有選擇，傳 null 表示不做評價
+          comment: comment
+        };
+        
+        const result = await api.createReview(reviewData);
+        
+        // 如果選擇不做評價（skipped），直接關閉
+        if (result.skipped) {
+          alert('已選擇不做評價');
+          closeReviewModal();
+          return;
+        }
+        
+        // 檢查雙方是否都已評價或選擇不做評價
+        const reviewStatus = await api.getReviewStatus(currentReviewTransactionId);
+        
+        // 雙方都已完成評價流程（評價或選擇不做評價）
+        if (reviewStatus.both_reviewed || (reviewStatus.buyer_reviewed && reviewStatus.seller_reviewed)) {
+          alert('評價流程完成！');
+          closeReviewModal();
+        } else {
+          alert('評價已提交！等待對方評價。');
+          // 更新模態框內容
+          await showReviewModal(currentReviewTransactionId, reviewStatus.buyer_id, reviewStatus.seller_id);
+        }
+      } catch (error) {
+        console.error('提交評價失敗:', error);
+        alert('提交評價失敗: ' + (error.message || '未知錯誤'));
+      }
+    }
+    
+    async function skipReview() {
+      // 不做評價，直接關閉模態框
+      closeReviewModal();
+    }
+    
+    function closeReviewModal() {
+      document.getElementById('reviewModal').style.display = 'none';
+      selectedReviewRating = null;
+      currentReviewTransactionId = null;
+      currentReviewOtherUserId = null;
     }
 
     // Make functions global
-    window.openChat = openChat;
-    window.sendMessage = sendMessage;
+    window.openChatByRequestId = openChatByRequestId;
+    window.sendMessageByRequestId = sendMessageByRequestId;
+    window.handleConfirmHandoff = handleConfirmHandoff;
+    window.showReviewModal = showReviewModal;
+    window.selectReviewRating = selectReviewRating;
+    window.submitReview = submitReview;
+    window.skipReview = skipReview;
+    window.closeReviewModal = closeReviewModal;
 
       // Initial render
       renderConversations();

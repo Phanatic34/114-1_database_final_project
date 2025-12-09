@@ -671,8 +671,14 @@
         items = getAllItems().filter(i => i.isActive);
       } else {
         // 優先使用 API 資料，否則使用本地資料
-        const allItems = window._apiItems || getItems();
-        items = allItems.filter(i => i.isActive !== false && (i.status === 'available' || !i.status));
+        const allItems = window._apiItems || (typeof getItems === 'function' ? getItems() : []);
+        console.log('renderTrendingItems - 總商品數:', allItems.length);
+        items = allItems.filter(i => {
+          const isActive = i.isActive !== false;
+          const statusOk = i.status === 'available' || !i.status || i.status === 'active';
+          return isActive && statusOk;
+        });
+        console.log('renderTrendingItems - 過濾後商品數:', items.length);
       }
       
       // Ensure all items have status field (default to 'active' if missing)
@@ -804,9 +810,29 @@
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', async () => {
+      // 等待 api.js 載入完成
+      if (typeof api === 'undefined' || typeof api.getProducts !== 'function') {
+        console.warn('api.js 尚未載入，等待載入...');
+        // 等待最多 2 秒
+        let retries = 0;
+        while ((typeof api === 'undefined' || typeof api.getProducts !== 'function') && retries < 20) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          retries++;
+        }
+        if (typeof api === 'undefined' || typeof api.getProducts !== 'function') {
+          console.error('api.js 載入失敗，使用本地資料');
+          renderTrendingItems();
+          renderRecentlyViewed();
+          return;
+        }
+      }
+      
       // 先嘗試從 API 載入商品
       try {
+        console.log('開始從 API 載入商品...');
         const products = await api.getProducts({ status: 'available' });
+        console.log('API 返回商品數量:', products ? products.length : 0);
+        
         if (products && products.length > 0) {
           // 轉換 API 格式為前端格式
           const convertedItems = products.map(p => ({
@@ -829,14 +855,22 @@
             views: 0,
             addedToCartCount: 0,
             isActive: p.status === 'available',
-            status: p.status
+            status: p.status,
+            stats: {
+              views: 0,
+              addedToCart: 0
+            }
           }));
           
+          console.log('轉換後的商品數量:', convertedItems.length);
           // 更新 getItems 函數以返回 API 資料（臨時方案）
           window._apiItems = convertedItems;
+        } else {
+          console.warn('API 返回的商品列表為空');
         }
       } catch (error) {
-        console.warn('無法從 API 載入商品，使用本地資料:', error);
+        console.error('無法從 API 載入商品:', error);
+        console.error('錯誤詳情:', error.message, error.stack);
       }
       
       renderTrendingItems();

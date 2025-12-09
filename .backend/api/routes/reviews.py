@@ -21,11 +21,21 @@ def create_review(user_id):
         rating = data.get('rating')
         comment = data.get('comment')
         
-        if not all([transaction_id, reviewee_id, rating]):
+        if not all([transaction_id, reviewee_id]):
             return jsonify({'error': '缺少必要欄位'}), 400
         
-        if not (1 <= rating <= 5):
-            return jsonify({'error': '評分必須在 1-5 之間'}), 400
+        # rating 是可選的：1 = 倒讚，5 = 點讚，None/null = 不做評價
+        # 如果不提供 rating，表示不做評價，不創建 review 記錄
+        if rating is None:
+            # 不做評價，直接返回成功（不創建記錄）
+            return jsonify({
+                'message': '已選擇不做評價',
+                'skipped': True
+            }), 200
+        
+        # 如果提供了 rating，必須是 1 或 5
+        if rating not in (1, 5):
+            return jsonify({'error': '評分必須為 1（倒讚）或 5（點讚）'}), 400
         
         conn = DatabaseConfig.get_postgres_connection()
         cursor = conn.cursor()
@@ -81,6 +91,67 @@ def create_review(user_id):
         if conn:
             conn.rollback()
             DatabaseConfig.return_postgres_connection(conn)
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/transaction/<int:transaction_id>/status', methods=['GET'])
+@token_required
+def get_review_status(user_id, transaction_id):
+    """查詢交易的評價狀態（檢查雙方是否都已評價）"""
+    try:
+        conn = DatabaseConfig.get_postgres_connection()
+        cursor = conn.cursor()
+        
+        # 獲取交易參與者
+        cursor.execute("""
+            SELECT tr.requester_id, p.owner_id
+            FROM transaction t
+            JOIN trade_request tr ON t.request_id = tr.request_id
+            JOIN product p ON t.target_product_id = p.product_id
+            WHERE t.transaction_id = %s
+        """, (transaction_id,))
+        
+        transaction = cursor.fetchone()
+        if not transaction:
+            DatabaseConfig.return_postgres_connection(conn)
+            return jsonify({'error': '交易不存在'}), 404
+        
+        buyer_id = transaction[0]
+        seller_id = transaction[1]
+        
+        # 檢查是否為交易參與者
+        if user_id != buyer_id and user_id != seller_id:
+            DatabaseConfig.return_postgres_connection(conn)
+            return jsonify({'error': '無權限查看此交易'}), 403
+        
+        # 檢查雙方是否都已評價
+        cursor.execute("""
+            SELECT reviewer_id, reviewee_id
+            FROM review
+            WHERE transaction_id = %s
+        """, (transaction_id,))
+        
+        reviews = cursor.fetchall()
+        buyer_reviewed = any(r[0] == buyer_id for r in reviews)
+        seller_reviewed = any(r[0] == seller_id for r in reviews)
+        user_reviewed = any(r[0] == user_id for r in reviews)
+        
+        # 確定對方 ID
+        other_user_id = buyer_id if user_id == seller_id else seller_id
+        
+        DatabaseConfig.return_postgres_connection(conn)
+        
+        return jsonify({
+            'transaction_id': transaction_id,
+            'buyer_id': buyer_id,
+            'seller_id': seller_id,
+            'buyer_reviewed': buyer_reviewed,
+            'seller_reviewed': seller_reviewed,
+            'user_reviewed': user_reviewed,
+            'other_user_id': other_user_id,
+            'both_reviewed': buyer_reviewed and seller_reviewed
+        }), 200
+        
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @bp.route('/user/<int:user_id_param>', methods=['GET'])

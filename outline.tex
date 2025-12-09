@@ -131,6 +131,10 @@ B12705050\ 宋承陽 \\
     \item \textbf{分類與搜尋機制：}所有商品皆須隸屬於一個明確的分類（如：Textbooks、Electronics、Daily Use 等），使用者可透過分類、關鍵字或條件搜尋商品，以提升查找效率。
     
     \item \textbf{時間與狀態更新：}系統自動記錄商品上架日期 Post\_date、請求建立時間 Created\_at 及更新時間 Updated\_at，以利後續分析與查詢。
+    
+    \item \textbf{軟刪除機制：}當使用者刪除帳號時，系統採用軟刪除機制，設置 Deleted\_at 時間戳，保留所有歷史資料（交易紀錄、評價、訊息等）。已刪除帳號無法再登入，其商品會自動下架，其他用戶無法對其商品發起新請求或發送訊息。
+    
+    \item \textbf{搜尋紀錄：}系統會自動將所有商品搜尋行為記錄到 MongoDB 的 search\_logs collection，包括用戶 ID（如果已登入）、搜尋關鍵字、篩選條件、結果數量與時間戳，用於分析使用者搜尋行為與推薦系統。
 \end{enumerate}
 
 \textbf{使用情境範例：}
@@ -154,7 +158,7 @@ B12705050\ 宋承陽 \\
     \item \textbf{管理交易請求：}使用者可查看自己提出與收到的請求，選擇接受、拒絕或取消。
     \item \textbf{查看交易紀錄：}使用者可查詢已完成或進行中的交易紀錄，包含交易對象、商品名稱、金額或交換內容。
     \item \textbf{修改與刪除商品：}若商品尚未成交，使用者可修改或下架該商品。
-    \item \textbf{帳號管理：}使用者可更新個人資料、修改密碼或停用帳號。
+    \item \textbf{帳號管理：}使用者可更新個人資料、修改密碼或刪除帳號（軟刪除機制，保留歷史資料）。
 \end{enumerate}
 
 透過上述功能，使用者能以彈性方式發起與參與交易，並藉由結構化的交易流程確保安全性與透明度。
@@ -200,13 +204,13 @@ PRODUCT 代表使用者所上架的商品。每一項商品皆由一位使用者
 
 CATEGORY 則用來記錄商品的類別資訊，例如「教科書」、「電子產品」、「生活用品」等。每項商品必須歸屬於一個明確分類，以便後續搜尋與統計分析。
 
-TRADE\_REQUEST 為交易請求的關聯實體，用以記錄使用者之間的互動。當某位使用者想購買或交換他人商品時，系統會產生一筆交易請求紀錄，其中包含請求者（Requester\_id）、目標商品（Target\_product\_id）及請求類型（Request\_type）等欄位。若為交換請求，還會紀錄該使用者提供的交換商品（Offered\_product\_id）。請求狀態會依交易流程變化，從 Pending、Accepted、Completed 至 Cancelled。
+TRADE\_REQUEST 為交易請求的關聯實體，用以記錄使用者之間的互動。當某位使用者想購買或交換他人商品時，系統會產生一筆交易請求紀錄，其中包含請求者（Requester\_id）、目標商品（Target\_product\_id）及請求類型（Request\_type）等欄位。若為交換請求，還會紀錄該使用者提供的交換商品（Offered\_product\_id）。請求狀態會依交易流程變化，從 Pending、Accepted、Completed 至 Cancelled。當請求被接受後，買賣雙方可以透過 Buyer\_confirmed\_handoff 和 Seller\_confirmed\_handoff 欄位確認已面交，當雙方都確認後，系統會自動建立 TRANSACTION 記錄並完成交易。
 
-TRANSACTION 則對應於實際完成的交易紀錄。當請求雙方確認條件並完成交易後，系統會自動產生交易紀錄，其中包含完成日期、交易金額與付款狀態等欄位。此關聯可視為 TRADE\_REQUEST 的延伸，兩者呈現一對一關係。
+TRANSACTION 則對應於實際完成的交易紀錄。當請求被接受（Status = 'Accepted'）且買賣雙方都確認已面交（Buyer\_confirmed\_handoff = TRUE 且 Seller\_confirmed\_handoff = TRUE）後，系統會自動產生交易紀錄，其中包含完成日期、交易金額與付款狀態等欄位。此關聯可視為 TRADE\_REQUEST 的延伸，兩者呈現一對一關係。交易完成後，買賣雙方可以選擇對對方進行評價（點讚、倒讚或不做評價）。
 
 TRADE\_WISH 表示使用者對尚未出現的商品提出的開放式交換需求。使用者可描述欲交換之物品名稱、類別與條件，系統會將該許願資訊公開，並在有相符商品上架時提供通知。此設計使交換流程不僅限於即時配對，也能支持延遲撮合的情境。
 
-REVIEW 為交易評價實體，用於記錄使用者對已完成交易的評價與評論。當交易完成後，買賣雙方皆可對該筆交易進行評分（Rating）並撰寫評論（Comment），以建立平台的信譽機制。每筆交易可包含買方對賣方的評價，以及賣方對買方的評價，形成雙向評價系統。
+REVIEW 為交易評價實體，用於記錄使用者對已完成交易的評價與評論。當交易完成後，買賣雙方皆可選擇對該筆交易進行評價（可選功能）。評價機制支援「點讚」（Rating = 5）、「倒讚」（Rating = 1）或「不做評價」（不創建 REVIEW 記錄）。好評率計算公式為「按讚數 / (按讚數 + 倒讚數) * 100\%」，不做評價的交易不計入好評率。每筆交易可包含買方對賣方的評價，以及賣方對買方的評價，形成雙向評價系統。
 
 MESSAGE 為訊息實體，用於記錄使用者之間的即時通訊內容。當使用者對商品提出交易請求後，買賣雙方可透過訊息功能進行協商、討論交易細節或確認交貨方式。每則訊息皆與特定的交易請求（TRADE\_REQUEST）關聯，確保對話脈絡清晰。
 
@@ -300,6 +304,7 @@ Register\_date & 註冊日期       & date        &     & Not Null         &  \\
 Status         & 帳號狀態       & varchar(10) &     & Default 'active' & \Enum{active, suspended} \\
 Created\_at    & 建立時間       & timestamp   &     & Default Current\_Timestamp &  \\
 Updated\_at    & 更新時間       & timestamp   &     & Default Current\_Timestamp & \Note{由觸發器自動更新} \\
+Deleted\_at    & 刪除時間       & timestamp   &     & Nullable         & \Note{軟刪除標記，NULL 表示未刪除} \\
 \bottomrule
 \caption{資料表 USER 的欄位資訊（使用者基本資料）}
 \end{xltabular}
@@ -409,6 +414,8 @@ Request\_type        & 請求類型            & varchar(10) &     & Not Null   
 Offer\_price         & 出價金額            & int         &     & Nullable         & 僅當 Request\_type='Purchase' 時使用 \\
 Status               & 請求狀態            & varchar(15) &     & Default 'Pending' & \Enum{Pending, Accepted, Rejected, Completed, Cancelled} \\
 Message              & 提案訊息            & varchar(255)&     & Nullable         & 可選文字補充說明 \\
+Buyer\_confirmed\_handoff & 買家確認面交 & boolean     &     & Default false    & \Note{買家確認已面交} \\
+Seller\_confirmed\_handoff & 賣家確認面交 & boolean     &     & Default false    & \Note{賣家確認已面交} \\
 Created\_at          & 建立時間            & datetime    &     & Not Null         &  \\
 Updated\_at          & 更新時間            & datetime    &     & Not Null         &  \\
 \midrule
@@ -446,7 +453,7 @@ Review\_id      & 評價代號         & bigint      & PK  & Not Null, Unique & 
 Transaction\_id & 交易紀錄代號     & bigint      & FK  & Not Null         & TRANSACTION(Transaction\_id) \\
 Reviewer\_id    & 評價者代號       & bigint      & FK  & Not Null         & USER(User\_id) \\
 Reviewee\_id    & 被評價者代號     & bigint      & FK  & Not Null         & USER(User\_id) \\
-Rating          & 評分             & int         &     & Not Null         & \Note{1-5 分} \\
+Rating          & 評分             & int         &     & Not Null         & \Note{1 = 倒讚，5 = 點讚；評價為可選，不做評價時不創建記錄} \\
 Comment         & 評論內容         & varchar(500)&     & Nullable         &  \\
 Created\_at     & 建立時間         & timestamp   &     & Not Null         &  \\
 \midrule
@@ -611,6 +618,58 @@ Where Request_id = 3002 And Requester_id = 2001;
 
 Listing 5: 取消交易請求 SQL 指令
 
+\subsubsection{確認已面交（Confirm Handoff）}
+
+若要實現此功能，假設情境為「買家或賣家確認已面交，當雙方都確認後，系統自動建立交易紀錄並完成交易。」則對應的 SQL 指令如下，系統會更新 TRADE\_REQUEST 資料表中對應的確認狀態，當雙方都確認後，自動建立 TRANSACTION 記錄。
+
+\begin{lstlisting}[language=SQL]
+-- 買家確認已面交
+Update TRADE_REQUEST
+Set Buyer_confirmed_handoff = TRUE, Updated_at = CURRENT_TIMESTAMP
+Where Request_id = 3001 And Requester_id = 2001;
+
+-- 賣家確認已面交
+Update TRADE_REQUEST
+Set Seller_confirmed_handoff = TRUE, Updated_at = CURRENT_TIMESTAMP
+Where Request_id = 3001 And Target_product_id IN 
+    (Select Product_id From PRODUCT Where Owner_id = 1001);
+
+-- 當雙方都確認後，自動建立交易紀錄（由系統觸發）
+Begin Transaction;
+
+Insert Into TRANSACTION (Request_id, Target_product_id, 
+                        Offered_product_id, Total_price, 
+                        Complete_date, Payment_status)
+Select tr.Request_id, tr.Target_product_id, tr.Offered_product_id,
+       tr.Offer_price, CURRENT_TIMESTAMP, 'Paid'
+From TRADE_REQUEST As tr
+Where tr.Request_id = 3001
+  And tr.Buyer_confirmed_handoff = TRUE
+  And tr.Seller_confirmed_handoff = TRUE;
+
+Update TRADE_REQUEST
+Set Status = 'Completed', Updated_at = CURRENT_TIMESTAMP
+Where Request_id = 3001
+  And Buyer_confirmed_handoff = TRUE
+  And Seller_confirmed_handoff = TRUE;
+
+Update PRODUCT
+Set Status = Case
+    When (Select Request_type From TRADE_REQUEST 
+          Where Request_id = 3001) = 'Purchase' 
+    Then 'sold'
+    Else 'exchanged'
+End,
+Updated_at = CURRENT_TIMESTAMP
+Where Product_id = (Select Target_product_id 
+                    From TRADE_REQUEST 
+                    Where Request_id = 3001);
+
+Commit;
+\end{lstlisting}
+
+Listing 5a: 確認已面交 SQL 指令
+
 \subsubsection{查詢使用者提出的交易請求（Query User's Trade Requests）}
 
 若要實現此功能，假設情境為「使用者代號 User\_id '2001' 想要查看自己提出的所有交易請求。」則對應的 SQL 指令如下，系統會執行該查詢，並回傳包含該使用者提出的所有交易請求相關資訊。
@@ -641,28 +700,59 @@ Listing 7: 查詢使用者收到的交易請求 SQL 指令
 
 \subsubsection{完成交易（Complete Transaction）}
 
-若要實現此功能，假設情境為「當交易請求 Request\_id '3001' 被接受後，系統建立一筆交易紀錄，交易金額 Total\_price 為 '280'，完成日期 Complete\_date 為 '2024-11-05 16:00:00'。」則對應的 SQL 指令如下，系統會在 TRANSACTION 資料表中新增一筆交易紀錄，並更新對應的 TRADE\_REQUEST 狀態為 'Completed'，同時更新商品狀態為 'sold' 或 'exchanged'。
+若要實現此功能，假設情境為「當交易請求 Request\_id '3001' 被接受後，買賣雙方都確認已面交（Buyer\_confirmed\_handoff = TRUE 且 Seller\_confirmed\_handoff = TRUE），系統建立一筆交易紀錄，交易金額 Total\_price 為 '280'，完成日期 Complete\_date 為 '2024-11-05 16:00:00'。」則對應的 SQL 指令如下，系統會在 TRANSACTION 資料表中新增一筆交易紀錄，並更新對應的 TRADE\_REQUEST 狀態為 'Completed'，同時更新商品狀態為 'sold' 或 'exchanged'。
+
+\textbf{交易完成流程：}
+\begin{enumerate}
+    \item 賣家接受交易請求（Status = 'Accepted'）
+    \item 買賣雙方確認已面交（Buyer\_confirmed\_handoff = TRUE 且 Seller\_confirmed\_handoff = TRUE）
+    \item 系統自動建立 TRANSACTION 記錄
+    \item 更新 TRADE\_REQUEST 狀態為 'Completed'
+    \item 更新商品狀態為 'sold'（購買）或 'exchanged'（交換）
+\end{enumerate}
 
 \begin{lstlisting}[language=SQL]
 Begin Transaction;
 
+-- 1. 建立交易紀錄（當雙方都確認面交時）
 Insert Into TRANSACTION (Request_id, Target_product_id, 
                         Offered_product_id, Total_price, 
                         Complete_date, Payment_status)
 Select tr.Request_id, tr.Target_product_id, tr.Offered_product_id,
-       tr.Offer_price, '2024-11-05 16:00:00', 'Unpaid'
+       tr.Offer_price, CURRENT_TIMESTAMP, 'Paid'
 From TRADE_REQUEST As tr
-Where tr.Request_id = 3001;
+Where tr.Request_id = 3001
+  And tr.Buyer_confirmed_handoff = TRUE
+  And tr.Seller_confirmed_handoff = TRUE;
 
+-- 2. 更新請求狀態為已完成
 Update TRADE_REQUEST
-Set Status = 'Completed', Updated_at = Now()
-Where Request_id = 3001;
+Set Status = 'Completed', Updated_at = CURRENT_TIMESTAMP
+Where Request_id = 3001
+  And Buyer_confirmed_handoff = TRUE
+  And Seller_confirmed_handoff = TRUE;
 
+-- 3. 更新目標商品狀態
 Update PRODUCT
-Set Status = 'sold'
+Set Status = Case
+    When (Select Request_type From TRADE_REQUEST 
+          Where Request_id = 3001) = 'Purchase' 
+    Then 'sold'
+    Else 'exchanged'
+End,
+Updated_at = CURRENT_TIMESTAMP
 Where Product_id = (Select Target_product_id 
                     From TRADE_REQUEST 
                     Where Request_id = 3001);
+
+-- 4. 如果是交換請求，也更新交換商品狀態
+Update PRODUCT
+Set Status = 'exchanged',
+    Updated_at = CURRENT_TIMESTAMP
+Where Product_id = (Select Offered_product_id 
+                    From TRADE_REQUEST 
+                    Where Request_id = 3001
+                      And Offered_product_id IS NOT NULL);
 
 Commit;
 \end{lstlisting}
@@ -688,13 +778,30 @@ Listing 9: 查詢交易紀錄 SQL 指令
 
 \subsubsection{新增評價（Add Review）}
 
-若要實現此功能，假設情境為「使用者代號 Reviewer\_id '2001' 對交易代號 Transaction\_id '4001' 進行評價，被評價者代號 Reviewee\_id 為 '1001'，評分 Rating 為 '5'，評論 Comment 為 '交易順利，商品狀況良好'，建立時間 Created\_at 為 '2024-11-06 10:00:00'。」則對應的 SQL 指令如下，系統會在 REVIEW 資料表中新增一筆評價紀錄。
+若要實現此功能，假設情境為「使用者代號 Reviewer\_id '2001' 對交易代號 Transaction\_id '4001' 進行評價，被評價者代號 Reviewee\_id 為 '1001'，評分 Rating 為 '5'（點讚），評論 Comment 為 '交易順利，商品狀況良好'，建立時間 Created\_at 為 '2024-11-06 10:00:00'。」則對應的 SQL 指令如下，系統會在 REVIEW 資料表中新增一筆評價紀錄。
+
+\textbf{評價機制說明：}
+\begin{itemize}
+    \item 評價為可選功能，買賣雙方都可以選擇對對方進行評價
+    \item 評分只能選擇 1（倒讚）或 5（點讚）
+    \item 如果選擇不做評價，則不創建 REVIEW 記錄
+    \item 好評率計算公式：\texttt{(按讚數 / (按讚數 + 倒讚數)) * 100\%}，不做評價的交易不計入好評率
+\end{itemize}
 
 \begin{lstlisting}[language=SQL]
+-- 選擇點讚（Rating = 5）
 Insert Into REVIEW (Transaction_id, Reviewer_id, Reviewee_id, 
                    Rating, Comment, Created_at)
 Values (4001, 2001, 1001, 5, '交易順利，商品狀況良好', 
         '2024-11-06 10:00:00');
+
+-- 選擇倒讚（Rating = 1）
+Insert Into REVIEW (Transaction_id, Reviewer_id, Reviewee_id, 
+                   Rating, Comment, Created_at)
+Values (4001, 2001, 1001, 1, '商品與描述不符', 
+        '2024-11-06 10:00:00');
+
+-- 不做評價：不執行任何 INSERT 操作
 \end{lstlisting}
 
 Listing 10: 新增評價 SQL 指令
@@ -713,6 +820,29 @@ Order By r.Created_at Desc;
 \end{lstlisting}
 
 Listing 11: 查詢商品評價 SQL 指令
+
+\subsubsection{計算好評率（Calculate Positive Rate）}
+
+若要實現此功能，假設情境為「計算使用者代號 User\_id '1001' 的好評率。」則對應的 SQL 指令如下，系統會計算該使用者的好評率（按讚數 / (按讚數 + 倒讚數) * 100\%），不做評價的交易不計入。
+
+\begin{lstlisting}[language=SQL]
+SELECT 
+    COUNT(CASE WHEN rating = 5 THEN 1 END) as positive_reviews,
+    COUNT(CASE WHEN rating = 1 THEN 1 END) as negative_reviews,
+    CASE 
+        WHEN COUNT(CASE WHEN rating IN (1, 5) THEN 1 END) > 0 
+        THEN ROUND(
+            COUNT(CASE WHEN rating = 5 THEN 1 END)::NUMERIC / 
+            COUNT(CASE WHEN rating IN (1, 5) THEN 1 END)::NUMERIC * 100, 
+            1
+        )
+        ELSE 0 
+    END as positive_rate
+FROM review
+WHERE reviewee_id = 1001;
+\end{lstlisting}
+
+Listing 11a: 計算好評率 SQL 指令
 
 \subsubsection{發送訊息（Send Message）}
 
@@ -755,19 +885,23 @@ Values (2001, 5002, NULL, 'Scam', '商品描述與實際不符',
 
 Listing 14: 提出檢舉 SQL 指令
 
-\subsubsection{查詢課程（Query Products by Category）}
+\subsubsection{查詢商品（Query Products by Category）}
 
-若要實現此功能，假設情境為「某使用者想透過兩個條件，商品分類 Category\_name 為 'Textbooks' 或商品名稱 Product\_name 內有 '微積分' 來查詢商品。」則對應的 SQL 指令如下，系統會執行該查詢，並回傳符合這些條件的商品資訊。
+若要實現此功能，假設情境為「某使用者想透過兩個條件，商品分類 Category\_name 為 'Textbooks' 或商品名稱 Product\_name 內有 '微積分' 來查詢商品。」則對應的 SQL 指令如下，系統會執行該查詢，並回傳符合這些條件的商品資訊。系統會自動過濾已刪除用戶的商品，並將搜尋行為記錄到 MongoDB。
 
 \begin{lstlisting}[language=SQL]
 Select p.*, c.Category_name
 From PRODUCT As p
 Join CATEGORY As c On p.Category_id = c.Category_id
-Where c.Category_name = 'Textbooks'
-Or p.Product_name Like '%微積分%';
+Join "user" As u On p.Owner_id = u.User_id
+Where (c.Category_name = 'Textbooks'
+   Or p.Product_name Like '%微積分%')
+  And u.Deleted_at IS NULL;  -- 過濾已刪除用戶的商品
 \end{lstlisting}
 
 Listing 15: 查詢商品 SQL 指令
+
+\textbf{搜尋紀錄：}當使用者執行搜尋時，系統會自動將搜尋行為記錄到 MongoDB 的 search\_logs collection，包括用戶 ID（如果已登入）、搜尋關鍵字、篩選條件、結果數量與時間戳。
 
 \subsection{管理員功能（Functions for Admin）}
 
@@ -1003,6 +1137,9 @@ Listing 32: 建立交易紀錄索引
 -- 額外建立索引以優化其他查詢場景
 Create Index idx_user_email On "user" (Email);
 Create Index idx_user_student_id On "user" (Student_id);
+
+-- 優化軟刪除查詢（過濾已刪除帳號）
+Create Index idx_user_deleted_at On "user" (Deleted_at);
 \end{lstlisting}
 
 Listing 33: 建立使用者索引
@@ -1084,6 +1221,111 @@ Alter Table PRODUCT Alter Column Image_url Type TEXT;
 
 Listing 37: 優化商品描述與圖片欄位類型
 
+\subsection{軟刪除功能實作}
+
+本系統實作軟刪除機制，當使用者刪除帳號時，系統不會真正刪除資料，而是設置 Deleted\_at 時間戳，保留所有歷史資料。
+
+\paragraph{添加 Deleted\_at 欄位}
+\begin{lstlisting}[language=SQL]
+-- 添加 deleted_at 欄位到 user 表
+ALTER TABLE "user" 
+ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP DEFAULT NULL;
+
+-- 添加索引以優化查詢
+CREATE INDEX IF NOT EXISTS idx_user_deleted_at ON "user"(deleted_at);
+
+-- 添加註釋
+COMMENT ON COLUMN "user".deleted_at IS '帳號刪除時間，NULL 表示未刪除';
+\end{lstlisting}
+
+Listing 38: 添加軟刪除欄位
+
+\paragraph{軟刪除帳號}
+\begin{lstlisting}[language=SQL]
+-- 軟刪除帳號：設置 deleted_at 並下架所有商品
+BEGIN TRANSACTION;
+
+-- 1. 設置 deleted_at 時間戳
+UPDATE "user" 
+SET deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+WHERE user_id = 1001;
+
+-- 2. 下架該用戶的所有商品（將狀態改為 removed）
+UPDATE product 
+SET status = 'removed', updated_at = CURRENT_TIMESTAMP
+WHERE owner_id = 1001 AND status IN ('available', 'reserved');
+
+COMMIT;
+\end{lstlisting}
+
+Listing 39: 軟刪除帳號 SQL 指令
+
+\paragraph{查詢時過濾已刪除帳號}
+\begin{lstlisting}[language=SQL]
+-- 查詢商品時過濾已刪除用戶的商品
+SELECT p.*, u.user_name, c.category_name
+FROM product p
+JOIN "user" u ON p.owner_id = u.user_id
+JOIN category c ON p.category_id = c.category_id
+WHERE p.status = 'available' AND u.deleted_at IS NULL;
+
+-- 登入時檢查帳號是否已刪除
+SELECT user_id, user_name, email, password, status, student_id, deleted_at
+FROM "user"
+WHERE email = 'user@example.com' AND deleted_at IS NULL;
+\end{lstlisting}
+
+Listing 40: 過濾已刪除帳號 SQL 指令
+
+\subsection{MongoDB 搜尋紀錄功能}
+
+本系統使用 MongoDB 記錄所有商品搜尋行為，用於分析使用者搜尋模式與推薦系統。
+
+\paragraph{搜尋紀錄 Collection 結構}
+MongoDB 的 search\_logs collection 包含以下欄位：
+\begin{itemize}
+    \item \texttt{user\_id}: 使用者代號（如果已登入，否則為 NULL）
+    \item \texttt{search\_keywords}: 搜尋關鍵字
+    \item \texttt{filters}: 篩選條件（JSON 格式，包含 category\_id、trade\_option、status 等）
+    \item \texttt{result\_count}: 搜尋結果數量
+    \item \texttt{timestamp}: 搜尋時間戳
+\end{itemize}
+
+\paragraph{建立搜尋紀錄索引}
+\begin{lstlisting}[language=JavaScript]
+// MongoDB 索引建立
+db.search_logs.createIndex({ "user_id": 1, "timestamp": -1 });
+db.search_logs.createIndex({ "search_keywords": "text" });  // 全文搜尋索引
+\end{lstlisting}
+
+Listing 41: MongoDB 搜尋紀錄索引
+
+\paragraph{記錄搜尋行為}
+當使用者搜尋商品時，系統會自動記錄到 MongoDB：
+
+\begin{lstlisting}[language=Python]
+# Python 範例：記錄搜尋行為
+from models.mongodb_models import SearchLog
+
+# 記錄搜尋（用戶已登入）
+SearchLog.log_search(
+    user_id=1001,
+    keywords="iPhone",
+    filters={"category_id": "1", "trade_option": "sale"},
+    result_count=5
+)
+
+# 記錄搜尋（用戶未登入）
+SearchLog.log_search(
+    user_id=None,
+    keywords="筆記本",
+    filters={"category_id": "4"},
+    result_count=12
+)
+\end{lstlisting}
+
+Listing 42: 記錄搜尋行為範例
+
 \newpage
 
 \section{交易管理（Transaction Management）}
@@ -1134,15 +1376,51 @@ Listing 37: 優化商品描述與圖片欄位類型
 
 \subsubsection{實作細節}
 
-此功能使用 Python 的 \texttt{threading} 套件實作。具體而言，在 \texttt{./DB\_util.py} 中的 \texttt{create\_trade\_request} 函數內：
+此功能使用 Python 的 \texttt{threading} 套件與 PostgreSQL 的 \texttt{SELECT FOR UPDATE} 語句實作。具體而言，在 \texttt{./api/routes/trade\_requests.py} 中的 \texttt{create\_trade\_request} 函數內：
 
 \begin{enumerate}
-    \item 使用 \texttt{lock.acquire()} 取得鎖定。
-    \item 系統接著檢查該商品的目標請求狀態是否已被其他使用者提出請求。
-    \item 若該商品\emph{未被請求}，則將新的請求記錄新增至資料庫，並使用 \texttt{lock.release()} 釋放鎖定，允許其他連線使用此函數。
-    \item 若該商品\emph{已被請求}，則釋放鎖定，並回傳「請求失敗」訊息。
+    \item 使用 \texttt{threading.Lock} 的 \texttt{acquire()} 方法取得應用層鎖定。
+    \item 使用 \texttt{SELECT FOR UPDATE} 鎖定商品行，防止其他交易同時修改該商品狀態。
+    \item 檢查該商品是否已有待處理的請求（Status IN ('Pending', 'Accepted')），使用 \texttt{SELECT FOR UPDATE} 鎖定相關請求行。
+    \item 再次檢查商品狀態（使用 \texttt{SELECT FOR UPDATE}），確保商品仍為 'available'。
+    \item 若該商品\emph{未被請求且狀態為 'available'}，則：
+    \begin{itemize}
+        \item 將新的請求記錄新增至 TRADE\_REQUEST 表
+        \item 立即將目標商品狀態更新為 'reserved'，防止其他使用者同時提出請求
+        \item 如果是交換請求，也將交換商品狀態更新為 'reserved'
+    \end{itemize}
+    \item 使用 \texttt{lock.release()} 釋放應用層鎖定，允許其他連線使用此函數。
+    \item 若該商品\emph{已被請求或狀態不可用}，則釋放鎖定，並回傳「請求失敗」訊息。
 \end{enumerate}
 
-此實作確保了在併發環境下，同一商品不會被多個使用者同時成功提出請求，從而維護了資料的一致性和系統的正確性。
+\textbf{關鍵 SQL 指令範例：}
+
+\begin{lstlisting}[language=SQL]
+-- 檢查並鎖定待處理的請求
+SELECT request_id, status
+FROM trade_request
+WHERE target_product_id = %s
+  AND status IN ('Pending', 'Accepted')
+FOR UPDATE;
+
+-- 檢查並鎖定商品狀態
+SELECT status
+FROM product
+WHERE product_id = %s
+FOR UPDATE;
+
+-- 建立請求並立即更新商品狀態為 reserved
+INSERT INTO trade_request 
+(requester_id, target_product_id, offered_product_id, 
+ request_type, offer_price, message)
+VALUES (%s, %s, %s, %s, %s, %s)
+RETURNING request_id;
+
+UPDATE product
+SET status = 'reserved', updated_at = CURRENT_TIMESTAMP
+WHERE product_id = %s;
+\end{lstlisting}
+
+此實作結合了應用層鎖定（threading.Lock）與資料庫層鎖定（SELECT FOR UPDATE），確保在併發環境下，同一商品不會被多個使用者同時成功提出請求，從而維護了資料的一致性和系統的正確性。
 
 \end{document}

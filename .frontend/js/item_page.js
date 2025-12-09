@@ -170,7 +170,7 @@ function populateItemPage() {
 
     if (sellerNameEl) sellerNameEl.textContent = currentItem.seller.name;
     if (sellerCountEl) sellerCountEl.textContent = `(${currentItem.seller.deals || 0})`;
-    if (sellerRatingTextEl) sellerRatingTextEl.textContent = currentItem.seller.ratingText || '無評價';
+    if (sellerRatingTextEl) sellerRatingTextEl.innerHTML = currentItem.seller.ratingText || '無評價';
 
     if (sellerAvatarEl) {
       const avatarSpan = sellerAvatarEl.querySelector('span');
@@ -193,7 +193,7 @@ function populateItemPage() {
         currentItem.seller = {
           name: seller.name,
           rating: 4.8,
-          ratingText: '99.9% 好評',
+          ratingText: '無交易紀錄',
           deals: 0
         };
         const sellerNameEl = document.getElementById('sellerName');
@@ -203,7 +203,7 @@ function populateItemPage() {
 
         if (sellerNameEl) sellerNameEl.textContent = currentItem.seller.name;
         if (sellerCountEl) sellerCountEl.textContent = `(${currentItem.seller.deals || 0})`;
-        if (sellerRatingTextEl) sellerRatingTextEl.textContent = currentItem.seller.ratingText || '無評價';
+        if (sellerRatingTextEl) sellerRatingTextEl.innerHTML = currentItem.seller.ratingText || '無評價';
 
         if (sellerAvatarEl) {
           const avatarSpan = sellerAvatarEl.querySelector('span');
@@ -286,15 +286,24 @@ function populateItemPage() {
 
   // Price
   const actionPrice = document.getElementById('actionPrice');
+  // 只有當商品可以購買（有價格且價格 > 0）時才顯示價格
   if (currentItem.mode && currentItem.mode.purchase && actionPrice) {
-    actionPrice.textContent = `NT$ ${currentItem.price.toLocaleString('zh-TW')}`;
+    const price = currentItem.price;
+    if (price !== null && price !== undefined && Number(price) > 0) {
+      actionPrice.textContent = `NT$ ${Number(price).toLocaleString('zh-TW')}`;
+    } else {
+      // 價格為 0 或 null，不應該顯示購買模式
+      actionPrice.textContent = '僅接受以物易物';
+    }
   }
 
   // Mode badges
   const badgesContainer = document.getElementById('tradeModeBadges');
   if (badgesContainer) {
     badgesContainer.innerHTML = '';
-    if (currentItem.mode && currentItem.mode.purchase) {
+    // 只有當價格 > 0 時才顯示「販售中」標籤
+    const hasValidPrice = currentItem.price !== null && currentItem.price !== undefined && Number(currentItem.price) > 0;
+    if (currentItem.mode && currentItem.mode.purchase && hasValidPrice) {
       const badge = document.createElement('span');
       badge.className = 'badge mode-sale';
       badge.textContent = '販售中';
@@ -408,8 +417,19 @@ function populateItemPage() {
 
   // Update trade modal requirement text
   const tradeReqText = document.getElementById('tradeRequirementText');
-  if (tradeReqText && currentItem.mode.tradeSummary) {
-    tradeReqText.textContent = currentItem.mode.tradeSummary;
+  if (tradeReqText) {
+    // 優先使用 tradeTargetNote，其次使用 mode.tradeSummary
+    const requirementText = currentItem.tradeTargetNote || 
+                           (currentItem.mode && currentItem.mode.tradeSummary) || 
+                           '';
+    
+    if (requirementText) {
+      tradeReqText.textContent = requirementText;
+    } else if (currentItem.modes && currentItem.modes.tradeOpen) {
+      tradeReqText.textContent = '賣家開放任何交換提案。';
+    } else if (currentItem.modes && currentItem.modes.tradeTarget) {
+      tradeReqText.textContent = '賣家未指定交換需求。';
+    }
   }
 
   // Update chat modal seller info
@@ -422,10 +442,19 @@ function populateItemPage() {
   renderItemStatusUI();
 
   // Apply listing mode
-  let listingMode = 'purchase_and_trade';
-  if (!currentItem.mode.purchase && currentItem.mode.trade && !currentItem.mode.wish) {
+  // 判斷商品模式：如果價格為 0 或 null，不能購買
+  const hasValidPrice = currentItem.price !== null && currentItem.price !== undefined && Number(currentItem.price) > 0;
+  const canPurchase = currentItem.mode && currentItem.mode.purchase && hasValidPrice;
+  const canTrade = currentItem.mode && currentItem.mode.trade;
+  
+  let listingMode = 'trade_only';
+  if (canPurchase && canTrade) {
+    listingMode = 'purchase_and_trade';
+  } else if (canPurchase && !canTrade) {
+    listingMode = 'purchase_only';
+  } else if (!canPurchase && canTrade && !currentItem.mode.wish) {
     listingMode = 'trade_only';
-  } else if (!currentItem.mode.purchase && currentItem.mode.wish) {
+  } else if (!canPurchase && currentItem.mode.wish) {
     listingMode = 'wish_only';
   }
 
@@ -459,7 +488,7 @@ function populateItemPage() {
             </button>
           </div>
         </div>
-        <div class="action-price">NT$ ${currentItem.price.toLocaleString('zh-TW')}</div>
+        <div class="action-price">NT$ ${(currentItem.price !== null && currentItem.price !== undefined && Number(currentItem.price) > 0 ? Number(currentItem.price) : 0).toLocaleString('zh-TW')}</div>
       `;
       actionPriceBlock.style.display = 'block';
       attachPurchaseMenuListeners();
@@ -798,8 +827,19 @@ function handlePurchase() {
     return;
   }
 
+  // 檢查商品是否已被預約
+  if (currentItem.status === 'reserved') {
+    // 檢查是否為預約的買家
+    const activeTx = getActiveTransaction(currentItem.id || currentItem.product_id);
+    const isBuyer = activeTx && String(activeTx.buyerId) === String(currentUser.id);
+    if (!isBuyer) {
+      alert('此商品已被其他買家預約，無法再提出新的購買請求。');
+      return;
+    }
+  }
+
   const quantity = parseInt(document.getElementById('qty').value) || 1;
-  const price = currentItem.price || 0;
+  const price = currentItem.price !== null && currentItem.price !== undefined ? Number(currentItem.price) : 0;
   const total = price * quantity;
   const itemTitle = currentItem.title;
 
@@ -874,43 +914,52 @@ function closePurchaseModal() {
   if (modal) modal.remove();
 }
 
-function confirmPurchase() {
+async function confirmPurchase() {
   const quantity = parseInt(document.getElementById('purchaseQuantity').value);
   const note = document.getElementById('purchaseNote').value.trim();
   const currentUser = getCurrentUserCompat();
 
   if (!currentUser || !currentItem || !currentItem.sellerId) return;
 
-  createRequest({
-    itemId: currentItem.id,
-    sellerId: currentItem.sellerId,
-    buyerId: currentUser.id,
-    type: 'purchase',
-    quantity: quantity,
-    note: note || undefined
-  });
-
-  if (note) {
-    createMessage({
-      itemId: currentItem.id,
-      senderId: currentUser.id,
-      receiverId: currentItem.sellerId,
-      text: note
-    });
+  // 再次檢查商品狀態（防止在填寫表單時被其他使用者預約）
+  if (currentItem.status === 'reserved') {
+    const activeTx = getActiveTransaction(currentItem.id || currentItem.product_id);
+    const isBuyer = activeTx && String(activeTx.buyerId) === String(currentUser.id);
+    if (!isBuyer) {
+      alert('此商品已被其他買家預約，無法再提出新的購買請求。');
+      closePurchaseModal();
+      return;
+    }
   }
 
-  closePurchaseModal();
+  const productId = parseInt(currentItem.id || currentItem.product_id);
+  const itemPrice = currentItem.price !== null && currentItem.price !== undefined ? Number(currentItem.price) : 0;
+  const totalPrice = itemPrice * quantity;
 
-  const currentItemId = getCurrentItemId();
-  if (currentItemId) {
-    setPendingTransaction(currentItemId, 'buy');
+  try {
+    // 使用 API 建立交易請求
+    const requestData = {
+      target_product_id: productId,
+      request_type: 'Purchase',
+      offer_price: totalPrice,
+      message: note || undefined
+    };
+
+    const result = await api.createTradeRequest(requestData);
+    console.log('購買請求建立成功:', result);
+
+    closePurchaseModal();
+    alert('購買請求已送出！賣家將收到通知。\n賣家接受前，你可以取消這筆交易請求。');
+    
+    // 重新載入頁面以更新商品狀態
+    window.location.reload();
+  } catch (error) {
+    console.error('購買請求失敗:', error);
+    alert('購買請求失敗: ' + (error.message || '未知錯誤'));
   }
-
-  alert('購買請求已送出！賣家將收到通知。\n賣家接受前，你可以取消這筆交易請求。');
-  updateActionButtonsState();
 }
 
-function handleTrade() {
+async function handleTrade() {
   const currentUser = getCurrentUserCompat();
   if (!currentUser) {
     if (confirm('請先登入才能提出交換請求，是否前往登入頁面？')) {
@@ -929,44 +978,75 @@ function handleTrade() {
     return;
   }
 
-  const userItems = getItemsBySeller(currentUser.id).filter(i => i.isActive);
-
-  const tradeRequirementText = document.getElementById('tradeRequirementText');
-  const itemsGrid = document.querySelector('.items-grid');
-
-  if (currentItem.modes && currentItem.modes.tradeTarget && currentItem.tradeTargetNote) {
-    if (tradeRequirementText) {
-      tradeRequirementText.textContent = currentItem.tradeTargetNote;
-    }
-  } else if (currentItem.modes && currentItem.modes.tradeOpen) {
-    if (tradeRequirementText) {
-      tradeRequirementText.textContent = '賣家開放任何交換提案。';
+  // 檢查商品是否已被預約
+  if (currentItem.status === 'reserved') {
+    // 檢查是否為預約的買家
+    const activeTx = getActiveTransaction(currentItem.id || currentItem.product_id);
+    const isBuyer = activeTx && String(activeTx.buyerId) === String(currentUser.id);
+    if (!isBuyer) {
+      alert('此商品已被其他買家預約，無法再提出新的交換請求。');
+      return;
     }
   }
 
+  // 從 API 獲取用戶的商品列表
+  const tradeRequirementText = document.getElementById('tradeRequirementText');
+  const itemsGrid = document.querySelector('.items-grid');
+  
   if (itemsGrid) {
-    itemsGrid.innerHTML = '';
-    if (userItems.length === 0) {
-      itemsGrid.innerHTML = '<p style="color: #6b7280; padding: 20px; text-align: center;">你目前沒有可交換的商品。請先刊登商品。</p>';
-    } else {
-      userItems.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'trade-item-card item-card';
-        card.dataset.itemId = item.id;
-        card.onclick = () => selectTradeItem(card);
-            const thumbImg = document.createElement('img');
-            thumbImg.src = getProductImageUrl(item);
-            thumbImg.alt = item.title;
-            attachImageFallback(thumbImg);
-            
-            const titleDiv = document.createElement('div');
-            titleDiv.className = 'item-card-title';
-            titleDiv.textContent = item.title;
-            
-            card.appendChild(thumbImg);
-            card.appendChild(titleDiv);
-            itemsGrid.appendChild(card);
-      });
+    itemsGrid.innerHTML = '<p style="color: #6b7280; padding: 20px; text-align: center;">載入中...</p>';
+  }
+
+  // 更新賣家需求顯示
+  if (tradeRequirementText) {
+    // 優先使用 tradeTargetNote，其次使用 mode.tradeSummary
+    const requirementText = currentItem.tradeTargetNote || 
+                           (currentItem.mode && currentItem.mode.tradeSummary) || 
+                           '';
+    
+    if (requirementText) {
+      tradeRequirementText.textContent = requirementText;
+    } else if (currentItem.modes && currentItem.modes.tradeOpen) {
+      tradeRequirementText.textContent = '賣家開放任何交換提案。';
+    } else if (currentItem.modes && currentItem.modes.tradeTarget) {
+      tradeRequirementText.textContent = '賣家未指定交換需求。';
+    }
+  }
+
+  // 從 API 獲取用戶的商品
+  try {
+    const userProducts = await api.getProducts({ owner_id: currentUser.id, status: 'available' });
+    
+    if (itemsGrid) {
+      itemsGrid.innerHTML = '';
+      if (!userProducts || userProducts.length === 0) {
+        itemsGrid.innerHTML = '<p style="color: #6b7280; padding: 20px; text-align: center;">你目前沒有可交換的商品。請先刊登商品。</p>';
+      } else {
+        userProducts.forEach(product => {
+          const card = document.createElement('div');
+          card.className = 'trade-item-card item-card';
+          card.dataset.itemId = product.product_id;
+          card.onclick = () => selectTradeItem(card);
+          
+          const thumbImg = document.createElement('img');
+          thumbImg.src = getProductImageUrl(product);
+          thumbImg.alt = product.product_name;
+          attachImageFallback(thumbImg);
+          
+          const titleDiv = document.createElement('div');
+          titleDiv.className = 'item-card-title';
+          titleDiv.textContent = product.product_name;
+          
+          card.appendChild(thumbImg);
+          card.appendChild(titleDiv);
+          itemsGrid.appendChild(card);
+        });
+      }
+    }
+  } catch (error) {
+    console.error('載入商品列表失敗:', error);
+    if (itemsGrid) {
+      itemsGrid.innerHTML = '<p style="color: #dc2626; padding: 20px; text-align: center;">載入商品列表失敗，請重新載入頁面。</p>';
     }
   }
 
@@ -1014,7 +1094,7 @@ function updateSubmitButtonState() {
   }
 }
 
-function handleSubmitTrade() {
+async function handleSubmitTrade() {
   if (!selectedItemId) {
     return;
   }
@@ -1022,41 +1102,44 @@ function handleSubmitTrade() {
   const currentUser = getCurrentUserCompat();
   if (!currentUser || !currentItem) return;
 
+  // 再次檢查商品狀態（防止在選擇商品時被其他使用者預約）
+  if (currentItem.status === 'reserved') {
+    const activeTx = getActiveTransaction(currentItem.id || currentItem.product_id);
+    const isBuyer = activeTx && String(activeTx.buyerId) === String(currentUser.id);
+    if (!isBuyer) {
+      alert('此商品已被其他買家預約，無法再提出新的交換請求。');
+      closeTradeModal();
+      return;
+    }
+  }
+
   const messageTextarea = document.getElementById('trade-message');
   const note = messageTextarea ? messageTextarea.value.trim() : '';
 
-  let requestType = 'trade-open';
-  if (currentItem.modes && currentItem.modes.tradeTarget) {
-    requestType = 'trade-target';
+  const productId = parseInt(currentItem.id || currentItem.product_id);
+  const offeredProductId = parseInt(selectedItemId);
+
+  try {
+    // 使用 API 建立交易請求
+    const requestData = {
+      target_product_id: productId,
+      request_type: 'Trade',
+      offered_product_id: offeredProductId,
+      message: note || undefined
+    };
+
+    const result = await api.createTradeRequest(requestData);
+    console.log('交換請求建立成功:', result);
+
+    closeTradeModal();
+    alert('交換提案已送出！賣家將收到通知。\n賣家接受前，你可以取消這筆交易請求。');
+    
+    // 重新載入頁面以更新商品狀態
+    window.location.reload();
+  } catch (error) {
+    console.error('交換請求失敗:', error);
+    alert('交換請求失敗: ' + (error.message || '未知錯誤'));
   }
-
-  createRequest({
-    itemId: currentItem.id,
-    sellerId: currentItem.sellerId,
-    buyerId: currentUser.id,
-    type: requestType,
-    quantity: 1,
-    offeredItemId: selectedItemId,
-    note: note || undefined
-  });
-
-  if (note) {
-    createMessage({
-      itemId: currentItem.id,
-      senderId: currentUser.id,
-      receiverId: currentItem.sellerId,
-      text: note
-    });
-  }
-
-  const currentItemId = getCurrentItemId();
-  if (currentItemId) {
-    setPendingTransaction(currentItemId, 'trade');
-  }
-
-  alert('交換提案已送出！賣家將收到通知。\n賣家接受前，你可以取消這筆交易請求。');
-  closeTradeModal();
-  updateActionButtonsState();
 }
 
 function handleOpenChat() {
@@ -1211,9 +1294,110 @@ function handleHeaderSearch() {
   window.location.href = 'item_list.html?' + params.toString();
 }
 
+// 檢舉商品功能
+function openReportModal() {
+  if (!currentItem) {
+    alert('無法取得商品資訊');
+    return;
+  }
+  
+  // 檢查是否登入
+  const userId = api ? api.getUserId() : (getCurrentUserId ? getCurrentUserId() : null);
+  if (!userId) {
+    alert('請先登入才能提出檢舉');
+    window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+    return;
+  }
+  
+  // 重置表單
+  document.getElementById('report-type').value = '';
+  document.getElementById('report-description').value = '';
+  
+  // 顯示模態框
+  const modal = document.getElementById('report-modal');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+}
+
+function closeReportModal() {
+  const modal = document.getElementById('report-modal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+async function handleSubmitReport() {
+  const reportType = document.getElementById('report-type').value;
+  const description = document.getElementById('report-description').value.trim();
+  
+  // 驗證
+  if (!reportType) {
+    alert('請選擇檢舉類型');
+    return;
+  }
+  
+  if (!description || description.length < 10) {
+    alert('請詳細描述檢舉原因（至少 10 個字）');
+    return;
+  }
+  
+  if (!currentItem) {
+    alert('無法取得商品資訊');
+    return;
+  }
+  
+  // 取得商品 ID
+  const productId = parseInt(currentItem.id || currentItem.product_id);
+  if (!productId) {
+    alert('無法取得商品 ID');
+    return;
+  }
+  
+  // 禁用按鈕防止重複提交
+  const submitBtn = document.getElementById('btnSubmitReport');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = '提交中...';
+  }
+  
+  try {
+    const reportData = {
+      reported_product_id: productId,
+      reported_user_id: null, // 檢舉商品，不檢舉使用者
+      report_type: reportType,
+      description: description
+    };
+    
+    console.log('提交檢舉:', reportData);
+    const result = await api.createReport(reportData);
+    
+    alert('檢舉已提交，我們會儘快處理，謝謝你的協助。');
+    console.log('檢舉成功:', result);
+    
+    // 關閉模態框
+    closeReportModal();
+  } catch (error) {
+    console.error('檢舉失敗:', error);
+    alert('檢舉提交失敗: ' + (error.message || '未知錯誤'));
+    
+    // 恢復按鈕
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '提交檢舉';
+    }
+  }
+}
+
+// 保留舊函數名稱以向後兼容
+async function handleReportItem() {
+  openReportModal();
+}
+
 function attachPurchaseMenuListeners() {
   const moreBtn = document.getElementById('purchaseMoreBtn');
   const moreMenu = document.getElementById('purchaseMoreMenu');
+  // 檢舉功能
   const reportBtn = document.getElementById('reportItemBtn');
 
   if (moreBtn && moreMenu) {
@@ -1232,7 +1416,7 @@ function attachPurchaseMenuListeners() {
 
     newReportBtn.addEventListener('click', function () {
       moreMenu.hidden = true;
-      alert('已收到你的檢舉，我們會儘快處理，謝謝你的協助。');
+      openReportModal();
     });
   }
 }
@@ -1252,25 +1436,58 @@ async function renderItemPage() {
     try {
       const productData = await api.getProduct(id);
       // 轉換 API 格式到前端格式
+      
+      // 構建賣家統計文字
+      const sellerStats = productData.seller_stats || { 
+        successful_transactions: 0, 
+        total_reports: 0,
+        positive_rate: 0
+      };
+      const transactionCount = sellerStats.successful_transactions || 0;
+      const reportCount = sellerStats.total_reports || 0;
+      const positiveRate = sellerStats.positive_rate || 0;
+      
+      let ratingText = '';
+      if (transactionCount > 0 || reportCount > 0) {
+        const parts = [];
+        if (transactionCount > 0) {
+          parts.push(`${transactionCount}交易`);
+        }
+        if (reportCount > 0) {
+          parts.push(`${reportCount}被檢舉`);
+        }
+        ratingText = parts.join(' ');
+        
+        // 如果有評價，添加好評率
+        if (sellerStats.total_reviews > 0) {
+          ratingText += `<br>${positiveRate}%好評`;
+        }
+      } else {
+        ratingText = '無交易紀錄';
+      }
+      
       item = {
         id: productData.product_id,
         title: productData.product_name,
         category: productData.category_name,
-        price: productData.price,
+        price: (productData.price !== null && productData.price !== undefined) ? Number(productData.price) : 0,
         condition: productData.condition,
         description: productData.description,
-        images: productData.image_url ? [productData.image_url] : [],
+        images: (productData.image_url && productData.image_url.trim() !== '') ? [productData.image_url] : [],
         sellerId: productData.owner_id,
         seller: {
           name: productData.owner_name,
           email: productData.owner_email,
           phone: productData.owner_phone,
           rating: 4.8,
-          ratingText: '99.9% 好評',
-          deals: 0
+          ratingText: ratingText,
+          deals: transactionCount,
+          successful_transactions: transactionCount,
+          total_reports: reportCount
         },
         modes: {
-          sale: productData.trade_option === 'sale' || productData.trade_option === 'both',
+          // 如果價格為 0 或 null，不能購買，只能以物易物
+          sale: (productData.price && productData.price > 0) && (productData.trade_option === 'sale' || productData.trade_option === 'both'),
           tradeTarget: productData.trade_option === 'trade' || productData.trade_option === 'both',
           tradeOpen: false
         },
@@ -1317,15 +1534,17 @@ async function renderItemPage() {
     currentItem.views = (currentItem.views || 0) + 1;
   }
 
-  // Get seller info
+  // Get seller info (如果 API 沒有提供統計數據，使用預設值)
   if (!currentItem.seller && currentItem.sellerId) {
     const seller = getUsers().find(u => u.id === currentItem.sellerId);
     if (seller) {
       currentItem.seller = {
         name: seller.name,
         rating: 4.8,
-        ratingText: '99.9% 好評',
-        deals: 0
+        ratingText: '無交易紀錄',
+        deals: 0,
+        successful_transactions: 0,
+        total_reports: 0
       };
     }
   }
@@ -1334,9 +1553,27 @@ async function renderItemPage() {
     currentItem.seller = {
       name: 'Unknown',
       rating: 0,
-      ratingText: '無評價',
-      deals: 0
+      ratingText: '無交易紀錄',
+      deals: 0,
+      successful_transactions: 0,
+      resolved_reports: 0
     };
+  }
+  
+  // 如果 seller 沒有統計數據，確保有預設值
+  if (currentItem.seller && currentItem.seller.ratingText === '無交易紀錄') {
+    const transactionCount = currentItem.seller.successful_transactions || 0;
+    const reportCount = currentItem.seller.total_reports || 0;
+    if (transactionCount > 0 || reportCount > 0) {
+      const parts = [];
+      if (transactionCount > 0) {
+        parts.push(`${transactionCount}交易`);
+      }
+      if (reportCount > 0) {
+        parts.push(`${reportCount}被檢舉`);
+      }
+      currentItem.seller.ratingText = parts.join(' ');
+    }
   }
 
   // Track recently viewed items
@@ -1955,7 +2192,7 @@ function saveItemChanges() {
         currentItem.seller = {
           name: seller.name,
           rating: 4.8,
-          ratingText: '99.9% 好評',
+          ratingText: '無交易紀錄',
           deals: 0
         };
       }
@@ -2110,6 +2347,10 @@ window.handleCancelTransaction = handleCancelTransaction;
 window.handleConfirmHandoff = handleConfirmHandoff;
 window.closeReviewModal = closeReviewModal;
 window.handleSubmitReview = handleSubmitReview;
+window.handleReportItem = handleReportItem;
+window.openReportModal = openReportModal;
+window.closeReportModal = closeReportModal;
+window.handleSubmitReport = handleSubmitReport;
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', function () {
